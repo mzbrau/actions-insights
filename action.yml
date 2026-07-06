@@ -1,0 +1,81 @@
+name: Actions Insights Test Report
+description: TeamCity-style test reports for GitHub Actions — parse TRX, JUnit, NUnit, xUnit and publish beautiful HTML reports to GitHub Pages.
+author: mzbrau
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  test-results:
+    description: Glob pattern for test result files
+    required: false
+    default: '**/*.{trx,xml}'
+  pages-subdirectory:
+    description: Subdirectory under GitHub Pages for test reports
+    required: false
+    default: test-reports
+  publish-pages:
+    description: Whether to publish to GitHub Pages
+    required: false
+    default: 'true'
+  pages-mode:
+    description: 'Deployment mode: artifact (modern Pages API), gh-pages (branch), or none'
+    required: false
+    default: artifact
+  comment-pr:
+    description: Post or update a PR comment with report summary
+    required: false
+    default: 'true'
+  history:
+    description: Maximum number of historical run reports to retain per branch/PR
+    required: false
+    default: '20'
+  retain-days:
+    description: Maximum age in days for historical run reports
+    required: false
+    default: '30'
+  report-title:
+    description: Title displayed in the report UI
+    required: false
+    default: Actions Insights
+  report-output:
+    description: Local directory for generated report files
+    required: false
+    default: _report
+  site-output:
+    description: Local directory for merged GitHub Pages site
+    required: false
+    default: _site
+  theme:
+    description: 'Default theme: light, dark, or auto'
+    required: false
+    default: auto
+  slow-test-threshold-ms:
+    description: Duration threshold in ms for marking tests as slow
+    required: false
+    default: '1000'
+  seed-from-gh-pages:
+    description: Bootstrap site cache from existing gh-pages branch on first run
+    required: false
+    default: 'false'
+  github-token:
+    description: GitHub token for API calls
+    required: false
+    default: ${{ github.token }}
+outputs:
+  report-url:
+    description: URL to the latest test report
+  page-url:
+    description: URL to the GitHub Pages site root
+  status:
+    description: Overall test status (passed or failed)
+  total:
+    description: Total number of tests
+  passed:
+    description: Number of passed tests
+  failed:
+    description: Number of failed tests
+  skipped:
+    description: Number of skipped tests
+runs:
+  using: node20
+  main: dist/index.js

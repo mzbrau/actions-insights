@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Failed" total="2" passed="1" failed="1" skipped="0" time="1.5" start-time="2026-01-01 12:00:00Z" end-time="2026-01-01 12:00:01Z">
+  <test-suite type="Assembly" name="MyTests.dll" result="Failed">
+    <test-suite type="TestFixture" name="MyTests" result="Failed">
+      <test-case id="1" name="PassingTest" fullname="MyTests.PassingTest" methodname="PassingTest" result="Passed" duration="0.100000" />
+      <test-case id="2" name="FailingTest" fullname="MyTests.FailingTest" methodname="FailingTest" result="Failed" duration="0.200000">
+        <failure>
+          <message>Assert failed</message>
+          <stack-trace>at MyTests.FailingTest()</stack-trace>
+        </failure>
+      </test-case>
+    </test-suite>
+  </test-suite>
+</test-run>

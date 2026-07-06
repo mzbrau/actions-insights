@@ -1,0 +1,9 @@
+node_modules/
+lib/
+_report/
+_site/
+*.log
+.DS_Store
+coverage/
+licenses.txt
+*.tsbuildinfo

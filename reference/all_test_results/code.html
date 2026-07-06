@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>All Tests - ActionsInsight</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#351000",
+                        "on-primary-fixed": "#001a41",
+                        "primary-fixed": "#d8e2ff",
+                        "inverse-surface": "#29313a",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#5f6369",
+                        "outline": "#727785",
+                        "surface-container-low": "#edf4ff",
+                        "tertiary-container": "#b84b00",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e0e2e9",
+                        "on-secondary-fixed": "#181c21",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-container": "#ecefff",
+                        "on-surface-variant": "#424753",
+                        "surface-tint": "#005bc0",
+                        "surface-container-high": "#e0e9f5",
+                        "surface-bright": "#f7f9ff",
+                        "surface-dim": "#d2dbe6",
+                        "secondary-fixed-dim": "#c3c6cd",
+                        "secondary": "#5b5f64",
+                        "secondary-container": "#dde0e6",
+                        "surface-variant": "#dae3ef",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container": "#e6effa",
+                        "on-secondary-fixed-variant": "#43474d",
+                        "outline-variant": "#c2c6d6",
+                        "on-tertiary-fixed-variant": "#7a2f00",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#dae3ef",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#913900",
+                        "primary-container": "#0969da",
+                        "on-primary-fixed-variant": "#004493",
+                        "primary": "#0051ae",
+                        "on-surface": "#141c25",
+                        "on-background": "#141c25",
+                        "surface": "#f7f9ff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#ffece5",
+                        "background": "#f7f9ff",
+                        "inverse-on-surface": "#e9f2fd",
+                        "tertiary-fixed-dim": "#ffb693",
+                        "inverse-primary": "#adc6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "row-height-sm": "32px",
+                        "row-height-md": "48px",
+                        "container-padding": "24px",
+                        "gutter": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "code-sm": ["JetBrains Mono"],
+                        "code-xs": ["JetBrains Mono"],
+                        "label-caps": ["Inter"],
+                        "display": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code-sm": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "code-xs": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .zebra-table tr:nth-child(even) {
+            background-color: #f7f9ff;
+        }
+        .zebra-table tr:hover {
+            background-color: #e0e9f5 !important;
+            transition: background-color 0.1s ease;
+        }
+        .failed-row {
+            background-color: #fff1f0 !important;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-sm selection:bg-primary-fixed selection:text-on-primary-fixed overflow-hidden flex flex-col h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-container-padding h-row-height-md shrink-0 z-50">
+<div class="flex items-center gap-6">
+<span class="text-headline-md font-headline-md font-bold text-on-surface">ActionsInsight</span>
+<nav class="hidden md:flex items-center gap-6 h-full">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Repositories</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Workflows</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Analytics</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container border-none rounded-lg pl-9 pr-4 py-1.5 text-body-sm w-64 focus:ring-2 focus:ring-primary outline-none" placeholder="Search resources..." type="text"/>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-all cursor-pointer active:opacity-80"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-all cursor-pointer active:opacity-80"><span class="material-symbols-outlined">help</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-all cursor-pointer active:opacity-80"><span class="material-symbols-outlined">settings</span></button>
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center ml-2 border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a software engineer in a clean, brightly lit corporate environment with soft bokeh background of a modern office. The image has high clarity, natural lighting, and a focused, authoritative tone that fits a developer-centric analytics platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT9bIB2giZp_mxzg7bxdcuYC2UCCQKQX4KdZAo29X61PuHbrGRVEUnze-PPx5g_KRyfpZBa5wPTxpwjKLkHmeghR5YuyziXiOaIThh0-q7F63tVRaDld2yWd5ELu93tnjT0-teQ297l-7Er7VJv121oZHgGeijkOeGizAfNh6sG-EOaBTxXDPC0QdopyNhS1DGo8atyefgxh9roKa37SlC9EN8bzm6QExoIHcjnZskuOD3AjviF519"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar (Metadata & Main Nav) -->
+<aside class="bg-surface-container-low border-r border-outline-variant flex flex-col h-full py-4 px-2 w-64 shrink-0 overflow-y-auto">
+<div class="px-3 mb-6">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container rounded flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-primary leading-tight">CI/CD Pipeline</h2>
+<p class="text-on-surface-variant font-label-caps text-[11px]">Build #4829</p>
+</div>
+</div>
+<button class="mt-4 w-full bg-primary text-on-primary py-2 px-4 rounded-lg font-label-caps text-label-caps hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95 duration-100 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+                    Rerun Job
+                </button>
+</div>
+<nav class="space-y-1 flex-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Summary
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">error</span>
+                    Failures
+                    <span class="ml-auto bg-error-container text-on-error-container px-1.5 py-0.5 rounded text-[10px]">12</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary-container text-on-primary-container rounded-lg transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">checklist</span>
+                    All Tests
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">history</span>
+                    History
+                </a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">description</span>
+                    Docs
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">code</span>
+                    Source
+                </a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header & Filter Row -->
+<div class="bg-surface px-container-padding py-6 border-b border-outline-variant shrink-0">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+<div>
+<div class="flex items-center gap-2 text-primary text-label-caps font-label-caps mb-1">
+<a class="hover:underline" href="#">Pipeline Reports</a>
+<span class="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
+<span class="text-on-surface-variant">Build #4829</span>
+</div>
+<h1 class="font-display text-display text-on-surface">All Tests</h1>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant text-body-sm">Total: <span class="font-bold">1,284 tests</span></span>
+<div class="h-4 w-[1px] bg-outline-variant"></div>
+<span class="text-on-error-container bg-error-container px-2 py-0.5 rounded font-bold">12 Failed</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-4">
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-body-sm focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Search tests by name, class, or assembly..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="bg-error-container text-on-error-container border border-error px-3 py-1.5 rounded-lg flex items-center gap-2 font-label-caps text-[11px] hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-[16px]">cancel</span> Failed
+                        </button>
+<button class="bg-surface border border-outline-variant text-on-surface px-3 py-1.5 rounded-lg flex items-center gap-2 font-label-caps text-[11px] hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> Passed
+                        </button>
+<button class="bg-surface border border-outline-variant text-on-surface px-3 py-1.5 rounded-lg flex items-center gap-2 font-label-caps text-[11px] hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[16px]">block</span> Skipped
+                        </button>
+<button class="bg-surface border border-outline-variant text-on-surface px-3 py-1.5 rounded-lg flex items-center gap-2 font-label-caps text-[11px] hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[16px]">schedule</span> Slow
+                        </button>
+</div>
+<button class="ml-auto flex items-center gap-2 text-primary font-label-caps text-label-caps hover:underline">
+<span class="material-symbols-outlined">filter_list</span> Clear Filters
+                    </button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="flex-1 overflow-auto bg-surface-container-lowest">
+<table class="w-full border-collapse zebra-table">
+<thead class="bg-surface sticky top-0 z-10">
+<tr class="text-left border-b border-outline-variant">
+<th class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant cursor-pointer hover:bg-surface-container-high group">
+<div class="flex items-center gap-1">Status <span class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span></div>
+</th>
+<th class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant cursor-pointer hover:bg-surface-container-high group">
+<div class="flex items-center gap-1">Test Name <span class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span></div>
+</th>
+<th class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant cursor-pointer hover:bg-surface-container-high group">
+<div class="flex items-center gap-1">Namespace / Class <span class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span></div>
+</th>
+<th class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant cursor-pointer hover:bg-surface-container-high group">
+<div class="flex items-center gap-1">Duration <span class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span></div>
+</th>
+<th class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant cursor-pointer hover:bg-surface-container-high group">
+<div class="flex items-center gap-1">Assembly <span class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span></div>
+</th>
+</tr>
+</thead>
+<tbody class="text-body-sm divide-y divide-outline-variant/30">
+<!-- Failed Test -->
+<tr class="failed-row">
+<td class="px-6 py-row-height-sm whitespace-nowrap">
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="font-bold">Failed</span>
+</div>
+</td>
+<td class="px-6 py-row-height-sm font-bold text-on-surface">AuthenticateUser_InvalidCredentials_ReturnsUnauthorized</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Auth.AuthServiceTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">42ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Tests.dll</td>
+</tr>
+<!-- Normal Pass -->
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap">
+<div class="flex items-center gap-2 text-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-bold">Passed</span>
+</div>
+</td>
+<td class="px-6 py-row-height-sm">InitializeDatabase_DefaultConfig_Success</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Data.DbInitializerTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">1.2s</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Data.Tests.dll</td>
+</tr>
+<!-- Slow Pass -->
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap">
+<div class="flex items-center gap-2 text-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-bold">Passed</span>
+</div>
+</td>
+<td class="px-6 py-row-height-sm flex items-center gap-2">
+                                GenerateReport_ComplexDataset_AggregatesCorrectly
+                                <span class="bg-tertiary text-on-tertiary px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">Slow</span>
+</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Reports.AnalyticsServiceTests</td>
+<td class="px-6 py-row-height-sm font-code-sm text-error font-bold">4.8s</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Reports.Tests.dll</td>
+</tr>
+<!-- Skipped -->
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined">block</span>
+<span class="font-bold">Skipped</span>
+</div>
+</td>
+<td class="px-6 py-row-height-sm italic opacity-60">PushNotification_ExternalProvider_Integration</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm opacity-60">ActionsInsight.Tests.Integration.NotificationTests</td>
+<td class="px-6 py-row-height-sm font-code-sm opacity-60">—</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant opacity-60">ActionsInsight.Integration.Tests.dll</td>
+</tr>
+<!-- Multiple Rows for visual density -->
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">HealthCheck_LivenessProbe_Ok</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.API.Tests.HealthTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">12ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.API.Tests.dll</td>
+</tr>
+<!-- Another Failed Test -->
+<tr class="failed-row">
+<td class="px-6 py-row-height-sm whitespace-nowrap">
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="font-bold">Failed</span>
+</div>
+</td>
+<td class="px-6 py-row-height-sm font-bold text-on-surface">ProcessPayment_StripeTimeout_HandlesException</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Billing.PaymentServiceTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">3.1s</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Tests.dll</td>
+</tr>
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">ValidateSchema_v2Config_Valid</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Configuration.SchemaTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">85ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Core.Tests.dll</td>
+</tr>
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">CalculateMetrics_SmallSet_Accurate</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Math.MetricCalculatorTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">5ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Core.Tests.dll</td>
+</tr>
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">ResolveDependency_SingletonService_Success</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.DI.ContainerTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">22ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Core.Tests.dll</td>
+</tr>
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">ParseLogs_InvalidFormat_ThrowsException</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Logging.ParserTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">114ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Logging.Tests.dll</td>
+</tr>
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">Authorize_SuperAdmin_GrantAll</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Auth.PolicyTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">34ms</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Tests.dll</td>
+</tr>
+<tr>
+<td class="px-6 py-row-height-sm whitespace-nowrap"><div class="flex items-center gap-2 text-tertiary-container"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span><span class="font-bold">Passed</span></div></td>
+<td class="px-6 py-row-height-sm">SendEmail_WelcomeTemplate_Rendered</td>
+<td class="px-6 py-row-height-sm text-on-surface-variant font-code-sm">ActionsInsight.Tests.Messaging.EmailTests</td>
+<td class="px-6 py-row-height-sm font-code-sm">1.5s</td>
+<td class="px-6 py-row-height-sm text-on-secondary-fixed-variant">ActionsInsight.Messaging.Tests.dll</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<footer class="bg-surface border-t border-outline-variant px-container-padding py-3 flex justify-between items-center shrink-0">
+<div class="flex items-center gap-4 text-on-secondary-fixed-variant font-code-xs">
+<span>Rows per page:</span>
+<select class="bg-transparent border-none outline-none focus:ring-0 cursor-pointer font-bold">
+<option>25</option>
+<option>50</option>
+<option>100</option>
+</select>
+<span class="text-outline">|</span>
+<span>1 - 25 of 1,284 results</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1 hover:bg-surface-container rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined">first_page</span>
+</button>
+<button class="p-1 hover:bg-surface-container rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex items-center gap-1 px-2">
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded transition-colors">3</button>
+<span class="px-1 text-outline">...</span>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded transition-colors">52</button>
+</div>
+<button class="p-1 hover:bg-surface-container rounded-lg">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+<button class="p-1 hover:bg-surface-container rounded-lg">
+<span class="material-symbols-outlined">last_page</span>
+</button>
+</div>
+</footer>
+</main>
+</div>
+<!-- Page Footer (Report Meta) -->
+<footer class="bg-surface-dim border-t border-outline-variant flex justify-between items-center w-full px-container-padding py-base shrink-0 z-50">
+<div class="flex items-center gap-4 text-secondary font-code-xs">
+<span class="font-bold text-on-surface">ActionsInsight Report Engine</span>
+<span>© 2024</span>
+</div>
+<div class="flex items-center gap-6">
+<a class="text-on-secondary-fixed-variant hover:text-primary transition-opacity duration-200 font-code-xs" href="#">Documentation</a>
+<a class="text-on-secondary-fixed-variant hover:text-primary transition-opacity duration-200 font-code-xs" href="#">Action Source</a>
+<a class="text-on-secondary-fixed-variant hover:text-primary transition-opacity duration-200 font-code-xs" href="#">API Reference</a>
+</div>
+</footer>
+<script>
+        // Simple micro-interactions for filters
+        document.querySelectorAll('button[class*="bg-surface border"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('bg-primary-container');
+                btn.classList.toggle('text-on-primary-container');
+                btn.classList.toggle('border-primary');
+            });
+        });
+
+        // Hover effects for table rows logic is handled by CSS (zebra-table tr:hover)
+    </script>
+</body></html>

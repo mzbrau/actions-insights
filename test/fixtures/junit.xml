@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.CalculatorTest" tests="3" failures="1" skipped="1" time="2.5">
+  <testcase classname="com.example.CalculatorTest" name="testAdd" time="0.5"/>
+  <testcase classname="com.example.CalculatorTest" name="testDivide" time="1.0">
+    <failure message="Division by zero">java.lang.ArithmeticException: / by zero</failure>
+  </testcase>
+  <testcase classname="com.example.CalculatorTest" name="testSkip" time="0.0">
+    <skipped message="Not implemented"/>
+  </testcase>
+</testsuite>

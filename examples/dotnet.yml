@@ -1,0 +1,45 @@
+# Example: .NET TRX test reports
+# Copy relevant sections into your workflow.
+
+name: Example .NET Test Reports
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Test
+        run: dotnet test --logger "trx;LogFileName=results.trx"
+
+      - name: Actions Insights
+        uses: ./
+        with:
+          test-results: '**/*.trx'
+          pages-subdirectory: test-reports
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

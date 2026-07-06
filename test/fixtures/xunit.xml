@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assemblies>
+  <assembly name="XUnitTests.dll" run-date="2026-01-01" run-time="12:00:00" time="0.5" total="2" passed="1" failed="1" skipped="0">
+    <collection name="XUnitTests.Collection" time="0.5" total="2" passed="1" failed="1" skipped="0">
+      <test name="PassingTest" type="XUnitTests.SampleTests" method="PassingTest" time="100000" result="Pass" />
+      <test name="FailingTest" type="XUnitTests.SampleTests" method="FailingTest" time="200000" result="Fail">
+        <failure message="Expected 1 got 2" exception-type="Xunit.Sdk.EqualException">
+          <stack-trace>at XUnitTests.SampleTests.FailingTest()</stack-trace>
+        </failure>
+      </test>
+    </collection>
+  </assembly>
+</assemblies>

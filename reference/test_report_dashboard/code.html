@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ActionsInsight - Test Summary Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .status-bar-error { height: 4px; background-color: #ba1a1a; }
+        .status-bar-success { height: 4px; background-color: #005bc0; }
+        .status-bar-warning { height: 4px; background-color: #913900; }
+        
+        /* Custom scrollbar for technical density */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .zebra-stripe:nth-child(even) { background-color: #f7f9ff; }
+        .failure-row { background-color: #fffdad; } /* Subtle highlight for focus */
+        .failure-row-critical { background-color: #fff1f0; }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#351000",
+                    "on-primary-fixed": "#001a41",
+                    "primary-fixed": "#d8e2ff",
+                    "inverse-surface": "#29313a",
+                    "error": "#ba1a1a",
+                    "on-secondary-container": "#5f6369",
+                    "outline": "#727785",
+                    "surface-container-low": "#edf4ff",
+                    "tertiary-container": "#b84b00",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#e0e2e9",
+                    "on-secondary-fixed": "#181c21",
+                    "primary-fixed-dim": "#adc6ff",
+                    "on-primary-container": "#ecefff",
+                    "on-surface-variant": "#424753",
+                    "surface-tint": "#005bc0",
+                    "surface-container-high": "#e0e9f5",
+                    "surface-bright": "#f7f9ff",
+                    "surface-dim": "#d2dbe6",
+                    "secondary-fixed-dim": "#c3c6cd",
+                    "secondary": "#5b5f64",
+                    "secondary-container": "#dde0e6",
+                    "surface-variant": "#dae3ef",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "surface-container": "#e6effa",
+                    "on-secondary-fixed-variant": "#43474d",
+                    "outline-variant": "#c2c6d6",
+                    "on-tertiary-fixed-variant": "#7a2f00",
+                    "tertiary-fixed": "#ffdbcc",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#dae3ef",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#913900",
+                    "primary-container": "#0969da",
+                    "on-primary-fixed-variant": "#004493",
+                    "primary": "#0051ae",
+                    "on-surface": "#141c25",
+                    "on-background": "#141c25",
+                    "surface": "#f7f9ff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#ffece5",
+                    "background": "#f7f9ff",
+                    "inverse-on-surface": "#e9f2fd",
+                    "tertiary-fixed-dim": "#ffb693",
+                    "inverse-primary": "#adc6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "row-height-sm": "32px",
+                    "row-height-md": "48px",
+                    "container-padding": "24px",
+                    "gutter": "16px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "code-sm": ["JetBrains Mono"],
+                    "code-xs": ["JetBrains Mono"],
+                    "label-caps": ["Inter"],
+                    "display": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "code-sm": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "code-xs": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-sm overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant docked full-width top-0 flex justify-between items-center w-full px-container-padding h-row-height-md z-50 sticky">
+<div class="flex items-center gap-8">
+<span class="text-headline-md font-headline-md font-bold text-on-surface">ActionsInsight</span>
+<nav class="hidden md:flex gap-6 items-center h-full">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Repositories</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Workflows</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Analytics</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="bg-surface-container-low border border-outline-variant rounded-lg pl-8 pr-4 py-1 text-sm focus:ring-2 focus:ring-primary focus:outline-none w-64" placeholder="Search resources..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container transition-colors p-1 rounded">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container transition-colors p-1 rounded">help</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container transition-colors p-1 rounded">settings</span>
+<img alt="User avatar" class="w-8 h-8 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpDTN5VzMGCiByvb06tMPKfPNlUGh14EnvjBBzk1_PzoyhAiUTmpK98lQ5jDgwHySR7b6Rhl5WHgUqMzrJSqzSPEsdfBiMtppSuR6RvJhbCXtRpGaKpJ7bcXcdOb80nkfpkvQGNJPWQZ1mPJ2HIIC_lxaeA_pKiA4VFqwEmoeuUDuwbmTg81qkt80kplZ-QXd1ttSN6mJMhKlOBfxmtd30bwD9TL0M3YhMbNm5GuOhMkOEq-3aZWdh"/>
+</div>
+</div>
+</header>
+<div class="flex h-[calc(100vh-48px)]">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-low border-r border-outline-variant docked left-0 h-full w-64 hidden lg:flex flex-col py-4 px-2">
+<div class="px-3 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded flex items-center justify-center text-on-primary-container font-bold">CI</div>
+<div>
+<div class="font-headline-md text-headline-md text-primary text-sm font-bold">CI/CD Pipeline</div>
+<div class="text-xs text-on-surface-variant">Build #4829</div>
+</div>
+</div>
+<button class="mt-4 w-full bg-primary text-on-primary py-2 rounded-lg font-label-caps text-label-caps flex items-center justify-center gap-2 active:scale-95 duration-100">
+<span class="material-symbols-outlined text-sm">refresh</span>
+                    Rerun Job
+                </button>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 bg-primary-container text-on-primary-container rounded-lg font-label-caps text-label-caps" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Summary
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined text-error">error</span>
+                    Failures <span class="ml-auto bg-error-container text-on-error-container px-1.5 rounded text-[10px]">12</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">checklist</span>
+                    All Tests
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">history</span>
+                    History
+                </a>
+</nav>
+<div class="border-t border-outline-variant pt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+                    Docs
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-caps text-label-caps transition-all" href="#">
+<span class="material-symbols-outlined">code</span>
+                    Source
+                </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto bg-background">
+<!-- High Contrast Status Banner -->
+<div class="bg-error text-on-error px-container-padding py-6 flex flex-col justify-center border-b border-error">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<div>
+<h1 class="font-display text-display uppercase tracking-tight leading-none">FAILED</h1>
+<p class="font-body-lg text-body-lg opacity-90 mt-1">12 tests failed out of 8,421 total</p>
+</div>
+</div>
+</div>
+<!-- Metadata Hero Section -->
+<div class="px-container-padding py-6 border-b border-outline-variant bg-surface-container-lowest grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap- gutter">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">Repository</span>
+<div class="flex items-center gap-1.5 font-bold text-primary">
+<span class="material-symbols-outlined text-sm">account_tree</span>
+                        owner/repo
+                    </div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">Branch</span>
+<div class="flex items-center gap-1.5 font-bold">
+<span class="material-symbols-outlined text-sm">fork_left</span>
+                        main
+                    </div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">PR / Commit</span>
+<div class="flex items-center gap-1.5">
+<span class="text-primary font-bold">#123</span>
+<span class="text-on-surface-variant text-xs">·</span>
+<code class="font-code-xs text-code-xs bg-surface-container-high px-1 rounded">abc1234</code>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">Author</span>
+<div class="flex items-center gap-2">
+<img alt="Author avatar" class="w-5 h-5 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_hzsIqGPvZW2ed8MNC168SKHqVe22QhQY9p3CE9zdMvGo5fxBAQjM-HdctVbu3OZpo_iCHMfPgCadJn01PjyeML0SHI-v_mMBKtCPP8LX_xXNw5yow1H5oUzu1IDpjHkasBBE-uyouzKowgI2S6p92XNbTApEaSQQk7fUf9GRRjR0bw0IekxdbBpwKd2v3wP0_Czvxki8qocoRbuF65XplJdbZTzeo3Tu1q_fYPCwuTVRQY81Q5Sc"/>
+<span class="font-bold">octocat</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">Duration</span>
+<div class="flex items-center gap-1.5 font-bold">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                        5m 18s
+                    </div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">Status</span>
+<div class="flex items-center gap-1.5 font-bold text-error">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">error</span>
+                        Critical Failures
+                    </div>
+</div>
+</div>
+<!-- Summary Cards Grid -->
+<div class="px-container-padding py-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-gutter">
+<!-- Total -->
+<div class="bg-surface-container-lowest border border-outline-variant relative overflow-hidden flex flex-col p-4">
+<div class="status-bar-success absolute top-0 left-0 right-0 opacity-20"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Total Tests</span>
+<span class="font-display text-display text-on-surface">8,421</span>
+</div>
+<!-- Passed -->
+<div class="bg-surface-container-lowest border border-outline-variant relative overflow-hidden flex flex-col p-4">
+<div class="status-bar-success absolute top-0 left-0 right-0"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Passed</span>
+<span class="font-display text-display text-on-primary-fixed-variant">8,405</span>
+</div>
+<!-- Failed -->
+<div class="bg-surface-container-lowest border border-outline-variant relative overflow-hidden flex flex-col p-4 ring-1 ring-error/30">
+<div class="status-bar-error absolute top-0 left-0 right-0"></div>
+<span class="font-label-caps text-label-caps text-error">Failed</span>
+<span class="font-display text-display text-error">12</span>
+</div>
+<!-- Skipped -->
+<div class="bg-surface-container-lowest border border-outline-variant relative overflow-hidden flex flex-col p-4">
+<div class="status-bar-warning absolute top-0 left-0 right-0"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Skipped</span>
+<span class="font-display text-display text-tertiary">4</span>
+</div>
+<!-- Success Rate -->
+<div class="bg-surface-container-lowest border border-outline-variant relative overflow-hidden flex flex-col p-4">
+<div class="status-bar-success absolute top-0 left-0 right-0 opacity-50"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Success Rate</span>
+<span class="font-display text-display text-on-surface">99.8%</span>
+</div>
+<!-- Duration -->
+<div class="bg-surface-container-lowest border border-outline-variant relative overflow-hidden flex flex-col p-4">
+<div class="status-bar-success absolute top-0 left-0 right-0 opacity-20"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Run Time</span>
+<span class="font-display text-display text-on-surface">5:18</span>
+</div>
+</div>
+<!-- Failed Tests Section -->
+<section class="px-container-padding pb-8">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+                        Failed Tests
+                        <span class="bg-error-container text-on-error-container text-xs px-2 py-0.5 rounded-full">12 Failures</span>
+</h2>
+<div class="flex gap-2">
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-outline-variant transition-colors">Expand All</button>
+<button class="bg-surface-container-high text-on-surface-variant px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-outline-variant transition-colors">Export Logs</button>
+</div>
+</div>
+<!-- Table Header -->
+<div class="grid grid-cols-[40px_1fr_1fr_2fr_100px] gap-gutter px-4 py-2 bg-surface-dim border border-outline-variant font-label-caps text-label-caps text-on-surface-variant">
+<div></div>
+<div>Test Name</div>
+<div>Namespace / Class</div>
+<div>Error Message</div>
+<div class="text-right">Action</div>
+</div>
+<!-- Failed Test Rows -->
+<div class="border-x border-b border-outline-variant bg-surface-container-lowest">
+<!-- Row 1: Expanded -->
+<div class="failure-row-critical border-b border-outline-variant">
+<div class="grid grid-cols-[40px_1fr_1fr_2fr_100px] gap-gutter px-4 py-3 items-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<div class="font-bold text-on-surface">ValidateUserPermissions_AdminAccess</div>
+<div class="text-on-surface-variant truncate">Services.Auth.SecurityTests</div>
+<div class="text-error font-code-sm text-code-sm truncate">Expected: True, but was: False</div>
+<div class="text-right">
+<button class="text-primary font-bold text-xs hover:underline flex items-center justify-end gap-1 ml-auto" onclick="this.closest('.failure-row-critical').querySelector('.stack-trace').classList.toggle('hidden')">
+                                    Collapse
+                                    <span class="material-symbols-outlined text-sm">keyboard_arrow_up</span>
+</button>
+</div>
+</div>
+<!-- Stack Trace Block -->
+<div class="stack-trace p-4 bg-slate-900 text-slate-100 font-code-sm text-code-sm relative group mx-4 mb-4 rounded-lg">
+<button class="absolute right-3 top-3 bg-slate-800 text-slate-400 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:text-white flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+<span class="text-[10px] uppercase font-bold">Copy</span>
+</button>
+<pre class="overflow-x-auto"><span class="text-pink-400">Error:</span> Assert.AreEqual failed. Expected:<True>. Actual:<False>.
+<span class="text-slate-500">at Services.Auth.SecurityTests.ValidateUserPermissions_AdminAccess() in /src/tests/Auth/SecurityTests.cs:line 142</span>
+<span class="text-slate-500">at System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)</span>
+<span class="text-slate-500">at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)</span>
+<span class="text-slate-500">at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)</span>
+<span class="text-yellow-400">--- End of stack trace ---</span>
+<span class="text-slate-400">Captured Output:</span>
+[INFO] Initializing test context...
+[WARN] User 'admin_temp' found with legacy permissions flag.
+[DEBUG] Checking Claim 'ReadWrite' against Policy 'StrictAdmin'</pre>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="zebra-stripe border-b border-outline-variant hover:bg-surface-container transition-colors">
+<div class="grid grid-cols-[40px_1fr_1fr_2fr_100px] gap-gutter px-4 py-row-height-sm items-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<div class="font-bold text-on-surface">ProcessPayment_TimeoutOnGateway</div>
+<div class="text-on-surface-variant truncate">Integrations.Stripe.PaymentTests</div>
+<div class="text-error font-code-sm text-code-sm truncate">System.TimeoutException: The operation has timed out after 30s.</div>
+<div class="text-right">
+<button class="text-primary font-bold text-xs hover:underline flex items-center justify-end gap-1 ml-auto">
+                                    Expand
+                                    <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="zebra-stripe border-b border-outline-variant hover:bg-surface-container transition-colors">
+<div class="grid grid-cols-[40px_1fr_1fr_2fr_100px] gap-gutter px-4 py-row-height-sm items-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<div class="font-bold text-on-surface">SyncWarehouseStock_NegativeInventory</div>
+<div class="text-on-surface-variant truncate">Domain.Inventory.SyncTests</div>
+<div class="text-error font-code-sm text-code-sm truncate">DomainException: Inventory level cannot be negative. Value: -15</div>
+<div class="text-right">
+<button class="text-primary font-bold text-xs hover:underline flex items-center justify-end gap-1 ml-auto">
+                                    Expand
+                                    <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+</div>
+<!-- More rows omitted for brevity, represented by a footer message -->
+<div class="px-4 py-3 text-center bg-surface-container-low text-on-surface-variant font-label-caps text-label-caps">
+                        + 9 additional failures in this build
+                    </div>
+</div>
+</section>
+<!-- Skipped Tests Section (Collapsed) -->
+<section class="px-container-padding pb-20">
+<div class="bg-surface-container border border-outline-variant rounded-lg overflow-hidden">
+<button class="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-container-high transition-colors" onclick="document.getElementById('skipped-content').classList.toggle('hidden')">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary">pause_circle</span>
+<h3 class="font-headline-md text-headline-md text-sm">Skipped Tests (4)</h3>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">keyboard_arrow_down</span>
+</button>
+<div class="hidden border-t border-outline-variant bg-surface-container-lowest p-4" id="skipped-content">
+<p class="text-on-surface-variant text-xs italic">Tests skipped due to missing environment variables or manual exclusion.</p>
+<ul class="mt-2 space-y-2">
+<li class="text-sm font-code-sm text-code-sm flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                EndToEnd_BrowserCompatibility_Safari
+                            </li>
+<li class="text-sm font-code-sm text-code-sm flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                StressTest_LoadBalancer_H100
+                            </li>
+</ul>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-surface-dim border-t border-outline-variant fixed bottom-0 full-width flex justify-between items-center w-full px-container-padding py-base h-10 z-[60]">
+<div class="font-code-xs text-code-xs text-secondary">
+            © 2024 ActionsInsight Report Engine
+        </div>
+<div class="flex gap-4">
+<a class="font-code-xs text-code-xs text-on-secondary-fixed-variant hover:text-primary transition-opacity duration-200" href="#">Documentation</a>
+<a class="font-code-xs text-code-xs text-on-secondary-fixed-variant hover:text-primary transition-opacity duration-200" href="#">Action Source</a>
+<a class="font-code-xs text-code-xs text-on-secondary-fixed-variant hover:text-primary transition-opacity duration-200" href="#">API Reference</a>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for expanding/collapsing
+        document.querySelectorAll('[data-expand-trigger]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = document.getElementById(btn.dataset.expandTrigger);
+                target.classList.toggle('hidden');
+                btn.querySelector('.material-symbols-outlined').innerText = 
+                    target.classList.contains('hidden') ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
+            });
+        });
+
+        // Copy button feedback
+        document.querySelectorAll('.group button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const label = btn.querySelector('span:not(.material-symbols-outlined)');
+                const originalText = label.innerText;
+                label.innerText = 'Copied!';
+                btn.classList.add('text-success');
+                setTimeout(() => {
+                    label.innerText = originalText;
+                    btn.classList.remove('text-success');
+                }, 2000);
+            });
+        });
+    </script>
+</body></html>
