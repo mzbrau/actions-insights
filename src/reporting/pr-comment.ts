@@ -1,10 +1,12 @@
 import type { ActionConfig } from '../config';
-import { formatDuration } from '../model/test-run';
+import type { PreviousRun } from '../history/previous-run';
 import type { ReportingContext } from './context';
-import { formatFailureBlock } from './failures';
+import { computeTestDelta, formatDeltaSection } from './delta';
+import { formatGroupedFailures } from './failures';
+import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, type ReportLinks } from './links';
-import { formatSlowTestLine } from './slow-tests';
-import { formatCompactSummary, formatStatsTable } from './stats';
+import { formatSlowTestsSection, SLOW_TOTAL } from './slow-tests';
+import { formatCommentStatsTable, formatCompactSummary } from './stats';
 
 export const COMMENT_MARKER = '<!-- actions-insights-report -->';
 
@@ -13,11 +15,18 @@ export function renderPrComment(
   config: ActionConfig,
   links: ReportLinks,
 ): string {
-  const { run, failedTests, failedCount, slowTests, extendedStats } = ctx;
+  const { run, failedTests, failedCount, slowTests, extendedStats, previousRun } = ctx;
   const { context, status } = run;
   const emoji = status === 'passed' ? '✅' : '❌';
   const statusLabel = status === 'passed' ? 'Passed' : 'Failed';
   const timestamp = new Date(context.completedAt).toISOString().replace('T', ' ').slice(0, 19);
+
+  const failureOptions = {
+    maxStackTraceLines: config.maxStackTraceLines,
+    includeStdout: config.includeStdout,
+    includeStderr: config.includeStderr,
+    compact: true as const,
+  };
 
   const lines: string[] = [
     COMMENT_MARKER,
@@ -30,20 +39,26 @@ export function renderPrComment(
     '',
   ];
 
+  const delta = computeTestDelta(run.tests, previousRun, context.commitSha);
+  const deltaSection = formatDeltaSection(delta, previousRun, context.repositoryUrl);
+  if (deltaSection) {
+    lines.push(deltaSection);
+    lines.push('');
+  }
+
   if (failedCount > 0) {
-    const shown = failedTests.slice(0, config.maxFailedTestsInComment);
     lines.push(`### Failed Tests (${failedCount.toLocaleString()})`);
     lines.push('');
-    for (const test of shown) {
-      lines.push(formatFailureBlock(test, {
-        maxStackTraceLines: config.maxStackTraceLines,
-        includeStdout: config.includeStdout,
-        includeStderr: config.includeStderr,
-        compact: true,
-      }));
-      lines.push('');
-    }
-    const remaining = failedCount - shown.length;
+    lines.push(
+      ...formatGroupedFailures(
+        failedTests,
+        config.maxFailedTestsInComment,
+        failureOptions,
+        getShortTestName,
+        groupTestsByClass,
+      ),
+    );
+    const remaining = failedCount - Math.min(failedCount, config.maxFailedTestsInComment);
     if (remaining > 0) {
       lines.push(`_…and ${remaining.toLocaleString()} additional failed test${remaining === 1 ? '' : 's'}._`);
       lines.push('');
@@ -53,17 +68,19 @@ export function renderPrComment(
   }
 
   if (config.includeSlowestTests > 0 && slowTests.length > 0) {
-    lines.push(`### Slowest Tests`);
-    lines.push('');
-    for (const test of slowTests) {
-      lines.push(`- ${formatSlowTestLine(test, config.slowTestThresholdMs)}`);
-    }
-    lines.push('');
+    const slowLimit = Math.min(config.includeSlowestTests, SLOW_TOTAL);
+    const selectedSlow = slowTests.slice(0, slowLimit);
+    lines.push(
+      ...formatSlowTestsSection(selectedSlow, config.slowTestThresholdMs, {
+        splitCollapsed: true,
+        getShortName: getShortTestName,
+      }),
+    );
   }
 
   lines.push('### Statistics');
   lines.push('');
-  lines.push(formatStatsTable(extendedStats));
+  lines.push(formatCommentStatsTable(extendedStats));
   lines.push('');
   lines.push('---');
   lines.push(formatFooterLinks(links));

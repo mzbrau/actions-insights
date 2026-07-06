@@ -59,7 +59,7 @@ export function loadConfig(): ActionConfig {
     maxStackTraceLines: parsePositiveInt(core.getInput('max-stack-trace-lines'), 25),
     includeStdout: getBooleanOr('include-stdout', true),
     includeStderr: getBooleanOr('include-stderr', true),
-    includeSlowestTests: parseNonNegativeInt(core.getInput('include-slowest-tests'), 10),
+    includeSlowestTests: parseNonNegativeInt(core.getInput('include-slowest-tests'), 18),
     uploadHtmlReport: getBooleanOr('upload-html-report', true),
     generateJobSummary: getBooleanOr('generate-job-summary', true),
     publishChecks: getBooleanOr('publish-checks', true),

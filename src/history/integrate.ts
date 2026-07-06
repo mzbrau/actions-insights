@@ -6,6 +6,7 @@ import type { TestRun } from '../model/test-run';
 import { resolveReportPaths } from '../history/paths';
 import { pruneRunDirectories, pruneRuns, syncLatestDirectory } from '../history/retention';
 import { buildTrendData, detectNewFailures, readPreviousFailedTests } from '../history/trends';
+import { readPreviousRun, type PreviousRun } from '../history/previous-run';
 import { writeBranchHistoryPage, writeRunReport, writeSiteIndex } from '../generator/site';
 import { copyDirSync, ensureDir, mergeDirectoryIntoSite, readJsonFile } from '../publisher/site-merger';
 
@@ -50,13 +51,14 @@ export function integrateReportIntoSite(
   run: TestRun,
   config: ActionConfig,
   siteDir: string,
-): { relativeReportPath: string; siteManifest: SiteManifest } {
+): { relativeReportPath: string; siteManifest: SiteManifest; previousRun?: PreviousRun } {
   const paths = resolveReportPaths(run.context, config.reportsSubdirectory);
   const runOutputDir = path.join(config.reportOutput);
   const siteBranchDir = path.join(siteDir, paths.branchDir);
   const siteRunDir = path.join(siteDir, paths.runDir);
   const siteLatestDir = path.join(siteDir, paths.latestDir);
 
+  const previousRun = readPreviousRun(siteLatestDir);
   const previousManifestPath = path.join(siteLatestDir, 'manifest.json');
   const previousFailed = readPreviousFailedTests(previousManifestPath);
   applyNewFailureFlags(run, previousFailed);
@@ -105,5 +107,5 @@ export function integrateReportIntoSite(
   const trendsPath = path.join(siteDir, paths.branchDir, 'trends.json');
   fs.writeFileSync(trendsPath, JSON.stringify(trend, null, 2));
 
-  return { relativeReportPath: paths.relativeReportUrl, siteManifest };
+  return { relativeReportPath: paths.relativeReportUrl, siteManifest, previousRun };
 }

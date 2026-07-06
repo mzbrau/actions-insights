@@ -105,7 +105,7 @@ export const sampleConfig: ActionConfig = {
   maxStackTraceLines: 25,
   includeStdout: true,
   includeStderr: true,
-  includeSlowestTests: 10,
+  includeSlowestTests: 18,
   uploadHtmlReport: true,
   generateJobSummary: true,
   publishChecks: true,

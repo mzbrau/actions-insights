@@ -61,8 +61,16 @@ function walkSuites(
     const t = tc as Record<string, unknown>;
     const name = (t['@_name'] as string) ?? 'unknown';
     const fullName = (t['@_fullname'] as string) ?? name;
-    const className = fullName.includes('.') ? fullName.slice(fullName.lastIndexOf('.') + 1) : fullName;
-    const namespace = fullName.includes('.') ? fullName.slice(0, fullName.lastIndexOf('.')) : undefined;
+    const method = name;
+    const qualifiedClass = fullName.endsWith(`.${method}`)
+      ? fullName.slice(0, -(method.length + 1))
+      : fullName;
+    const namespace = qualifiedClass.includes('.')
+      ? qualifiedClass.slice(0, qualifiedClass.lastIndexOf('.'))
+      : undefined;
+    const className = qualifiedClass.includes('.')
+      ? qualifiedClass.slice(qualifiedClass.lastIndexOf('.') + 1)
+      : qualifiedClass;
     const failure = asArray(t.failure as unknown)[0] as Record<string, unknown> | undefined;
     const reason = asArray(t.reason as unknown)[0] as Record<string, unknown> | undefined;
     const outcome = mapNUnitOutcome(t['@_result'] as string | undefined);
@@ -76,7 +84,7 @@ function walkSuites(
       assembly,
       namespace,
       className,
-      method: name,
+      method,
       message: failure ? getText(failure) ?? getText(failure['@_message']) : getText(reason),
       stackTrace: failure ? getText((failure as { 'stack-trace'?: unknown })['stack-trace']) : undefined,
       stdout: undefined,

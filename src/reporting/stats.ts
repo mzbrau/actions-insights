@@ -46,8 +46,11 @@ export function formatStatsTable(extended: ExtendedStats): string {
 | Skipped | ${extended.skipped.toLocaleString()} |
 | Duration | ${formatDuration(extended.durationMs)} |
 | Success rate | ${extended.successRate}% |
-| Avg duration | ${formatDuration(extended.averageDurationMs)} |
-| Longest test | ${formatDuration(extended.longestDurationMs)}${extended.longestTestName ? ` (\`${extended.longestTestName}\`)` : ''} |`;
+| Avg duration | ${formatDuration(extended.averageDurationMs)} |`;
+}
+
+export function formatCommentStatsTable(extended: ExtendedStats): string {
+  return formatStatsTable(extended);
 }
 
 export function formatCompactSummary(extended: ExtendedStats): string {

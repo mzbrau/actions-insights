@@ -13,5 +13,6 @@ export interface ExtendedStats {
 }
 export declare function computeExtendedStats(stats: RunStats, tests: TestCase[]): ExtendedStats;
 export declare function formatStatsTable(extended: ExtendedStats): string;
+export declare function formatCommentStatsTable(extended: ExtendedStats): string;
 export declare function formatCompactSummary(extended: ExtendedStats): string;
 //# sourceMappingURL=stats.d.ts.map

@@ -1,9 +1,20 @@
 import type { ActionConfig } from '../config';
 import type { ReportingContext } from './context';
-import { formatFailureTableRow } from './failures';
+import { formatAllTestsSection } from './all-tests-summary';
+import { formatGroupedFailures } from './failures';
+import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, type ReportLinks } from './links';
-import { formatSkippedTestLine, formatSlowTestTableRow } from './slow-tests';
-import { formatStatsTable } from './stats';
+import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
+import { formatCommentStatsTable, formatCompactSummary } from './stats';
+
+function formatHeaderMetadata(ctx: ReportingContext): string[] {
+  const { run } = ctx;
+  const timestamp = new Date(run.context.completedAt).toISOString().replace('T', ' ').slice(0, 19);
+  return [
+    `**${run.context.repository}** · \`${run.context.workflow}\` · \`${run.context.branch}\``,
+    `\`${run.context.commitShortSha}\` ${run.context.commitMessage} · ${run.context.author} · ${timestamp}`,
+  ];
+}
 
 export function renderJobSummary(
   ctx: ReportingContext,
@@ -13,51 +24,47 @@ export function renderJobSummary(
   const { run, failedTests, failedCount, slowTests, skippedTests } = ctx;
   const emoji = run.status === 'passed' ? '✅' : '❌';
 
+  const failureOptions = {
+    maxStackTraceLines: config.maxStackTraceLines,
+    includeStdout: config.includeStdout,
+    includeStderr: config.includeStderr,
+    compact: false as const,
+  };
+
   const lines: string[] = [
     `## ${emoji} ${config.reportTitle}`,
     '',
-    `| | |`,
-    `| --- | --- |`,
-    `| **Status** | **${run.status.toUpperCase()}** |`,
-    `| Repository | ${run.context.repository} |`,
-    `| Workflow | [${run.context.workflow}](${run.context.workflowUrl}) |`,
-    `| Branch | \`${run.context.branch}\` |`,
-    `| Commit | [\`${run.context.commitShortSha}\`](${run.context.commitUrl}) ${run.context.commitMessage} |`,
+    ...formatHeaderMetadata(ctx),
     '',
-    formatStatsTable(ctx.extendedStats),
+    formatCompactSummary(ctx.extendedStats),
     '',
   ];
 
   if (failedCount > 0) {
-    const shown = failedTests.slice(0, config.maxFailedTestsInSummary);
     lines.push(`### Failed Tests (${failedCount.toLocaleString()})`);
     lines.push('');
-    lines.push('| Test | Class | Duration | Details |');
-    lines.push('| --- | --- | --- | --- |');
-    for (const test of shown) {
-      lines.push(formatFailureTableRow(test, {
-        maxStackTraceLines: config.maxStackTraceLines,
-        includeStdout: config.includeStdout,
-        includeStderr: config.includeStderr,
-      }));
-    }
-    const remaining = failedCount - shown.length;
+    lines.push(
+      ...formatGroupedFailures(
+        failedTests,
+        config.maxFailedTestsInSummary,
+        failureOptions,
+        getShortTestName,
+        groupTestsByClass,
+      ),
+    );
+    const remaining = failedCount - Math.min(failedCount, config.maxFailedTestsInSummary);
     if (remaining > 0) {
-      lines.push('');
       lines.push(`_…and ${remaining.toLocaleString()} more failed test${remaining === 1 ? '' : 's'}. [View artifacts](${links.artifacts})_`);
+      lines.push('');
     }
-    lines.push('');
   }
 
   if (config.includeSlowestTests > 0 && slowTests.length > 0) {
-    lines.push('### Slowest Tests');
-    lines.push('');
-    lines.push('| Test | Duration | Status |');
-    lines.push('| --- | --- | --- |');
-    for (const test of slowTests) {
-      lines.push(formatSlowTestTableRow(test, config.slowTestThresholdMs));
-    }
-    lines.push('');
+    lines.push(
+      ...formatSlowTestsSection(slowTests, config.slowTestThresholdMs, {
+        getShortName: getShortTestName,
+      }),
+    );
   }
 
   if (skippedTests.length > 0) {
@@ -82,8 +89,13 @@ export function renderJobSummary(
     lines.push('');
   }
 
-  lines.push('### Links');
+  lines.push(...formatAllTestsSection(run.tests, links));
+
+  lines.push('### Statistics');
   lines.push('');
+  lines.push(formatCommentStatsTable(ctx.extendedStats));
+  lines.push('');
+  lines.push('---');
   lines.push(formatFooterLinks(links));
 
   return lines.join('\n');

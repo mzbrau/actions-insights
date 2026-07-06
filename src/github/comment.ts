@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import type { ActionConfig } from '../config';
+import type { PreviousRun } from '../history/previous-run';
 import type { TestRun } from '../model/test-run';
 import { buildReportingContext } from '../reporting/context';
 import { buildReportLinks } from '../reporting/links';
@@ -10,13 +11,14 @@ export async function upsertPrComment(
   token: string,
   run: TestRun,
   config: ActionConfig,
+  previousRun?: PreviousRun,
 ): Promise<void> {
   const prNumber = run.context.prNumber;
   if (!prNumber || config.commentMode === 'off') return;
 
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
-  const ctx = buildReportingContext(run, config);
+  const ctx = buildReportingContext(run, config, previousRun);
   const links = buildReportLinks(run.context);
   const body = renderPrComment(ctx, config, links);
 

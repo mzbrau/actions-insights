@@ -1,4 +1,5 @@
 import type { ActionConfig } from '../config';
+import type { PreviousRun } from '../history/previous-run';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
 import { computeExtendedStats } from './stats';
@@ -12,9 +13,14 @@ export interface ReportingContext {
   slowTests: TestCase[];
   skippedTests: TestCase[];
   extendedStats: ReturnType<typeof computeExtendedStats>;
+  previousRun?: PreviousRun;
 }
 
-export function buildReportingContext(run: TestRun, config: ActionConfig): ReportingContext {
+export function buildReportingContext(
+  run: TestRun,
+  config: ActionConfig,
+  previousRun?: PreviousRun,
+): ReportingContext {
   const failedCount = countFailedTests(run.tests);
   const failedTests: TestCase[] = [];
   for (const test of run.tests) {
@@ -35,5 +41,6 @@ export function buildReportingContext(run: TestRun, config: ActionConfig): Repor
     slowTests: selectSlowestTests(run.tests, config.includeSlowestTests),
     skippedTests,
     extendedStats: computeExtendedStats(run.stats, run.tests),
+    previousRun,
   };
 }

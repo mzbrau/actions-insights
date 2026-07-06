@@ -76,7 +76,7 @@ inputs:
   include-slowest-tests:
     description: Number of slowest tests to include (0 to disable)
     required: false
-    default: '10'
+    default: '18'
   upload-html-report:
     description: Upload HTML report as a workflow artifact
     required: false

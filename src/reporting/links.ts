@@ -28,5 +28,5 @@ export function formatFooterLinks(links: ReportLinks): string {
     items.push(`[Pull request](${links.pullRequest})`);
   }
   items.push(`[Repository](${links.repository})`);
-  return items.join(' · ');
+  return `Actions Insights · ${items.join(' · ')}`;
 }

@@ -1,4 +1,5 @@
 import type { ActionConfig } from '../config';
+import type { PreviousRun } from '../history/previous-run';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
 import { computeExtendedStats } from './stats';
@@ -9,6 +10,7 @@ export interface ReportingContext {
     slowTests: TestCase[];
     skippedTests: TestCase[];
     extendedStats: ReturnType<typeof computeExtendedStats>;
+    previousRun?: PreviousRun;
 }
-export declare function buildReportingContext(run: TestRun, config: ActionConfig): ReportingContext;
+export declare function buildReportingContext(run: TestRun, config: ActionConfig, previousRun?: PreviousRun): ReportingContext;
 //# sourceMappingURL=context.d.ts.map
