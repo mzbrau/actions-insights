@@ -38,6 +38,23 @@ npm run generate-sample
 open _report/index.html
 ```
 
+### Your own test result files
+
+Put exports in `.local-results/` (gitignored) and generate a report:
+
+```bash
+npm run generate-local -- .local-results/unit-test-results.trx
+open _report/all-tests.html
+```
+
+For NUnit XML:
+
+```bash
+npm run generate-local -- .local-results/nunit-results.xml
+```
+
+`npm run generate-sample` always uses the small TRX fixture in `test/fixtures/` — not `.local-results/`.
+
 Set `UPDATE_GOLDEN=1` to refresh golden file snapshots.
 
 ## Building the Action

@@ -56,8 +56,9 @@ describe('parser registry', () => {
   });
 
   it('parses files via glob', async () => {
-    const { tests, sourceFiles } = await parseTestFiles(path.join(fixtures, '*.trx'), fixtures);
+    const { tests, sourceFiles } = await parseTestFiles('sample.trx', fixtures);
     expect(sourceFiles).toHaveLength(1);
+    expect(sourceFiles[0]).toContain('sample.trx');
     expect(tests).toHaveLength(3);
   });
 });

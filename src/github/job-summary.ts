@@ -34,5 +34,9 @@ export async function writeJobSummary(run: TestRun, reportUrl: string | undefine
     }
   }
 
+  if (!process.env.GITHUB_STEP_SUMMARY) {
+    return;
+  }
+
   await core.summary.addRaw(summary).write();
 }

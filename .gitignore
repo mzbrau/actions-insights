@@ -2,6 +2,7 @@ node_modules/
 lib/
 _report/
 _site/
+.local-results/
 *.log
 .DS_Store
 coverage/

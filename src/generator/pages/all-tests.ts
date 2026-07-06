@@ -2,7 +2,6 @@ import type { ThemeMode } from '../../config';
 import type { CompactTestRecord } from '../../model/manifest';
 import type { TestRun } from '../../model/test-run';
 import { OUTCOME_TO_CODE } from '../../model/manifest';
-import { escapeHtml } from '../escape';
 import { renderLayout } from '../layout';
 
 export function toCompactTests(run: TestRun, slowThresholdMs: number): CompactTestRecord[] {
@@ -27,7 +26,8 @@ export function renderAllTestsPage(
   slowThresholdMs: number,
 ): string {
   const compact = toCompactTests(run, slowThresholdMs);
-  const dataJson = JSON.stringify({ tests: compact, slowThreshold: slowThresholdMs });
+  // Script bodies are not HTML-decoded; only guard against </script> breakouts.
+  const dataJson = JSON.stringify({ tests: compact, slowThreshold: slowThresholdMs }).replace(/</g, '\\u003c');
 
   const body = `
 <div class="section">
@@ -62,7 +62,7 @@ export function renderAllTestsPage(
     <div id="virtual-table-body"></div>
   </div>
 </div>
-<script id="tests-data" type="application/json">${escapeHtml(dataJson)}</script>`;
+<script id="tests-data" type="application/json">${dataJson}</script>`;
 
   return renderLayout({
     title: 'All Tests',

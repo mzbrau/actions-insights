@@ -8,7 +8,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "generate-sample": "tsx scripts/generate-sample.ts"
+    "generate-sample": "tsx scripts/generate-sample.ts",
+    "generate-local": "tsx scripts/generate-local.ts"
   },
   "keywords": [
     "github-actions",
