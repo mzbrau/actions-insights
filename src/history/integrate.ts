@@ -3,7 +3,7 @@ import * as path from 'path';
 import type { ActionConfig } from '../config';
 import type { BranchManifest, RunManifestEntry, SiteManifest } from '../model/manifest';
 import type { TestRun } from '../model/test-run';
-import { buildReportUrl, resolveReportPaths } from '../history/paths';
+import { resolveReportPaths } from '../history/paths';
 import { pruneRunDirectories, pruneRuns, syncLatestDirectory } from '../history/retention';
 import { buildTrendData, detectNewFailures, readPreviousFailedTests } from '../history/trends';
 import { writeBranchHistoryPage, writeRunReport, writeSiteIndex } from '../generator/site';
@@ -50,9 +50,8 @@ export function integrateReportIntoSite(
   run: TestRun,
   config: ActionConfig,
   siteDir: string,
-  pagesBaseUrl?: string,
-): { reportUrl?: string; siteManifest: SiteManifest } {
-  const paths = resolveReportPaths(run.context, config.pagesSubdirectory);
+): { relativeReportPath: string; siteManifest: SiteManifest } {
+  const paths = resolveReportPaths(run.context, config.reportsSubdirectory);
   const runOutputDir = path.join(config.reportOutput);
   const siteBranchDir = path.join(siteDir, paths.branchDir);
   const siteRunDir = path.join(siteDir, paths.runDir);
@@ -70,7 +69,7 @@ export function integrateReportIntoSite(
   copyDirSync(runOutputDir, siteRunDir);
   syncLatestDirectory(siteRunDir, siteLatestDir);
 
-  const siteManifestPath = path.join(siteDir, config.pagesSubdirectory, 'index.json');
+  const siteManifestPath = path.join(siteDir, config.reportsSubdirectory, 'index.json');
   const existingSite = readJsonFile<SiteManifest>(siteManifestPath);
   const existingBranch = existingSite?.branches.find((b) => b.key === paths.branchKey);
 
@@ -97,23 +96,14 @@ export function integrateReportIntoSite(
   };
 
   const trend = buildTrendData(paths.branchKey, branchManifest.runs);
-  writeBranchHistoryPage(
-    siteDir,
-    paths.branchDir,
-    run,
-    config,
-    branchManifest,
-    trend,
-    pagesBaseUrl,
-  );
+  writeBranchHistoryPage(siteDir, paths.branchDir, run, config, branchManifest, trend);
 
-  ensureDir(path.join(siteDir, config.pagesSubdirectory));
+  ensureDir(path.join(siteDir, config.reportsSubdirectory));
   mergeDirectoryIntoSite(siteDir, runOutputDir, paths.latestDir);
-  writeSiteIndex(siteDir, config.pagesSubdirectory, siteManifest, config, pagesBaseUrl);
+  writeSiteIndex(siteDir, config.reportsSubdirectory, siteManifest, config);
 
   const trendsPath = path.join(siteDir, paths.branchDir, 'trends.json');
   fs.writeFileSync(trendsPath, JSON.stringify(trend, null, 2));
 
-  const reportUrl = buildReportUrl(pagesBaseUrl, paths.relativeReportUrl);
-  return { reportUrl, siteManifest };
+  return { relativeReportPath: paths.relativeReportUrl, siteManifest };
 }

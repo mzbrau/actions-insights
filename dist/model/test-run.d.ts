@@ -39,7 +39,6 @@ export interface TestRun {
     context: RunContext;
     sourceFiles: string[];
     reportPath: string;
-    pagesBaseUrl?: string;
 }
 export declare function computeStats(tests: TestCase[]): RunStats;
 export declare function deriveStatus(tests: TestCase[]): RunStatus;

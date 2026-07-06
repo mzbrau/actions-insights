@@ -98,7 +98,6 @@ export function writeBranchHistoryPage(
   config: ActionConfig,
   branchManifest: BranchManifest,
   trend: import('../model/manifest').TrendData,
-  pagesBaseUrl?: string,
 ): void {
   const branchPath = path.join(siteDir, branchDir);
   fs.mkdirSync(branchPath, { recursive: true });
@@ -112,18 +111,17 @@ export function writeBranchHistoryPage(
   }
   fs.writeFileSync(
     path.join(branchPath, 'index.html'),
-    renderBranchHistoryPage(run, config.reportTitle, config.theme, branchManifest, trend, pagesBaseUrl),
+    renderBranchHistoryPage(run, config.reportTitle, config.theme, branchManifest, trend),
   );
 }
 
 export function writeSiteIndex(
   siteDir: string,
-  pagesSubdirectory: string,
+  reportsSubdirectory: string,
   manifest: SiteManifest,
   config: ActionConfig,
-  pagesBaseUrl?: string,
 ): void {
-  const root = path.join(siteDir, pagesSubdirectory);
+  const root = path.join(siteDir, reportsSubdirectory);
   fs.mkdirSync(root, { recursive: true });
   const assetsDir = path.join(root, 'assets');
   fs.mkdirSync(assetsDir, { recursive: true });
@@ -133,7 +131,7 @@ export function writeSiteIndex(
   }
   fs.writeFileSync(
     path.join(root, 'index.html'),
-    renderSiteIndex(config.reportTitle, manifest.repository, manifest.branches, pagesBaseUrl),
+    renderSiteIndex(config.reportTitle, manifest.repository, manifest.branches),
   );
   fs.writeFileSync(path.join(root, 'index.json'), JSON.stringify(manifest, null, 2));
 }

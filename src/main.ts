@@ -1,24 +1,23 @@
-import * as artifact from '@actions/artifact';
 import * as core from '@actions/core';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as github from '@actions/github';
 import { loadConfig } from './config';
+import { publishCheckRun } from './github/checks';
 import { upsertPrComment } from './github/comment';
-import { detectContext, getPagesBaseUrl } from './github/context';
+import { detectContext } from './github/context';
 import { writeJobSummary } from './github/job-summary';
 import { integrateReportIntoSite } from './history/integrate';
 import { computeStats, deriveStatus } from './model/test-run';
 import { parseTestFiles } from './parsers/registry';
-import { publishToGhPagesBranch } from './publisher/gh-pages';
-import { prepareSiteWorkspace, saveSiteCache, uploadPagesArtifact } from './publisher/pages-artifact';
+import { uploadReportArtifact } from './publisher/artifact';
+import { prepareSiteWorkspace, saveSiteCache } from './publisher/site-cache';
 import { ensureDir } from './publisher/site-merger';
+import { buildReportLinks } from './reporting/links';
 import type { TestRun } from './model/test-run';
 
 async function run(): Promise<void> {
   const config = loadConfig();
   const context = detectContext();
-  const pagesBaseUrl = getPagesBaseUrl();
+  const links = buildReportLinks(context);
 
   core.info(`Parsing test results: ${config.testResults}`);
   const { tests, sourceFiles } = await parseTestFiles(config.testResults);
@@ -29,7 +28,7 @@ async function run(): Promise<void> {
 
   const stats = computeStats(tests);
   const status = deriveStatus(tests);
-  const run: TestRun = {
+  const testRun: TestRun = {
     id: String(context.runId),
     title: config.reportTitle,
     status,
@@ -38,47 +37,36 @@ async function run(): Promise<void> {
     context,
     sourceFiles,
     reportPath: config.reportOutput,
-    pagesBaseUrl,
   };
 
   ensureDir(config.siteOutput);
   const { owner, repo } = github.context.repo;
 
-  if (config.pagesMode !== 'none') {
-    await prepareSiteWorkspace(config.siteOutput, owner, repo, config.seedFromGhPages, config.githubToken);
-  }
+  await prepareSiteWorkspace(config.siteOutput, owner, repo);
+  integrateReportIntoSite(testRun, config, config.siteOutput);
+  await saveSiteCache(config.siteOutput, owner, repo);
 
-  const { reportUrl } = integrateReportIntoSite(run, config, config.siteOutput, pagesBaseUrl);
-
-  if (config.pagesMode !== 'none') {
-    await saveSiteCache(config.siteOutput, owner, repo);
-  }
-
-  if (config.pagesMode === 'artifact') {
+  if (config.uploadHtmlReport) {
     try {
-      await uploadPagesArtifact(config.siteOutput);
-      core.info('Uploaded GitHub Pages artifact. Deploy with actions/deploy-pages in a subsequent job.');
+      await uploadReportArtifact(config.siteOutput, config.artifactRetentionDays);
     } catch (error) {
-      core.warning(`Pages artifact upload failed: ${error}. Report files are available at ${config.siteOutput}`);
-      await uploadWorkflowArtifact(config.siteOutput, 'actions-insights-site');
+      core.warning(`Artifact upload failed: ${error instanceof Error ? error.message : String(error)}`);
+      core.info(`Report files are available locally at ${config.siteOutput}`);
     }
-  } else if (config.pagesMode === 'gh-pages') {
-    await publishToGhPagesBranch(
-      config.siteOutput,
-      config.pagesSubdirectory,
-      config.githubToken,
-      `chore: update test reports for run ${context.runId}`,
-    );
   }
 
-  if (config.commentPr && context.prNumber) {
-    await upsertPrComment(config.githubToken, run, reportUrl);
+  if (config.commentMode === 'update' && context.prNumber) {
+    await upsertPrComment(config.githubToken, testRun, config);
   }
 
-  await writeJobSummary(run, reportUrl);
+  await writeJobSummary(testRun, config);
 
-  core.setOutput('report-url', reportUrl ?? '');
-  core.setOutput('page-url', pagesBaseUrl ?? '');
+  if (config.publishChecks) {
+    await publishCheckRun(config.githubToken, testRun, config);
+  }
+
+  core.setOutput('workflow-url', links.workflowRun);
+  core.setOutput('artifact-url', links.artifacts);
   core.setOutput('status', status);
   core.setOutput('total', String(stats.total));
   core.setOutput('passed', String(stats.passed));
@@ -88,28 +76,6 @@ async function run(): Promise<void> {
   if (status === 'failed') {
     core.setFailed(`${stats.failed} test(s) failed`);
   }
-}
-
-async function uploadWorkflowArtifact(dir: string, name: string): Promise<void> {
-  if (!fs.existsSync(dir)) return;
-  const client = new artifact.DefaultArtifactClient();
-  const files = collectFiles(dir);
-  if (files.length > 0) {
-    await client.uploadArtifact(name, files, dir);
-  }
-}
-
-function collectFiles(root: string): string[] {
-  const results: string[] = [];
-  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
-    const full = path.join(root, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...collectFiles(full));
-    } else {
-      results.push(full);
-    }
-  }
-  return results;
 }
 
 run().catch((error) => {

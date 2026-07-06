@@ -20,7 +20,7 @@ npm ci
 | `npm test` | Run Vitest unit tests |
 | `npm run lint` | TypeScript type check |
 | `npm run build` | Compile and bundle action to `dist/` |
-| `npm run generate-sample` | Generate sample report in `_report/` |
+| `npm run generate-sample` | Generate sample report in `_report/` and `_site/` |
 
 ## Project Layout
 
@@ -36,6 +36,8 @@ npm ci
 npm test
 npm run generate-sample
 open _report/index.html
+# Full history site (as uploaded in workflow artifact):
+open _site/test-reports/main/latest/index.html
 ```
 
 ### Your own test result files

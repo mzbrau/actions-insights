@@ -1,92 +1,67 @@
 # Architecture
 
-## Overview
+Actions Insights is a GitHub Action that parses test result files and publishes results through GitHub-native channels. The pull request comment is the primary experience; the HTML report is a secondary artifact for deep investigation.
 
-Actions Insights is a Node 20 GitHub Action that:
+## Pipeline
 
-1. Parses test result files into a normalized model
-2. Generates static HTML + JSON report pages
-3. Merges reports into a GitHub Pages site tree
-4. Publishes via Pages artifact or gh-pages branch
-5. Updates PR comments and job summaries
+```
+1. Parse test results (TRX, NUnit, xUnit, JUnit)
+2. Restore site cache (Actions cache)
+3. Generate HTML report + merge into site history
+4. Save site cache
+5. Upload site as workflow artifact
+6. Update PR comment (if PR context)
+7. Write job summary
+8. Publish check run with annotations
+```
 
-## Module Structure
+## Module Layout
 
 ```
 src/
 ├── main.ts              Entry point
-├── config.ts            Input parsing
-├── parsers/             TRX, JUnit, NUnit, xUnit + registry
-├── model/               TestCase, TestRun, manifest types
-├── generator/           HTML/CSS/JS report generation
-├── history/             URL paths, retention, trends, integration
-├── github/              Context, PR comments, job summary
-└── publisher/           Site merger, Pages artifact, gh-pages
+├── config.ts            Action inputs
+├── parsers/             Format detection and parsing
+├── model/               TestCase, TestRun, manifests
+├── generator/           HTML report pages + assets
+├── history/             Site integration, retention, trends
+├── reporting/           Shared markdown formatters (PR, summary, checks)
+├── github/              PR comments, job summary, checks API
+└── publisher/           Site cache + artifact upload
 ```
 
-## Parser Registry
+## Outputs
 
-Parsers implement a common interface with `canParse()` and `parse()`. Detection order:
+### Primary: PR Comment
 
-1. TRX (`.trx`, `<TestRun>`)
-2. NUnit (`<test-run>`)
-3. xUnit (`<assemblies>`)
-4. JUnit (fallback for `<testsuite>`)
+A single upserted comment per pull request. Optimized for GitHub Mobile — status and failure counts appear above the fold, with expandable stack traces and links to artifacts.
 
-Duplicate tests (same `fullName`) are merged using worst-outcome-wins.
+### Secondary: Job Summary
 
-## Report Pages
+TeamCity-inspired markdown tables written to `GITHUB_STEP_SUMMARY`. Includes failed tests, slowest tests, skipped tests, and links.
 
-Each run generates:
+### Checks
 
-| File | Purpose |
-|------|---------|
-| `index.html` | Summary with failures above the fold |
-| `all-tests.html` | Virtual-scroll table (data in `tests.json`) |
-| `manifest.json` | Run metadata + failed test names |
-| `summary.json` | Machine-readable export |
-| `assets/` | CSS and client-side JS |
+A dedicated check run (default name: "Actions Insights") with a rich summary and file annotations parsed from .NET/JVM stack traces where possible.
 
-Branch-level `index.html` shows history. Root `test-reports/index.html` lists all branches/PRs.
+### Deep Dive: HTML Artifact
 
-## GitHub Pages Merge Strategy
+The full `_site/` directory is uploaded as the `actions-insights-report` artifact. It includes:
 
-GitHub Pages deployments replace the **entire** site. To avoid overwriting existing documentation:
+- Per-run reports (`index.html`, `all-tests.html`)
+- Branch/PR history pages with trends
+- Multi-run retention managed via Actions cache
 
-### Mode 1: Artifact + Cache
+Download the artifact from the workflow run and open `test-reports/{branch}/latest/index.html` locally.
 
-1. Restore cached `_site` from previous run
-2. Write new report into `{pages-subdirectory}/`
-3. Apply retention (prune old `run-*` directories)
-4. Save cache
-5. Upload `github-pages` artifact
-6. Separate `deploy-pages` job deploys the artifact
+## History
 
-### Mode 2: gh-pages Branch
+Report history is preserved across workflow runs using `@actions/cache`. Each run merges into the cached site tree, prunes old runs per `history` and `retain-days` settings, and re-uploads the complete site as an artifact.
 
-1. Clone `gh-pages` branch
-2. Update only `{pages-subdirectory}/`
-3. Commit and push (other directories untouched)
-
-### First Run with Existing Site
-
-Use `seed-from-gh-pages: true` to bootstrap the cache from an existing `gh-pages` branch, or combine doc builds and report generation in a single workflow.
-
-## URL Strategy
-
-Priority: PR number > tag > branch name.
-
-```
-test-reports/{branchKey}/latest/     Stable latest URL
-test-reports/{branchKey}/run-{id}/   Specific workflow run
-```
-
-## History & Retention
-
-Static JSON manifests — no database. `index.json` at the site root aggregates branches. Retention prunes `run-*` directories by count and age; `latest/` is always updated.
+History pages use relative links so the artifact is self-contained when downloaded.
 
 ## Performance
 
-- Summary page: server-rendered failures only
-- All tests: `tests.json` + virtual scroll (renders visible rows)
-- Search/filter: client-side on compact JSON records
+- Single parse pass; lazy selection for markdown output
+- Virtual scrolling in `all-tests.html` for large test suites
+- Truncation of stack traces and failure lists in PR comments and summaries

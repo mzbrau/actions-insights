@@ -86,12 +86,3 @@ function tryReadEventHeadCommit(): { message?: string; author?: { name?: string;
   }
 }
 
-export function getPagesBaseUrl(): string | undefined {
-  const pagesUrl = process.env.GITHUB_PAGES_URL;
-  if (pagesUrl) return pagesUrl.replace(/\/$/, '');
-  const { owner, repo } = github.context.repo;
-  if (owner.endsWith('.github.io')) {
-    return `https://${owner}/${repo === `${owner.split('.')[0]}.github.io` ? '' : repo}`.replace(/\/$/, '');
-  }
-  return `https://${owner}.github.io/${repo}`;
-}

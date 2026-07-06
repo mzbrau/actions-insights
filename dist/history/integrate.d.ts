@@ -6,8 +6,8 @@ export declare function updateBranchManifest(existing: BranchManifest | undefine
     historyLimit: number;
     retainDays: number;
 }): BranchManifest;
-export declare function integrateReportIntoSite(run: TestRun, config: ActionConfig, siteDir: string, pagesBaseUrl?: string): {
-    reportUrl?: string;
+export declare function integrateReportIntoSite(run: TestRun, config: ActionConfig, siteDir: string): {
+    relativeReportPath: string;
     siteManifest: SiteManifest;
 };
 //# sourceMappingURL=integrate.d.ts.map

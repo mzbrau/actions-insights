@@ -3,8 +3,8 @@ import * as path from 'path';
 import { parseTestFiles } from '../src/parsers/registry';
 import { computeStats, deriveStatus } from '../src/model/test-run';
 import { integrateReportIntoSite } from '../src/history/integrate';
-import type { ActionConfig } from '../src/config';
 import type { TestRun } from '../src/model/test-run';
+import { defaultLocalConfig } from './default-config';
 
 function usage(): never {
   console.error(`Usage: npm run generate-local -- <glob-or-path> [search-directory]
@@ -69,30 +69,14 @@ async function main(): Promise<void> {
     context,
     sourceFiles,
     reportPath: '_report',
-    pagesBaseUrl: 'https://example.github.io/repo',
   };
 
-  const config: ActionConfig = {
-    testResults: resolvedPattern,
-    pagesSubdirectory: 'test-reports',
-    publishPages: false,
-    pagesMode: 'none',
-    commentPr: false,
-    historyLimit: 20,
-    retainDays: 30,
-    reportTitle: 'Actions Insights',
-    reportOutput: '_report',
-    siteOutput: '_site',
-    theme: 'auto',
-    slowTestThresholdMs: 1000,
-    seedFromGhPages: false,
-    githubToken: '',
-  };
+  const config = defaultLocalConfig({ testResults: resolvedPattern });
 
   if (fs.existsSync('_report')) fs.rmSync('_report', { recursive: true, force: true });
   if (fs.existsSync('_site')) fs.rmSync('_site', { recursive: true, force: true });
 
-  integrateReportIntoSite(run, config, '_site', run.pagesBaseUrl);
+  integrateReportIntoSite(run, config, '_site');
   console.log('\nReport generated:');
   console.log('  _report/index.html       (summary)');
   console.log('  _report/all-tests.html   (searchable table)');

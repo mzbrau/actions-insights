@@ -7,6 +7,6 @@ export interface GeneratedRunReport {
     failedTestNames: string[];
 }
 export declare function writeRunReport(run: TestRun, outputDir: string, config: ActionConfig, runPath: string): GeneratedRunReport;
-export declare function writeBranchHistoryPage(siteDir: string, branchDir: string, run: TestRun, config: ActionConfig, branchManifest: BranchManifest, trend: import('../model/manifest').TrendData, pagesBaseUrl?: string): void;
-export declare function writeSiteIndex(siteDir: string, pagesSubdirectory: string, manifest: SiteManifest, config: ActionConfig, pagesBaseUrl?: string): void;
+export declare function writeBranchHistoryPage(siteDir: string, branchDir: string, run: TestRun, config: ActionConfig, branchManifest: BranchManifest, trend: import('../model/manifest').TrendData): void;
+export declare function writeSiteIndex(siteDir: string, reportsSubdirectory: string, manifest: SiteManifest, config: ActionConfig): void;
 //# sourceMappingURL=site.d.ts.map

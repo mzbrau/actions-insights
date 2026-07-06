@@ -1,11 +1,9 @@
-export type PagesMode = 'artifact' | 'gh-pages' | 'none';
 export type ThemeMode = 'light' | 'dark' | 'auto';
+export type CommentMode = 'update' | 'off';
 export interface ActionConfig {
     testResults: string;
-    pagesSubdirectory: string;
-    publishPages: boolean;
-    pagesMode: PagesMode;
-    commentPr: boolean;
+    reportsSubdirectory: string;
+    commentMode: CommentMode;
     historyLimit: number;
     retainDays: number;
     reportTitle: string;
@@ -13,7 +11,17 @@ export interface ActionConfig {
     siteOutput: string;
     theme: ThemeMode;
     slowTestThresholdMs: number;
-    seedFromGhPages: boolean;
     githubToken: string;
+    maxFailedTestsInComment: number;
+    maxFailedTestsInSummary: number;
+    maxStackTraceLines: number;
+    includeStdout: boolean;
+    includeStderr: boolean;
+    includeSlowestTests: number;
+    uploadHtmlReport: boolean;
+    generateJobSummary: boolean;
+    publishChecks: boolean;
+    artifactRetentionDays: number;
+    checkName: string;
 }
 export declare function loadConfig(): ActionConfig;

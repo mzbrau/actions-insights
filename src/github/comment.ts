@@ -1,57 +1,52 @@
+import * as core from '@actions/core';
 import * as github from '@actions/github';
+import type { ActionConfig } from '../config';
 import type { TestRun } from '../model/test-run';
-import { formatDuration } from '../model/test-run';
-
-export const COMMENT_MARKER = '<!-- actions-insights-report -->';
+import { buildReportingContext } from '../reporting/context';
+import { buildReportLinks } from '../reporting/links';
+import { COMMENT_MARKER, renderPrComment } from '../reporting/pr-comment';
 
 export async function upsertPrComment(
   token: string,
   run: TestRun,
-  reportUrl: string | undefined,
+  config: ActionConfig,
 ): Promise<void> {
   const prNumber = run.context.prNumber;
-  if (!prNumber) return;
+  if (!prNumber || config.commentMode === 'off') return;
 
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
-  const { stats, status } = run;
-  const emoji = status === 'passed' ? '✅' : '❌';
-  const link = reportUrl ? `[View Full Report →](${reportUrl})` : '_Report URL unavailable_';
+  const ctx = buildReportingContext(run, config);
+  const links = buildReportLinks(run.context);
+  const body = renderPrComment(ctx, config, links);
 
-  const body = `${COMMENT_MARKER}
-## ${emoji} Test Report
-
-| | |
-|---|---|
-| **Passed** | ${stats.passed.toLocaleString()} |
-| **Failed** | ${stats.failed.toLocaleString()} |
-| **Skipped** | ${stats.skipped.toLocaleString()} |
-| **Duration** | ${formatDuration(stats.durationMs)} |
-
-${link}
-`;
-
-  const { data: comments } = await octokit.rest.issues.listComments({
-    owner,
-    repo,
-    issue_number: prNumber,
-    per_page: 100,
-  });
-
-  const existing = comments.find((c) => c.body?.includes(COMMENT_MARKER));
-  if (existing) {
-    await octokit.rest.issues.updateComment({
-      owner,
-      repo,
-      comment_id: existing.id,
-      body,
-    });
-  } else {
-    await octokit.rest.issues.createComment({
+  try {
+    const { data: comments } = await octokit.rest.issues.listComments({
       owner,
       repo,
       issue_number: prNumber,
-      body,
+      per_page: 100,
     });
+
+    const existing = comments.find((c) => c.body?.includes(COMMENT_MARKER));
+    if (existing) {
+      await octokit.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: existing.id,
+        body,
+      });
+      core.info('Updated PR comment');
+    } else {
+      await octokit.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: prNumber,
+        body,
+      });
+      core.info('Created PR comment');
+    }
+  } catch (error) {
+    core.warning(`Failed to update PR comment: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

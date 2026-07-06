@@ -15,8 +15,8 @@ function renderSparkline(points: TrendData['points']): string {
   }).join('')}</span>`;
 }
 
-function renderRunRow(run: RunManifestEntry, pagesBaseUrl?: string): string {
-  const url = pagesBaseUrl ? `${pagesBaseUrl}/${run.path}index.html` : `${run.path}index.html`;
+function renderRunRow(run: RunManifestEntry): string {
+  const url = `${run.path}index.html`;
   const statusClass = run.status === 'passed' ? 'passed' : 'failed';
   return `<tr class="${run.status === 'failed' ? 'failed' : ''}">
     <td><span class="status-pill ${statusClass}">${run.status === 'passed' ? '✓' : '✗'} ${escapeHtml(run.status)}</span></td>
@@ -34,7 +34,6 @@ export function renderBranchHistoryPage(
   theme: ThemeMode,
   manifest: BranchManifest,
   trend: TrendData,
-  pagesBaseUrl?: string,
 ): string {
   const body = `
 <div class="section">
@@ -55,7 +54,7 @@ export function renderBranchHistoryPage(
       <thead>
         <tr><th>Status</th><th>Run</th><th>Date</th><th>Summary</th><th>Commit</th><th>Duration</th></tr>
       </thead>
-      <tbody>${manifest.runs.map((r) => renderRunRow(r, pagesBaseUrl)).join('')}</tbody>
+      <tbody>${manifest.runs.map((r) => renderRunRow(r)).join('')}</tbody>
     </table>
   </div>
 </div>`;
@@ -73,13 +72,10 @@ export function renderSiteIndex(
   reportTitle: string,
   repository: string,
   branches: BranchManifest[],
-  pagesBaseUrl?: string,
 ): string {
   const rows = branches.map((branch) => {
     const latest = branch.runs.find((r) => r.isLatest) ?? branch.runs[0];
-    const url = pagesBaseUrl
-      ? `${pagesBaseUrl}/${branch.latestPath}index.html`
-      : `${branch.latestPath}index.html`;
+    const url = `${branch.latestPath}index.html`;
     const status = latest?.status ?? 'passed';
     return `<tr>
       <td><span class="status-pill ${status}">${escapeHtml(status)}</span></td>

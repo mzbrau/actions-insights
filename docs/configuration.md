@@ -1,110 +1,174 @@
 # Configuration Reference
 
+## Permissions
+
+```yaml
+permissions:
+  contents: read          # Required
+  pull-requests: write    # PR comments (fork PRs may need pull_request_target)
+  checks: write           # Check runs and annotations
+```
+
 ## Inputs
 
-### `test-results`
-Glob pattern for test result files. Supports TRX, NUnit, xUnit, and JUnit XML.
+### Test Results
 
-Default: `**/*.{trx,xml}`
+#### `test-results`
+Glob pattern for test result files.
 
-### `pages-subdirectory`
-Subdirectory under GitHub Pages where reports are published. Use this when your repo already hosts documentation at the site root.
+- **Default:** `**/*.{trx,xml}`
 
-Default: `test-reports`
+### Reporting
 
-### `publish-pages`
-When `false`, generates reports locally without publishing.
+#### `reports-subdirectory`
+Subdirectory within the site artifact for test reports.
 
-Default: `true`
+- **Default:** `test-reports`
 
-### `pages-mode`
-- `artifact` — Upload a `github-pages` artifact for `actions/deploy-pages` (recommended)
-- `gh-pages` — Commit to the `gh-pages` branch, preserving other files
-- `none` — No publishing (same as `publish-pages: false`)
+#### `report-title`
+Title displayed in report UI and GitHub outputs.
 
-Default: `artifact`
+- **Default:** `Actions Insights`
 
-### `comment-pr`
-Post or update a single PR comment with test summary and report link.
-
-Default: `true`
-
-### `history`
-Maximum number of historical run directories retained per branch/PR/tag.
-
-Default: `20`
-
-### `retain-days`
-Maximum age in days for historical run directories.
-
-Default: `30`
-
-### `report-title`
-Title shown in the report UI.
-
-Default: `Actions Insights`
-
-### `report-output`
+#### `report-output`
 Local directory for the current run's report files.
 
-Default: `_report`
+- **Default:** `_report`
 
-### `site-output`
-Local directory for the merged GitHub Pages site tree.
+#### `site-output`
+Local directory for the merged site with history.
 
-Default: `_site`
+- **Default:** `_site`
 
-### `theme`
-Default theme: `light`, `dark`, or `auto` (system preference).
+### PR Comment
 
-Default: `auto`
+#### `comment-mode`
+PR comment behavior.
 
-### `slow-test-threshold-ms`
-Tests slower than this threshold are marked as slow in the All Tests view.
+- **Default:** `update`
+- **Values:** `update` (upsert single comment), `off`
 
-Default: `1000`
+#### `max-failed-tests-in-comment`
+Maximum failed tests shown in the PR comment.
 
-### `seed-from-gh-pages`
-On first run, bootstrap the site cache from an existing `gh-pages` branch.
+- **Default:** `10`
 
-Default: `false`
+#### `max-stack-trace-lines`
+Maximum stack trace lines before truncation.
+
+- **Default:** `25`
+
+#### `include-stdout` / `include-stderr`
+Include stdout/stderr in failure details.
+
+- **Default:** `true`
+
+### Job Summary
+
+#### `generate-job-summary`
+Write a GitHub Actions job summary.
+
+- **Default:** `true`
+
+#### `max-failed-tests-in-summary`
+Maximum failed tests in the job summary table.
+
+- **Default:** `20`
+
+### Checks
+
+#### `publish-checks`
+Publish a GitHub check run.
+
+- **Default:** `true`
+
+#### `check-name`
+Name of the check run.
+
+- **Default:** `Actions Insights`
+
+### Artifact
+
+#### `upload-html-report`
+Upload the HTML report site as a workflow artifact.
+
+- **Default:** `true`
+
+#### `artifact-retention-days`
+Retention days for the uploaded artifact.
+
+- **Default:** `30`
+
+### History
+
+#### `history`
+Maximum historical runs retained per branch/PR.
+
+- **Default:** `20`
+
+#### `retain-days`
+Maximum age in days for historical runs.
+
+- **Default:** `30`
+
+### Display
+
+#### `theme`
+Report theme: `light`, `dark`, or `auto`.
+
+- **Default:** `auto`
+
+#### `slow-test-threshold-ms`
+Duration threshold for marking tests as slow.
+
+- **Default:** `1000`
+
+#### `include-slowest-tests`
+Number of slowest tests to include (0 to disable).
+
+- **Default:** `10`
+
+### Authentication
+
+#### `github-token`
+Token for GitHub API calls.
+
+- **Default:** `${{ github.token }}`
 
 ## Outputs
 
 | Output | Description |
 |--------|-------------|
-| `report-url` | URL to the latest report |
-| `page-url` | GitHub Pages base URL |
+| `workflow-url` | URL to the workflow run |
+| `artifact-url` | URL to workflow artifacts |
 | `status` | `passed` or `failed` |
 | `total` | Total test count |
-| `passed` | Passed test count |
-| `failed` | Failed test count |
-| `skipped` | Skipped test count |
+| `passed` | Passed count |
+| `failed` | Failed count |
+| `skipped` | Skipped count |
 
-## Permissions
+## Deprecated Inputs
 
-```yaml
-permissions:
-  contents: write    # gh-pages mode
-  pages: write       # artifact mode
-  id-token: write    # artifact mode OIDC
-  pull-requests: write
-```
+These inputs are ignored with a deprecation warning:
 
-## Example: Java JUnit
+| Deprecated | Replacement |
+|------------|-------------|
+| `pages-subdirectory` | `reports-subdirectory` |
+| `publish-pages` | Removed — use `upload-html-report` |
+| `pages-mode` | Removed |
+| `seed-from-gh-pages` | Removed |
+| `comment-pr` | `comment-mode` |
 
-```yaml
-- run: mvn test
-- uses: mzbrau/actions-insights@v1
-  with:
-    test-results: '**/surefire-reports/*.xml'
-```
-
-## Example: Existing Docusaurus Site
+## Example
 
 ```yaml
 - uses: mzbrau/actions-insights@v1
   with:
-    pages-subdirectory: test-reports
-    seed-from-gh-pages: true
+    test-results: '**/*.trx'
+    comment-mode: update
+    max-failed-tests-in-comment: 10
+    max-stack-trace-lines: 25
+    include-slowest-tests: 10
+    upload-html-report: true
+    publish-checks: true
 ```

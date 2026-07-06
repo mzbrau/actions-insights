@@ -11,12 +11,11 @@ export interface ReportPaths {
     relativeBranchUrl: string;
     relativeLatestUrl: string;
 }
-export declare function resolveReportPaths(context: RunContext, pagesSubdirectory: string): ReportPaths;
+export declare function resolveReportPaths(context: RunContext, reportsSubdirectory: string): ReportPaths;
 export declare function resolveBranchKey(context: RunContext): {
     branchKey: string;
     branchLabel: string;
     branchType: 'branch' | 'pr' | 'tag';
 };
-export declare function buildReportUrl(pagesBaseUrl: string | undefined, relativePath: string): string | undefined;
 export declare function cacheKey(owner: string, repo: string): string;
 //# sourceMappingURL=paths.d.ts.map

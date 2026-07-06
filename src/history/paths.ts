@@ -15,11 +15,11 @@ export interface ReportPaths {
 
 export function resolveReportPaths(
   context: RunContext,
-  pagesSubdirectory: string,
+  reportsSubdirectory: string,
 ): ReportPaths {
   const { branchKey, branchLabel, branchType } = resolveBranchKey(context);
   const runDirName = `run-${context.runId}`;
-  const branchDir = `${pagesSubdirectory}/${branchKey}`;
+  const branchDir = `${reportsSubdirectory}/${branchKey}`;
   const runDir = `${branchDir}/${runDirName}`;
   const latestDir = `${branchDir}/latest`;
 
@@ -65,11 +65,6 @@ export function resolveBranchKey(context: RunContext): {
   };
 }
 
-export function buildReportUrl(pagesBaseUrl: string | undefined, relativePath: string): string | undefined {
-  if (!pagesBaseUrl) return undefined;
-  return `${pagesBaseUrl}/${relativePath}`.replace(/([^:]\/)\/+/g, '$1');
-}
-
 export function cacheKey(owner: string, repo: string): string {
-  return `actions-insights-pages-site-${owner}-${repo}`;
+  return `actions-insights-site-${owner}-${repo}`;
 }

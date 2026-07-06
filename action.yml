@@ -1,5 +1,5 @@
 name: Actions Insights Test Report
-description: TeamCity-style test reports for GitHub Actions — parse TRX, JUnit, NUnit, xUnit and publish beautiful HTML reports to GitHub Pages.
+description: GitHub-native test reports for Actions — parse TRX, JUnit, NUnit, xUnit with rich PR comments, job summaries, checks, and HTML artifacts.
 author: mzbrau
 branding:
   icon: check-circle
@@ -9,20 +9,20 @@ inputs:
     description: Glob pattern for test result files
     required: false
     default: '**/*.{trx,xml}'
-  pages-subdirectory:
-    description: Subdirectory under GitHub Pages for test reports
+  reports-subdirectory:
+    description: Subdirectory within the site artifact for test reports
     required: false
     default: test-reports
-  publish-pages:
-    description: Whether to publish to GitHub Pages
+  pages-subdirectory:
+    description: 'Deprecated: use reports-subdirectory'
     required: false
-    default: 'true'
-  pages-mode:
-    description: 'Deployment mode: artifact (modern Pages API), gh-pages (branch), or none'
+    default: ''
+  comment-mode:
+    description: 'PR comment mode: update (upsert) or off'
     required: false
-    default: artifact
+    default: update
   comment-pr:
-    description: Post or update a PR comment with report summary
+    description: 'Deprecated: use comment-mode instead'
     required: false
     default: 'true'
   history:
@@ -42,7 +42,7 @@ inputs:
     required: false
     default: _report
   site-output:
-    description: Local directory for merged GitHub Pages site
+    description: Local directory for merged site with report history
     required: false
     default: _site
   theme:
@@ -53,8 +53,60 @@ inputs:
     description: Duration threshold in ms for marking tests as slow
     required: false
     default: '1000'
+  max-failed-tests-in-comment:
+    description: Maximum failed tests to show in the PR comment
+    required: false
+    default: '10'
+  max-failed-tests-in-summary:
+    description: Maximum failed tests to show in the job summary
+    required: false
+    default: '20'
+  max-stack-trace-lines:
+    description: Maximum stack trace lines before truncation
+    required: false
+    default: '25'
+  include-stdout:
+    description: Include stdout in failure details
+    required: false
+    default: 'true'
+  include-stderr:
+    description: Include stderr in failure details
+    required: false
+    default: 'true'
+  include-slowest-tests:
+    description: Number of slowest tests to include (0 to disable)
+    required: false
+    default: '10'
+  upload-html-report:
+    description: Upload HTML report as a workflow artifact
+    required: false
+    default: 'true'
+  generate-job-summary:
+    description: Write a GitHub Actions job summary
+    required: false
+    default: 'true'
+  publish-checks:
+    description: Publish a GitHub check run with test results
+    required: false
+    default: 'true'
+  artifact-retention-days:
+    description: Retention days for the uploaded HTML report artifact
+    required: false
+    default: '30'
+  check-name:
+    description: Name of the published check run
+    required: false
+    default: Actions Insights
+  publish-pages:
+    description: 'Deprecated: ignored'
+    required: false
+    default: ''
+  pages-mode:
+    description: 'Deprecated: ignored'
+    required: false
+    default: ''
   seed-from-gh-pages:
-    description: Bootstrap site cache from existing gh-pages branch on first run
+    description: 'Deprecated: ignored'
     required: false
     default: 'false'
   github-token:
@@ -62,10 +114,10 @@ inputs:
     required: false
     default: ${{ github.token }}
 outputs:
-  report-url:
-    description: URL to the latest test report
-  page-url:
-    description: URL to the GitHub Pages site root
+  workflow-url:
+    description: URL to the workflow run
+  artifact-url:
+    description: URL to the workflow run artifacts
   status:
     description: Overall test status (passed or failed)
   total:
