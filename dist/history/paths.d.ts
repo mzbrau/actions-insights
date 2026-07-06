@@ -3,13 +3,11 @@ export interface ReportPaths {
     branchKey: string;
     branchLabel: string;
     branchType: 'branch' | 'pr' | 'tag';
-    runDirName: string;
     branchDir: string;
-    runDir: string;
-    latestDir: string;
+    historyDir: string;
+    artifactDir: string;
+    partialRunPath: string;
     relativeReportUrl: string;
-    relativeBranchUrl: string;
-    relativeLatestUrl: string;
 }
 export declare function resolveReportPaths(context: RunContext, reportsSubdirectory: string): ReportPaths;
 export declare function resolveBranchKey(context: RunContext): {

@@ -51,14 +51,58 @@ export interface TrendData {
   totalRuns: number;
 }
 
-export interface SearchIndexEntry {
-  i: number;
-  tokens: string[];
+export interface TestHistoryPoint {
+  runId: string;
+  date: string;
+  o: number;
+  d: number;
+  commitShortSha: string;
+  branchKey: string;
+  branchLabel: string;
 }
 
-export interface SearchIndex {
-  fields: string[];
-  entries: SearchIndexEntry[];
+export interface TestHistoryEntry {
+  passRate: number;
+  runCount: number;
+  points: TestHistoryPoint[];
+}
+
+export interface TrendsFile {
+  version: 1;
+  repository: string;
+  updatedAt: string;
+  context: {
+    branchKey: string;
+    branchLabel: string;
+  };
+  runs: RunManifestEntry[];
+  summary: TrendData;
+  tests: Record<string, TestHistoryEntry>;
+}
+
+export interface CanonicalRunEntry extends RunManifestEntry {
+  branchKey: string;
+  branchLabel: string;
+  branchType: 'branch' | 'pr' | 'tag';
+  failedTests: string[];
+  testOutcomes: Array<{ n: string; o: number }>;
+}
+
+export interface CanonicalRunsFile {
+  version: 1;
+  repository: string;
+  updatedAt: string;
+  runs: CanonicalRunEntry[];
+}
+
+export interface CanonicalTestsFile {
+  version: 1;
+  tests: Record<string, TestHistoryPoint[]>;
+}
+
+export interface CanonicalHistory {
+  runs: CanonicalRunsFile;
+  tests: CanonicalTestsFile;
 }
 
 export interface CompactTestRecord {

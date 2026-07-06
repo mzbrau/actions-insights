@@ -78,8 +78,8 @@ async function main(): Promise<void> {
 
   integrateReportIntoSite(run, config, '_site');
   console.log('\nReport generated:');
-  console.log('  _report/index.html       (summary)');
-  console.log('  _report/all-tests.html   (searchable table)');
+  console.log('  _report/report.html');
+  console.log('  _report/trends.json');
   console.log(`  ${stats.total.toLocaleString()} total · ${stats.failed.toLocaleString()} failed · ${stats.passed.toLocaleString()} passed`);
 }
 

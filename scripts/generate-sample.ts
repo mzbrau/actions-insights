@@ -50,7 +50,7 @@ async function main(): Promise<void> {
   if (fs.existsSync('_site')) fs.rmSync('_site', { recursive: true, force: true });
 
   integrateReportIntoSite(run, config, '_site');
-  console.log('Sample report generated at _report/ and _site/');
+  console.log('Sample report generated at _report/report.html and _report/trends.json');
 }
 
 main().catch((err) => {

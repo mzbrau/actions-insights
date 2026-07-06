@@ -43,12 +43,12 @@ async function run(): Promise<void> {
   const { owner, repo } = github.context.repo;
 
   await prepareSiteWorkspace(config.siteOutput, owner, repo);
-  const { previousRun } = integrateReportIntoSite(testRun, config, config.siteOutput);
+  const { previousRun, artifactDir } = integrateReportIntoSite(testRun, config, config.siteOutput);
   await saveSiteCache(config.siteOutput, owner, repo);
 
   if (config.uploadHtmlReport) {
     try {
-      await uploadReportArtifact(config.siteOutput, config.artifactRetentionDays);
+      await uploadReportArtifact(artifactDir, config.artifactRetentionDays);
     } catch (error) {
       core.warning(`Artifact upload failed: ${error instanceof Error ? error.message : String(error)}`);
       core.info(`Report files are available locally at ${config.siteOutput}`);

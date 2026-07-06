@@ -4,13 +4,11 @@ export interface ReportPaths {
   branchKey: string;
   branchLabel: string;
   branchType: 'branch' | 'pr' | 'tag';
-  runDirName: string;
   branchDir: string;
-  runDir: string;
-  latestDir: string;
+  historyDir: string;
+  artifactDir: string;
+  partialRunPath: string;
   relativeReportUrl: string;
-  relativeBranchUrl: string;
-  relativeLatestUrl: string;
 }
 
 export function resolveReportPaths(
@@ -18,22 +16,19 @@ export function resolveReportPaths(
   reportsSubdirectory: string,
 ): ReportPaths {
   const { branchKey, branchLabel, branchType } = resolveBranchKey(context);
-  const runDirName = `run-${context.runId}`;
   const branchDir = `${reportsSubdirectory}/${branchKey}`;
-  const runDir = `${branchDir}/${runDirName}`;
-  const latestDir = `${branchDir}/latest`;
+  const historyDir = `${reportsSubdirectory}/.history`;
+  const artifactDir = reportsSubdirectory;
 
   return {
     branchKey,
     branchLabel,
     branchType,
-    runDirName,
     branchDir,
-    runDir,
-    latestDir,
-    relativeReportUrl: `${latestDir}/index.html`,
-    relativeBranchUrl: `${branchDir}/index.html`,
-    relativeLatestUrl: `${latestDir}/`,
+    historyDir,
+    artifactDir,
+    partialRunPath: `${branchDir}/partial-${context.runId}.json`,
+    relativeReportUrl: `${artifactDir}/report.html`,
   };
 }
 

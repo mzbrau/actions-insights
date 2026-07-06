@@ -33,10 +33,9 @@ jobs:
 
       - name: Verify sample output
         run: |
-          test -f _report/index.html
-          test -f _report/all-tests.html
-          test -f _report/tests.json
-          test -f _site/test-reports/index.html
+          test -f _report/report.html
+          test -f _report/trends.json
+          test -f _site/test-reports/report.html
           test -f dist/index.js
 
       - name: Upload sample report artifact
