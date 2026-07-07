@@ -4,8 +4,20 @@ import type { BranchIndexEntry } from '@actions-insights/history-models';
 import { loadRepository } from '../data/loader';
 import { formatDate, formatDuration, statusIcon } from '../utils/format';
 import { Layout } from '../components/Layout';
+import { PageHeader } from '../components/ui/PageHeader';
+import { StatCard } from '../components/ui/StatCard';
+import { StatusBanner } from '../components/ui/StatusBanner';
+import { DonutChart } from '../components/charts/DonutChart';
+import { ChartCard } from '../components/ui/ChartCard';
+import { FilterChips } from '../components/ui/FilterChips';
 
 type StatusFilter = 'all' | 'passed' | 'failed';
+
+const STATUS_FILTERS = [
+  { value: 'all' as const, label: 'All' },
+  { value: 'passed' as const, label: 'Passed', variant: 'passed' as const },
+  { value: 'failed' as const, label: 'Failed', variant: 'failed' as const },
+];
 
 export function RepositoryPage() {
   const { repoKey } = useParams<{ repoKey: string }>();
@@ -46,32 +58,62 @@ export function RepositoryPage() {
       .sort((a, b) => new Date(b.latestDate).getTime() - new Date(a.latestDate).getTime());
   }, [branches, search, statusFilter]);
 
+  const branchStats = useMemo(() => {
+    const passing = branches.filter((b) => b.latestStatus === 'passed').length;
+    const failing = branches.filter((b) => b.latestStatus === 'failed').length;
+    return { passing, failing };
+  }, [branches]);
+
   if (loading) return <Layout><p className="muted">Loading repository…</p></Layout>;
   if (error || !metadata) return <Layout><p className="error">{error ?? 'Repository not found'}</p></Layout>;
 
+  const bannerTitle = metadata.latestStatus === 'passed' ? '✅ HEALTHY' : '❌ NEEDS ATTENTION';
+  const bannerSubtitle =
+    metadata.latestStatus === 'passed'
+      ? `All ${metadata.branchCount} branches passing · Updated ${formatDate(metadata.lastRunDate)}`
+      : `${branchStats.failing} branch${branchStats.failing === 1 ? '' : 'es'} failing · Updated ${formatDate(metadata.lastRunDate)}`;
+
   return (
     <Layout>
-      <div className="page-header">
-        <button type="button" className="link-btn" onClick={() => navigate('/')}>← All repositories</button>
-        <h1>{metadata.name}</h1>
-        <p className="muted">
-          {statusIcon(metadata.latestStatus)} Overall health · {metadata.branchCount} branches · Updated {formatDate(metadata.lastRunDate)}
-        </p>
+      <PageHeader
+        backLabel="All repositories"
+        onBack={() => navigate('/')}
+        title={metadata.name}
+        meta={
+          <>
+            <span>{statusIcon(metadata.latestStatus)} Overall health</span>
+            <span>{metadata.branchCount} branches</span>
+            <span>Updated {formatDate(metadata.lastRunDate)}</span>
+          </>
+        }
+      />
+
+      <StatusBanner status={metadata.latestStatus} title={bannerTitle} subtitle={bannerSubtitle} />
+
+      <div className="stats-grid">
+        <StatCard label="Branches" value={metadata.branchCount} />
+        <StatCard label="Passing" value={branchStats.passing} variant="passed" />
+        <StatCard label="Failing" value={branchStats.failing} variant="failed" />
       </div>
+
+      {branches.length > 0 && (
+        <div className="charts-row">
+          <ChartCard title="Branch Health">
+            <DonutChart passed={branchStats.passing} failed={branchStats.failing} skipped={0} />
+          </ChartCard>
+        </div>
+      )}
 
       <div className="toolbar">
         <input
           type="search"
+          className="search-input"
           placeholder="Search branches…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search branches"
         />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)} aria-label="Filter by status">
-          <option value="all">All statuses</option>
-          <option value="passed">Passed</option>
-          <option value="failed">Failed</option>
-        </select>
+        <FilterChips options={STATUS_FILTERS} value={statusFilter} onChange={setStatusFilter} ariaLabel="Filter by status" />
       </div>
 
       <table className="data-table">
@@ -105,6 +147,8 @@ export function RepositoryPage() {
           ))}
         </tbody>
       </table>
+
+      {filtered.length === 0 && <p className="empty-state">No branches match your filters.</p>}
     </Layout>
   );
 }

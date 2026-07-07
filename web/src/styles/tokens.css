@@ -1,0 +1,60 @@
+:root {
+  --surface: #f7f9ff;
+  --surface-dim: #d2dbe6;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #edf4ff;
+  --surface-container: #e6effa;
+  --surface-container-high: #e0e9f5;
+  --on-surface: #141c25;
+  --on-surface-variant: #424753;
+  --outline: #727785;
+  --outline-variant: #c2c6d6;
+  --primary: #0051ae;
+  --on-primary: #ffffff;
+  --primary-container: #0969da;
+  --on-primary-container: #ecefff;
+  --primary-fixed: #d8e2ff;
+  --tertiary: #913900;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #b84b00;
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --success: #0a6e31;
+  --success-container: #d4f5e0;
+  --warning: #913900;
+  --code-bg: #0f172a;
+  --shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  --radius: 8px;
+  --transition: 0.2s ease;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+  --chart-passed: #0a6e31;
+  --chart-failed: #ba1a1a;
+  --chart-skipped: #727785;
+  --chart-inconclusive: #913900;
+}
+
+[data-theme="dark"] {
+  --surface: #0f1419;
+  --surface-dim: #1a2332;
+  --surface-container-lowest: #141c25;
+  --surface-container-low: #1a2332;
+  --surface-container: #1f2a3a;
+  --surface-container-high: #29313a;
+  --on-surface: #e9f2fd;
+  --on-surface-variant: #c2c6d6;
+  --outline: #727785;
+  --outline-variant: #424753;
+  --primary: #adc6ff;
+  --on-primary: #001a41;
+  --primary-container: #004493;
+  --on-primary-container: #d8e2ff;
+  --primary-fixed: #1f2a3a;
+  --error-container: #3d1515;
+  --on-error-container: #ffdad6;
+  --success-container: #0d3320;
+  --code-bg: #0a0f16;
+  --shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+}

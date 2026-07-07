@@ -4,6 +4,13 @@ import type { BranchHistory, BranchLatest } from '@actions-insights/history-mode
 import { loadBranchHistory, loadBranchLatest } from '../data/loader';
 import { formatDate, formatDuration, passRate, statusIcon } from '../utils/format';
 import { Layout } from '../components/Layout';
+import { PageHeader } from '../components/ui/PageHeader';
+import { StatCard } from '../components/ui/StatCard';
+import { StatusBanner } from '../components/ui/StatusBanner';
+import { ChartCard } from '../components/ui/ChartCard';
+import { DurationTrendChart } from '../components/charts/DurationTrendChart';
+import { StackedBarChart } from '../components/charts/StackedBarChart';
+import { Sparkline } from '../components/charts/Sparkline';
 
 export function BranchPage() {
   const { repoKey, branchKey: rawBranchKey } = useParams<{ repoKey: string; branchKey: string }>();
@@ -41,6 +48,10 @@ export function BranchPage() {
     return [...history.runs].reverse().slice(-20);
   }, [history]);
 
+  const passRateTrend = useMemo(() => {
+    return chartPoints.map((r) => passRate(r.passed, r.total));
+  }, [chartPoints]);
+
   const avgPassRate = useMemo(() => {
     if (!history?.runs.length) return 0;
     const sum = history.runs.reduce((acc, r) => acc + passRate(r.passed, r.total), 0);
@@ -55,57 +66,55 @@ export function BranchPage() {
   if (loading) return <Layout><p className="muted">Loading branch…</p></Layout>;
   if (error || !latest || !history) return <Layout><p className="error">{error ?? 'Branch not found'}</p></Layout>;
 
+  const bannerTitle = latest.status === 'passed' ? '✅ PASSING' : '❌ FAILING';
+  const bannerSubtitle = `Latest run · ${formatDuration(latest.durationMs)} · ${latest.commitShortSha} by ${latest.author}`;
+
   return (
     <Layout>
-      <div className="page-header">
-        <button type="button" className="link-btn" onClick={() => navigate(`/r/${repoKey}`)}>← Repository</button>
-        <h1>{history.branchLabel}</h1>
-        <p className="muted">
-          {statusIcon(latest.status)} Latest · {formatDuration(latest.durationMs)} · {latest.commitShortSha} by {latest.author}
-        </p>
-      </div>
+      <PageHeader
+        backLabel="Repository"
+        onBack={() => navigate(`/r/${repoKey}`)}
+        title={history.branchLabel}
+        meta={
+          <>
+            <span>{statusIcon(latest.status)} Latest</span>
+            <span>{formatDuration(latest.durationMs)}</span>
+            <span>{latest.commitShortSha} by {latest.author}</span>
+          </>
+        }
+      />
+
+      <StatusBanner status={latest.status} title={bannerTitle} subtitle={bannerSubtitle} />
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Status</div>
-          <div className="stat-value">{statusIcon(latest.status)} {latest.status}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Pass rate (avg)</div>
-          <div className="stat-value">{avgPassRate}%</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Duration (avg)</div>
-          <div className="stat-value">{formatDuration(avgDuration)}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Runs</div>
-          <div className="stat-value">{history.runs.length}</div>
-        </div>
+        <StatCard label="Status" value={<>{statusIcon(latest.status)} {latest.status}</>} />
+        <StatCard label="Pass rate (avg)" value={`${avgPassRate}%`} />
+        <StatCard label="Duration (avg)" value={formatDuration(avgDuration)} />
+        <StatCard label="Runs" value={history.runs.length} />
+        {passRateTrend.length > 1 && (
+          <StatCard
+            label="Pass rate trend"
+            value={<Sparkline values={passRateTrend} color="var(--primary-container)" />}
+          />
+        )}
       </div>
 
       {chartPoints.length > 0 && (
-        <section className="section">
-          <h2>Duration trend</h2>
-          <div className="bar-chart" role="img" aria-label="Duration trend chart">
-            {chartPoints.map((point) => {
-              const max = Math.max(...chartPoints.map((p) => p.durationMs), 1);
-              const height = Math.max(4, Math.round((point.durationMs / max) * 100));
-              return (
-                <div
-                  key={point.runId}
-                  className={`bar ${point.status}`}
-                  style={{ height: `${height}%` }}
-                  title={`${formatDate(point.date)}: ${formatDuration(point.durationMs)}`}
-                />
-              );
-            })}
-          </div>
-        </section>
+        <div className="charts-row">
+          <ChartCard title="Duration Trend">
+            <DurationTrendChart
+              runs={chartPoints}
+              onBarClick={(id) => navigate(`/r/${repoKey}/b/${encodeURIComponent(branchKey)}/run/${id}`)}
+            />
+          </ChartCard>
+          <ChartCard title="Pass / Fail per Run">
+            <StackedBarChart runs={chartPoints} />
+          </ChartCard>
+        </div>
       )}
 
       <section className="section">
-        <h2>Recent runs</h2>
+        <h2 className="section-title">Recent runs</h2>
         <table className="data-table">
           <thead>
             <tr>

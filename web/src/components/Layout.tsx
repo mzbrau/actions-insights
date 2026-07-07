@@ -17,9 +17,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               Repositories
             </Link>
           </nav>
-          <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
+          <div className="header-actions">
+            <button type="button" className="btn" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === 'dark' ? '☀️ Theme' : '🌙 Theme'}
+            </button>
+          </div>
         </div>
       </header>
       <main className="main">{children}</main>

@@ -1,11 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { RepositoryIndexEntry } from '@actions-insights/history-models';
 import { loadConfig, loadRepositoriesIndex } from '../data/loader';
 import { formatDate, statusIcon } from '../utils/format';
 import { Layout } from '../components/Layout';
+import { PageHeader } from '../components/ui/PageHeader';
+import { StatCard } from '../components/ui/StatCard';
+import { DonutChart } from '../components/charts/DonutChart';
+import { ChartCard } from '../components/ui/ChartCard';
+import { FilterChips } from '../components/ui/FilterChips';
 
 type SortKey = 'name' | 'status' | 'branches' | 'updated';
+
+const SORT_OPTIONS = [
+  { value: 'updated' as const, label: 'Recently updated' },
+  { value: 'name' as const, label: 'Name' },
+  { value: 'status' as const, label: 'Status' },
+  { value: 'branches' as const, label: 'Branch count' },
+];
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -50,9 +62,6 @@ export function LandingPage() {
         e.preventDefault();
         document.getElementById('repo-search')?.focus();
       }
-      if (e.key === 'r' && (e as KeyboardEvent & { _gr?: boolean })._gr) {
-        navigate('/');
-      }
       if (e.key === 'g') {
         (window as Window & { _gPending?: boolean })._gPending = true;
         setTimeout(() => { (window as Window & { _gPending?: boolean })._gPending = false; }, 500);
@@ -83,31 +92,47 @@ export function LandingPage() {
       }
     });
 
+  const healthStats = useMemo(() => {
+    const passing = repos.filter((r) => r.latestStatus === 'passed').length;
+    const failing = repos.filter((r) => r.latestStatus === 'failed').length;
+    return { total: repos.length, passing, failing };
+  }, [repos]);
+
   if (loading) return <Layout><p className="muted">Loading repositories…</p></Layout>;
   if (error) return <Layout><p className="error">{error}</p></Layout>;
 
   return (
     <Layout>
-      <div className="page-header">
-        <h1>Repositories</h1>
-        <p className="muted">Test history across all connected projects</p>
+      <PageHeader
+        title="Repositories"
+        meta={<span>Test history across all connected projects</span>}
+      />
+
+      <div className="stats-grid">
+        <StatCard label="Repositories" value={healthStats.total} />
+        <StatCard label="Passing" value={healthStats.passing} variant="passed" />
+        <StatCard label="Failing" value={healthStats.failing} variant="failed" />
       </div>
+
+      {healthStats.total > 0 && (
+        <div className="charts-row">
+          <ChartCard title="Repository Health">
+            <DonutChart passed={healthStats.passing} failed={healthStats.failing} skipped={0} />
+          </ChartCard>
+        </div>
+      )}
 
       <div className="toolbar">
         <input
           id="repo-search"
           type="search"
+          className="search-input"
           placeholder="Search repositories…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search repositories"
         />
-        <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort repositories">
-          <option value="updated">Recently updated</option>
-          <option value="name">Name</option>
-          <option value="status">Status</option>
-          <option value="branches">Branch count</option>
-        </select>
+        <FilterChips options={SORT_OPTIONS} value={sort} onChange={setSort} ariaLabel="Sort repositories" />
       </div>
 
       <table className="data-table">
@@ -136,7 +161,7 @@ export function LandingPage() {
         </tbody>
       </table>
 
-      {filtered.length === 0 && <p className="muted">No repositories match your search.</p>}
+      {filtered.length === 0 && <p className="empty-state">No repositories match your search.</p>}
     </Layout>
   );
 }
