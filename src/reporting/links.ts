@@ -39,6 +39,16 @@ export function formatTestNameWithLinks(
   return codeUrl ? `${log} ([code](${codeUrl}))` : log;
 }
 
+/** Job summary: link test name directly to code search (user is already on the workflow page). */
+export function formatTestNameWithCodeLink(
+  context: RunContext,
+  shortName: string,
+  test: TestCase,
+): string {
+  const codeUrl = buildTestCodeUrl(context, test);
+  return codeUrl ? `[\`${shortName}\`](${codeUrl})` : `\`${shortName}\``;
+}
+
 export function formatFooterLinks(links: ReportLinks): string {
   const items = [
     `[Workflow run](${links.workflowRun})`,

@@ -1,9 +1,9 @@
 import type { ActionConfig } from '../config';
 import type { ReportingContext } from './context';
-import { formatAllTestsSection } from './all-tests-summary';
+import { formatJobSummaryTestTables } from './all-tests-summary';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
-import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
+import { formatFooterLinks, formatTestNameWithCodeLink, type ReportLinks } from './links';
 import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
@@ -39,7 +39,12 @@ export function renderJobSummary(
     '',
     formatCompactSummary(ctx.extendedStats),
     '',
+    `[Report](${links.artifacts})`,
+    '',
   ];
+
+  const formatTestName = (t: Parameters<typeof formatTestNameWithCodeLink>[2]) =>
+    formatTestNameWithCodeLink(run.context, getShortTestName(t), t);
 
   if (failedCount > 0) {
     lines.push(`## Failed Tests (${failedCount.toLocaleString()})`);
@@ -49,7 +54,7 @@ export function renderJobSummary(
         failedTests,
         config.maxFailedTestsInSummary,
         failureOptions,
-        (t) => formatTestNameWithLinks(run.context, links, getShortTestName(t), t),
+        formatTestName,
         groupTestsByClass,
       ),
     );
@@ -63,7 +68,7 @@ export function renderJobSummary(
   if (config.includeSlowestTests > 0 && slowTests.length > 0) {
     lines.push(
       ...formatSlowTestsSection(slowTests, config.slowTestThresholdMs, {
-        formatName: (t) => formatTestNameWithLinks(run.context, links, getShortTestName(t), t),
+        formatName: formatTestName,
       }),
     );
   }
@@ -90,7 +95,7 @@ export function renderJobSummary(
     lines.push('');
   }
 
-  lines.push(...formatAllTestsSection(run.tests, links, (t) => formatTestNameWithLinks(run.context, links, getShortTestName(t), t)));
+  lines.push(...formatJobSummaryTestTables(run.tests, run.sourceFiles, links, formatTestName));
 
   lines.push('## Statistics');
   lines.push('');

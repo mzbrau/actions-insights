@@ -1,65 +1,267 @@
 import type { TestCase } from '../model/test-case';
 import { formatDuration } from '../model/test-run';
 import type { ReportLinks } from './links';
-import {
-  classOutcomeCounts,
-  formatAllTestLine,
-} from './slow-tests';
-import { getShortTestName, groupTestsByClassWithFailuresFirst } from './grouping';
+import { groupTestsByClassWithFailuresFirst } from './grouping';
+import { outcomeEmoji } from './slow-tests';
 
 const MAX_SUMMARY_BYTES = 55_000;
 
-export function formatAllTestsSection(
+export interface SourceFileGroup {
+  sourceFile: string;
+  label: string;
+  tests: TestCase[];
+}
+
+interface OutcomeCounts {
+  passed: number;
+  failed: number;
+  skipped: number;
+  durationMs: number;
+}
+
+export function formatReportLabel(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  const segments = normalized.split('/').filter(Boolean);
+  if (segments.length >= 2) {
+    return `${segments[segments.length - 2]}/${segments[segments.length - 1]}`;
+  }
+  return segments[segments.length - 1] ?? path;
+}
+
+export function runAnchorId(runIndex: number): string {
+  return `run-${runIndex}`;
+}
+
+export function classAnchorId(runIndex: number, classIndex: number): string {
+  return `run-${runIndex}-class-${classIndex}`;
+}
+
+export function groupTestsBySourceFile(
   tests: TestCase[],
+  sourceFileOrder?: string[],
+): SourceFileGroup[] {
+  const buckets = new Map<string, TestCase[]>();
+
+  for (const test of tests) {
+    const key = test.sourceFile?.trim() || 'unknown';
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.push(test);
+    } else {
+      buckets.set(key, [test]);
+    }
+  }
+
+  const orderedKeys: string[] = [];
+  if (sourceFileOrder?.length) {
+    for (const file of sourceFileOrder) {
+      if (buckets.has(file) && !orderedKeys.includes(file)) {
+        orderedKeys.push(file);
+      }
+    }
+  }
+
+  const remaining = [...buckets.keys()]
+    .filter((key) => !orderedKeys.includes(key))
+    .sort((a, b) => a.localeCompare(b));
+  orderedKeys.push(...remaining);
+
+  return orderedKeys.map((sourceFile) => ({
+    sourceFile,
+    label: formatReportLabel(sourceFile),
+    tests: buckets.get(sourceFile) ?? [],
+  }));
+}
+
+export function countOutcomes(tests: TestCase[]): OutcomeCounts {
+  let passed = 0;
+  let failed = 0;
+  let skipped = 0;
+  let durationMs = 0;
+  for (const test of tests) {
+    durationMs += test.durationMs;
+    if (test.outcome === 'passed') passed++;
+    else if (test.outcome === 'failed') failed++;
+    else if (test.outcome === 'skipped') skipped++;
+  }
+  return { passed, failed, skipped, durationMs };
+}
+
+export function formatCountCell(count: number, emoji: string): string {
+  return count > 0 ? `${count}${emoji}` : '';
+}
+
+function formatRunSummarySentence(counts: OutcomeCounts): string {
+  const total = counts.passed + counts.failed + counts.skipped;
+  const parts = [
+    `${counts.passed.toLocaleString()} passed`,
+    `${counts.failed.toLocaleString()} failed`,
+    `${counts.skipped.toLocaleString()} skipped`,
+  ];
+  return `${total.toLocaleString()} tests were completed in ${formatDuration(counts.durationMs)} with ${parts.join(', ')}.`;
+}
+
+function escapeTableCell(value: string): string {
+  return value.replace(/\|/g, '\\|');
+}
+
+function formatOverviewRow(runIndex: number, group: SourceFileGroup): string {
+  const counts = countOutcomes(group.tests);
+  const anchor = runAnchorId(runIndex);
+  const statusEmoji = counts.failed > 0 ? '❌' : '✅';
+  return `| ${statusEmoji} [${escapeTableCell(group.label)}](#${anchor}) | ${formatCountCell(counts.passed, '✅')} | ${formatCountCell(counts.failed, '❌')} | ${formatCountCell(counts.skipped, '⏭')} | ${formatDuration(counts.durationMs)} |`;
+}
+
+function formatClassSummaryRow(
+  runIndex: number,
+  classIndex: number,
+  qualifiedClassName: string,
+  tests: TestCase[],
+): string {
+  const counts = countOutcomes(tests);
+  const anchor = classAnchorId(runIndex, classIndex);
+  return `| [${escapeTableCell(qualifiedClassName)}](#${anchor}) | ${formatCountCell(counts.passed, '✅')} | ${formatCountCell(counts.failed, '❌')} | ${formatCountCell(counts.skipped, '⏭')} | ${formatDuration(counts.durationMs)} |`;
+}
+
+function formatClassDetailBlock(
+  runIndex: number,
+  classIndex: number,
+  qualifiedClassName: string,
+  tests: TestCase[],
+  formatName: (test: TestCase) => string,
+): string[] {
+  const anchor = classAnchorId(runIndex, classIndex);
+  const lines: string[] = [
+    `<a id="${anchor}"></a>`,
+    `<details><summary>${escapeTableCell(qualifiedClassName)}</summary>`,
+    '',
+    '| Test | Result | Time |',
+    '| --- | --- | --- |',
+  ];
+
+  for (const test of tests) {
+    lines.push(
+      `| ${formatName(test)} | ${outcomeEmoji(test.outcome)} | ${formatDuration(test.durationMs)} |`,
+    );
+  }
+
+  lines.push('', '</details>', '');
+  return lines;
+}
+
+function formatRunSection(
+  runIndex: number,
+  group: SourceFileGroup,
+  formatName: (test: TestCase) => string,
+): string[] {
+  const counts = countOutcomes(group.tests);
+  const anchor = runAnchorId(runIndex);
+  const statusEmoji = counts.failed > 0 ? '❌' : '✅';
+  const classGroups = groupTestsByClassWithFailuresFirst(group.tests);
+
+  const lines: string[] = [
+    `<a id="${anchor}"></a>`,
+    `## ${statusEmoji} ${group.label}`,
+    '',
+    formatRunSummarySentence(counts),
+    '',
+    '| Test suite | Passed | Failed | Skipped | Time |',
+    '| --- | --- | --- | --- | --- |',
+  ];
+
+  for (let classIndex = 0; classIndex < classGroups.length; classIndex++) {
+    const classGroup = classGroups[classIndex];
+    lines.push(
+      formatClassSummaryRow(runIndex, classIndex, classGroup.qualifiedClassName, classGroup.tests),
+    );
+  }
+
+  lines.push('');
+  return lines;
+}
+
+export function formatJobSummaryTestTables(
+  tests: TestCase[],
+  sourceFiles: string[] | undefined,
   links: ReportLinks,
   formatName: (test: TestCase) => string = (t) => `\`${t.fullName}\``,
 ): string[] {
   if (tests.length === 0) return [];
 
+  const fileGroups = groupTestsBySourceFile(tests, sourceFiles);
   const lines: string[] = [
     `## All Tests (${tests.length.toLocaleString()})`,
     '',
+    '| Report | Passed | Failed | Skipped | Time |',
+    '| --- | --- | --- | --- | --- |',
   ];
 
-  const groups = groupTestsByClassWithFailuresFirst(tests);
+  for (let runIndex = 0; runIndex < fileGroups.length; runIndex++) {
+    lines.push(formatOverviewRow(runIndex, fileGroups[runIndex]));
+  }
+
+  lines.push('', '');
+
   let bytesUsed = lines.join('\n').length;
+  let renderedTests = 0;
+  let truncated = false;
 
-  for (const group of groups) {
-    const hasFailure = group.tests.some((t) => t.outcome === 'failed');
-    const counts = classOutcomeCounts(group.tests);
-    const header = `### ${group.qualifiedClassName} (${counts})`;
-    const testLines = group.tests.map((t) => formatAllTestLine(t, formatName(t)));
+  for (let runIndex = 0; runIndex < fileGroups.length; runIndex++) {
+    const group = fileGroups[runIndex];
+    const runLines = formatRunSection(runIndex, group, formatName);
+    const runBlock = runLines.join('\n');
 
-    const expandedBlock = [header, ...testLines, ''].join('\n');
-    const collapsedBlock = [
-      `<details><summary>${group.qualifiedClassName} (${counts})</summary>`,
-      '',
-      ...testLines,
-      '',
-      '</details>',
-      '',
-    ].join('\n');
-
-    const block = hasFailure ? expandedBlock : collapsedBlock;
-
-    if (bytesUsed + block.length > MAX_SUMMARY_BYTES) {
-      const remaining = tests.length - countRenderedTests(groups, groups.indexOf(group));
-      lines.push(`_…and ${remaining.toLocaleString()} more tests. [View complete report in artifacts](${links.artifacts})_`);
-      lines.push('');
+    if (bytesUsed + runBlock.length > MAX_SUMMARY_BYTES) {
+      truncated = true;
       break;
     }
 
-    lines.push(block);
-    bytesUsed += block.length;
+    lines.push(runBlock);
+    bytesUsed += runBlock.length;
+
+    const classGroups = groupTestsByClassWithFailuresFirst(group.tests);
+    for (let classIndex = 0; classIndex < classGroups.length; classIndex++) {
+      const classGroup = classGroups[classIndex];
+      const detailLines = formatClassDetailBlock(
+        runIndex,
+        classIndex,
+        classGroup.qualifiedClassName,
+        classGroup.tests,
+        formatName,
+      );
+      const detailBlock = detailLines.join('\n');
+
+      if (bytesUsed + detailBlock.length > MAX_SUMMARY_BYTES) {
+        truncated = true;
+        break;
+      }
+
+      lines.push(...detailLines);
+      bytesUsed += detailBlock.length;
+      renderedTests += classGroup.tests.length;
+    }
+
+    if (truncated) break;
+  }
+
+  if (truncated) {
+    const remaining = tests.length - renderedTests;
+    if (remaining > 0) {
+      lines.push(
+        `_…and ${remaining.toLocaleString()} more tests. [View complete report in artifacts](${links.artifacts})_`,
+      );
+      lines.push('');
+    }
   }
 
   return lines;
 }
 
-function countRenderedTests(groups: ReturnType<typeof groupTestsByClassWithFailuresFirst>, fromIndex: number): number {
-  let count = 0;
-  for (let i = 0; i < fromIndex; i++) {
-    count += groups[i].tests.length;
-  }
-  return count;
+/** @deprecated Use formatJobSummaryTestTables */
+export function formatAllTestsSection(
+  tests: TestCase[],
+  links: ReportLinks,
+  formatName: (test: TestCase) => string = (t) => `\`${t.fullName}\``,
+): string[] {
+  return formatJobSummaryTestTables(tests, undefined, links, formatName);
 }
