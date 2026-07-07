@@ -113,6 +113,38 @@ inputs:
     description: GitHub token for API calls
     required: false
     default: ${{ github.token }}
+  history-enabled:
+    description: Publish test run JSON to a persistent history repository
+    required: false
+    default: 'false'
+  history-repository:
+    description: 'History repository (owner/repo) to publish JSON data to'
+    required: false
+    default: ''
+  history-token:
+    description: Token with contents write access to the history repository
+    required: false
+    default: ''
+  history-branch:
+    description: Branch in the history repository to publish to
+    required: false
+    default: main
+  history-path:
+    description: Root data path inside the history repository
+    required: false
+    default: data
+  history-repository-name:
+    description: 'Source repository key (auto uses GITHUB_REPOSITORY)'
+    required: false
+    default: auto
+  history-mode:
+    description: 'History mode (multi only in v1)'
+    required: false
+    default: multi
+  history-default-repository:
+    description: Default repository for the history dashboard config.json
+    required: false
+    default: ''
 outputs:
   workflow-url:
     description: URL to the workflow run

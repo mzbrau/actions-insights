@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "branchKey": "pr-42",
+  "branchLabel": "PR #42",
+  "updatedAt": "2026-07-07T10:00:00.000Z",
+  "runs": [
+    {
+      "runId": "1",
+      "workflowRunId": 1,
+      "status": "failed",
+      "date": "2026-07-07T10:00:00.000Z",
+      "durationMs": 1634,
+      "total": 3,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 1,
+      "commitSha": "abc123def456",
+      "commitShortSha": "abc123d",
+      "commitMessage": "Fix tests",
+      "author": "octocat",
+      "runFile": "2026-07-07T10-00-00Z-1.json"
+    }
+  ]
+}

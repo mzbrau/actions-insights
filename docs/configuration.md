@@ -147,6 +147,21 @@ Token for GitHub API calls.
 | `failed` | Failed count |
 | `skipped` | Skipped count |
 
+## History Repository (optional)
+
+Publish structured JSON to a persistent history repository for the GitHub Pages dashboard. See [history-repository/configuration.md](history-repository/configuration.md) for full details.
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `history-enabled` | `false` | Enable JSON publishing |
+| `history-repository` | `''` | History repo (`owner/repo`) |
+| `history-token` | `''` | Token with write access (required when enabled) |
+| `history-branch` | `main` | Target branch |
+| `history-path` | `data` | Data root path |
+| `history-repository-name` | `auto` | Source repo key |
+| `history-mode` | `multi` | Reserved |
+| `history-default-repository` | `''` | Default dashboard repository |
+
 ## Deprecated Inputs
 
 These inputs are ignored with a deprecation warning:

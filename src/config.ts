@@ -2,6 +2,18 @@ import * as core from '@actions/core';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type CommentMode = 'update' | 'off';
+export type HistoryMode = 'multi';
+
+export interface HistoryConfig {
+  enabled: boolean;
+  repository: string;
+  token: string;
+  branch: string;
+  dataPath: string;
+  repositoryName: string;
+  mode: HistoryMode;
+  defaultRepository?: string;
+}
 
 export interface ActionConfig {
   testResults: string;
@@ -26,6 +38,7 @@ export interface ActionConfig {
   publishChecks: boolean;
   artifactRetentionDays: number;
   checkName: string;
+  history: HistoryConfig;
 }
 
 export function loadConfig(): ActionConfig {
@@ -65,6 +78,29 @@ export function loadConfig(): ActionConfig {
     publishChecks: getBooleanOr('publish-checks', true),
     artifactRetentionDays: parsePositiveInt(core.getInput('artifact-retention-days'), 30),
     checkName: core.getInput('check-name') || 'Actions Insights',
+    history: loadHistoryConfig(),
+  };
+}
+
+function loadHistoryConfig(): HistoryConfig {
+  const enabled = getBooleanOr('history-enabled', false);
+  const repositoryNameInput = core.getInput('history-repository-name') || 'auto';
+  const repositoryFromEnv = process.env.GITHUB_REPOSITORY ?? '';
+  const repositoryName = repositoryNameInput === 'auto'
+    ? repositoryFromEnv
+    : repositoryNameInput;
+
+  const defaultRepository = core.getInput('history-default-repository') || undefined;
+
+  return {
+    enabled,
+    repository: core.getInput('history-repository') || '',
+    token: core.getInput('history-token') || '',
+    branch: core.getInput('history-branch') || 'main',
+    dataPath: normalizeSubdirectory(core.getInput('history-path') || 'data'),
+    repositoryName,
+    mode: 'multi',
+    defaultRepository,
   };
 }
 

@@ -111,4 +111,13 @@ export const sampleConfig: ActionConfig = {
   publishChecks: true,
   artifactRetentionDays: 30,
   checkName: 'Actions Insights',
+  history: {
+    enabled: false,
+    repository: '',
+    token: '',
+    branch: 'main',
+    dataPath: 'data',
+    repositoryName: 'owner/repo',
+    mode: 'multi',
+  },
 };

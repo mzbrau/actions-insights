@@ -13,8 +13,13 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@actions-insights/history-models": ["packages/history-models/src/index.ts"],
+      "@actions-insights/history-publisher": ["packages/history-publisher/src/index.ts"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "lib", "test"]
+  "exclude": ["node_modules", "dist", "lib", "test", "web", "packages"]
 }

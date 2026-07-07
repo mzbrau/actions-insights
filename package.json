@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "description": "TeamCity-style test reports for GitHub Actions",
   "main": "dist/index.js",
+  "workspaces": [
+    "packages/*",
+    "web"
+  ],
   "scripts": {
     "build": "tsc && node scripts/copy-assets.js && ncc build src/main.ts -o dist --source-map --license licenses.txt",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "generate-sample": "tsx scripts/generate-sample.ts",
-    "generate-local": "tsx scripts/generate-local.ts"
+    "generate-local": "tsx scripts/generate-local.ts",
+    "build:web": "npm run build --workspace=@actions-insights/web"
   },
   "keywords": [
     "github-actions",

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-07T10:00:00.000Z",
+  "branches": [
+    {
+      "key": "main",
+      "label": "main",
+      "type": "branch",
+      "latestStatus": "passed",
+      "latestDate": "2026-07-07T09:00:00.000Z",
+      "latestDurationMs": 120000,
+      "latestCommitShortSha": "def456a",
+      "latestAuthor": "octocat",
+      "runCount": 5
+    },
+    {
+      "key": "pr-42",
+      "label": "PR #42",
+      "type": "pr",
+      "latestStatus": "failed",
+      "latestDate": "2026-07-07T10:00:00.000Z",
+      "latestDurationMs": 1634,
+      "latestCommitShortSha": "abc123d",
+      "latestAuthor": "octocat",
+      "runCount": 3
+    }
+  ]
+}

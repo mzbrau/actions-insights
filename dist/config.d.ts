@@ -1,5 +1,16 @@
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type CommentMode = 'update' | 'off';
+export type HistoryMode = 'multi';
+export interface HistoryConfig {
+    enabled: boolean;
+    repository: string;
+    token: string;
+    branch: string;
+    dataPath: string;
+    repositoryName: string;
+    mode: HistoryMode;
+    defaultRepository?: string;
+}
 export interface ActionConfig {
     testResults: string;
     reportsSubdirectory: string;
@@ -23,5 +34,6 @@ export interface ActionConfig {
     publishChecks: boolean;
     artifactRetentionDays: number;
     checkName: string;
+    history: HistoryConfig;
 }
 export declare function loadConfig(): ActionConfig;

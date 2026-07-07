@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "runId": "1",
+  "workflowRunId": 1,
+  "status": "failed",
+  "date": "2026-07-07T10:00:00.000Z",
+  "durationMs": 1634,
+  "context": {
+    "repository": "owner/repo",
+    "repositoryUrl": "https://github.com/owner/repo",
+    "workflow": "CI",
+    "branch": "main",
+    "branchKey": "pr-42",
+    "branchLabel": "PR #42",
+    "branchType": "pr",
+    "ref": "refs/pull/42/merge",
+    "prNumber": 42,
+    "prUrl": "https://github.com/owner/repo/pull/42",
+    "commitSha": "abc123def456",
+    "commitShortSha": "abc123d",
+    "commitMessage": "Fix tests",
+    "commitUrl": "https://github.com/owner/repo/commit/abc123def456",
+    "author": "octocat",
+    "actor": "octocat",
+    "startedAt": "2026-07-07T09:55:00.000Z",
+    "completedAt": "2026-07-07T10:00:00.000Z"
+  },
+  "stats": {
+    "total": 3,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 1,
+    "inconclusive": 0,
+    "durationMs": 1634,
+    "successRate": 33.3
+  },
+  "tests": [
+    { "i": 0, "n": "SampleTests.ShouldPass", "o": 0, "d": 123 },
+    { "i": 1, "n": "SampleTests.ShouldFail", "o": 1, "d": 1500, "nf": true },
+    { "i": 2, "n": "SampleTests.ShouldSkip", "o": 2, "d": 10 }
+  ],
+  "failures": [
+    {
+      "testName": "ShouldFail",
+      "fullName": "SampleTests.ShouldFail",
+      "message": "Expected true but was false",
+      "stackTrace": "at SampleTests.ShouldFail() in SampleTests.cs:line 42"
+    }
+  ],
+  "links": {
+    "workflowUrl": "https://github.com/owner/repo/actions/runs/1",
+    "commitUrl": "https://github.com/owner/repo/commit/abc123def456",
+    "prUrl": "https://github.com/owner/repo/pull/42"
+  }
+}

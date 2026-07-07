@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "key": "owner.repo",
+  "name": "owner/repo",
+  "url": "https://github.com/owner/repo",
+  "updatedAt": "2026-07-07T10:00:00.000Z",
+  "latestStatus": "failed",
+  "branchCount": 2,
+  "lastRunDate": "2026-07-07T10:00:00.000Z",
+  "latestCommitShortSha": "abc123d"
+}

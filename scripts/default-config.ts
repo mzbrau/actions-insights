@@ -24,6 +24,15 @@ export function defaultLocalConfig(overrides: Partial<ActionConfig> = {}): Actio
     publishChecks: false,
     artifactRetentionDays: 30,
     checkName: 'Actions Insights',
+    history: {
+      enabled: false,
+      repository: '',
+      token: '',
+      branch: 'main',
+      dataPath: 'data',
+      repositoryName: 'owner/repo',
+      mode: 'multi',
+    },
     ...overrides,
   };
 }

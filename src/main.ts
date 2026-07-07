@@ -12,6 +12,7 @@ import { parseTestFiles } from './parsers/registry';
 import { uploadReportArtifact } from './publisher/artifact';
 import { prepareSiteWorkspace, saveSiteCache } from './publisher/site-cache';
 import { ensureDir } from './publisher/site-merger';
+import { publishToHistoryRepository } from './history-repo/publish';
 import { buildReportLinks } from './reporting/links';
 import { resolveRunCompletedAt } from './reporting/time';
 import type { TestRun } from './model/test-run';
@@ -50,6 +51,14 @@ async function run(): Promise<void> {
   await prepareSiteWorkspace(config.siteOutput, owner, repo);
   const { previousRun, baseBranchRun, artifactDir } = integrateReportIntoSite(testRun, config, config.siteOutput);
   await saveSiteCache(config.siteOutput, owner, repo);
+
+  if (config.history.enabled) {
+    try {
+      await publishToHistoryRepository(testRun, config);
+    } catch (error) {
+      core.warning(`History repository publish failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
   if (config.uploadHtmlReport) {
     try {

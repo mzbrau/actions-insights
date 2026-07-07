@@ -10,6 +10,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@actions-insights/history-models': path.resolve(__dirname, 'packages/history-models/src/index.ts'),
+      '@actions-insights/history-publisher': path.resolve(__dirname, 'packages/history-publisher/src/index.ts'),
     },
   },
 });
