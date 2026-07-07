@@ -229,6 +229,37 @@ export function composeTrendsFile(
   };
 }
 
+export function readLatestRunFromCanonical(
+  history: CanonicalHistory,
+  branchKey: string,
+): PreviousRun | undefined {
+  const branchRunList = history.runs.runs
+    .filter((r) => r.branchKey === branchKey)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const latest = branchRunList[0];
+  if (!latest?.commitSha) return undefined;
+
+  const outcomes = new Map<string, import('../model/test-case').TestOutcome>();
+  const durations = new Map<string, number>();
+  const testNames = new Set<string>();
+  for (const t of latest.testOutcomes ?? []) {
+    testNames.add(t.n);
+    outcomes.set(t.n, (['passed', 'failed', 'skipped', 'inconclusive'] as const)[t.o] ?? 'inconclusive');
+    if (typeof t.d === 'number') {
+      durations.set(t.n, t.d);
+    }
+  }
+
+  return {
+    commitSha: latest.commitSha,
+    commitShortSha: latest.commitShortSha,
+    outcomes,
+    durations,
+    testNames,
+  };
+}
+
 export function readPreviousRunFromCanonical(
   history: CanonicalHistory,
   branchKey: string,

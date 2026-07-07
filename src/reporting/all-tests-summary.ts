@@ -2,9 +2,8 @@ import type { TestCase } from '../model/test-case';
 import { formatDuration } from '../model/test-run';
 import type { ReportLinks } from './links';
 import { groupTestsByClassWithFailuresFirst } from './grouping';
+import { escapeTableCell } from './markdown';
 import { outcomeEmoji } from './slow-tests';
-
-const MAX_SUMMARY_BYTES = 55_000;
 
 export interface SourceFileGroup {
   sourceFile: string;
@@ -88,7 +87,14 @@ export function countOutcomes(tests: TestCase[]): OutcomeCounts {
 }
 
 export function formatCountCell(count: number, emoji: string): string {
-  return count > 0 ? `${count}${emoji}` : '';
+  return count > 0 ? `${emoji}${count}` : '';
+}
+
+function classStatusEmoji(tests: TestCase[]): string {
+  const counts = countOutcomes(tests);
+  if (counts.failed > 0) return '❌';
+  if (tests.length > 0 && counts.skipped === tests.length) return '⏭';
+  return '✅';
 }
 
 function formatRunSummarySentence(counts: OutcomeCounts): string {
@@ -99,10 +105,6 @@ function formatRunSummarySentence(counts: OutcomeCounts): string {
     `${counts.skipped.toLocaleString()} skipped`,
   ];
   return `${total.toLocaleString()} tests were completed in ${formatDuration(counts.durationMs)} with ${parts.join(', ')}.`;
-}
-
-function escapeTableCell(value: string): string {
-  return value.replace(/\|/g, '\\|');
 }
 
 function formatOverviewRow(runIndex: number, group: SourceFileGroup): string {
@@ -131,9 +133,10 @@ function formatClassDetailBlock(
   formatName: (test: TestCase) => string,
 ): string[] {
   const anchor = classAnchorId(runIndex, classIndex);
+  const statusEmoji = classStatusEmoji(tests);
   const lines: string[] = [
     `<a id="${anchor}"></a>`,
-    `<details><summary>${escapeTableCell(qualifiedClassName)}</summary>`,
+    `<details><summary>${statusEmoji} ${escapeTableCell(qualifiedClassName)}</summary>`,
     '',
     '| Test | Result | Time |',
     '| --- | --- | --- |',
@@ -183,7 +186,7 @@ function formatRunSection(
 export function formatJobSummaryTestTables(
   tests: TestCase[],
   sourceFiles: string[] | undefined,
-  links: ReportLinks,
+  _links: ReportLinks,
   formatName: (test: TestCase) => string = (t) => `\`${t.fullName}\``,
 ): string[] {
   if (tests.length === 0) return [];
@@ -202,55 +205,22 @@ export function formatJobSummaryTestTables(
 
   lines.push('', '');
 
-  let bytesUsed = lines.join('\n').length;
-  let renderedTests = 0;
-  let truncated = false;
-
   for (let runIndex = 0; runIndex < fileGroups.length; runIndex++) {
     const group = fileGroups[runIndex];
-    const runLines = formatRunSection(runIndex, group, formatName);
-    const runBlock = runLines.join('\n');
-
-    if (bytesUsed + runBlock.length > MAX_SUMMARY_BYTES) {
-      truncated = true;
-      break;
-    }
-
-    lines.push(runBlock);
-    bytesUsed += runBlock.length;
+    lines.push(...formatRunSection(runIndex, group, formatName));
 
     const classGroups = groupTestsByClassWithFailuresFirst(group.tests);
     for (let classIndex = 0; classIndex < classGroups.length; classIndex++) {
       const classGroup = classGroups[classIndex];
-      const detailLines = formatClassDetailBlock(
-        runIndex,
-        classIndex,
-        classGroup.qualifiedClassName,
-        classGroup.tests,
-        formatName,
-      );
-      const detailBlock = detailLines.join('\n');
-
-      if (bytesUsed + detailBlock.length > MAX_SUMMARY_BYTES) {
-        truncated = true;
-        break;
-      }
-
-      lines.push(...detailLines);
-      bytesUsed += detailBlock.length;
-      renderedTests += classGroup.tests.length;
-    }
-
-    if (truncated) break;
-  }
-
-  if (truncated) {
-    const remaining = tests.length - renderedTests;
-    if (remaining > 0) {
       lines.push(
-        `_…and ${remaining.toLocaleString()} more tests. [View complete report in artifacts](${links.artifacts})_`,
+        ...formatClassDetailBlock(
+          runIndex,
+          classIndex,
+          classGroup.qualifiedClassName,
+          classGroup.tests,
+          formatName,
+        ),
       );
-      lines.push('');
     }
   }
 

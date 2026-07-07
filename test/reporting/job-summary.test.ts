@@ -24,7 +24,7 @@ describe('job-summary', () => {
     expect(summary).toContain('## All Tests');
     expect(summary).toContain('| Report | Passed | Failed | Skipped | Time |');
     expect(summary).toContain('| Test suite | Passed | Failed | Skipped | Time |');
-    expect(summary).toContain('<details><summary>SampleTests</summary>');
+    expect(summary).toContain('<details><summary>❌ SampleTests</summary>');
     expect(summary).toContain('| Test | Result | Time |');
     expect(summary).toContain('[sample.trx](#run-0)');
     expect(summary).toContain('[SampleTests](#run-0-class-0)');

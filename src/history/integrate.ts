@@ -5,14 +5,16 @@ import type { ActionConfig } from '../config';
 import type { TestRun } from '../model/test-run';
 import { writeRunReport } from '../generator/report';
 import { mergePartialRun } from '../history/merge-run';
-import { resolveReportPaths } from '../history/paths';
+import { resolveReportPaths, sanitizeBranchKey } from '../history/paths';
 import type { PreviousRun } from '../history/previous-run';
 import { detectNewFailures } from '../history/trends';
 import {
   appendRunToHistory,
   composeTrendsFile,
+  MAIN_BRANCH_KEY,
   pruneHistory,
   readCanonicalHistory,
+  readLatestRunFromCanonical,
   readPreviousFailedFromCanonical,
   readPreviousRunFromCanonical,
   writeCanonicalHistory,
@@ -35,7 +37,7 @@ export function integrateReportIntoSite(
   run: TestRun,
   config: ActionConfig,
   siteDir: string,
-): { relativeReportPath: string; previousRun?: PreviousRun; artifactDir: string } {
+): { relativeReportPath: string; previousRun?: PreviousRun; baseBranchRun?: PreviousRun; artifactDir: string } {
   const paths = resolveReportPaths(run.context, config.reportsSubdirectory);
   const partialPath = path.join(siteDir, paths.partialRunPath);
   const artifactDir = path.join(siteDir, paths.artifactDir);
@@ -47,6 +49,14 @@ export function integrateReportIntoSite(
 
   const previousRun = readPreviousRunFromCanonical(history, paths.branchKey, currentRunId);
   const previousFailed = readPreviousFailedFromCanonical(history, paths.branchKey, currentRunId);
+
+  let baseBranchRun: PreviousRun | undefined;
+  if (run.context.prNumber) {
+    const baseBranchKey = run.context.baseBranch
+      ? sanitizeBranchKey(run.context.baseBranch)
+      : MAIN_BRANCH_KEY;
+    baseBranchRun = readLatestRunFromCanonical(history, baseBranchKey);
+  }
 
   let mergedRun = mergePartialRun(run, partialPath);
   applyNewFailureFlags(mergedRun, previousFailed);
@@ -78,5 +88,5 @@ export function integrateReportIntoSite(
   fs.copyFileSync(path.join(config.reportOutput, 'trends.json'), path.join(artifactDir, 'trends.json'));
   fs.copyFileSync(path.join(config.reportOutput, 'report.html'), path.join(branchCacheDir, 'report.html'));
 
-  return { relativeReportPath: paths.relativeReportUrl, previousRun, artifactDir };
+  return { relativeReportPath: paths.relativeReportUrl, previousRun, baseBranchRun, artifactDir };
 }

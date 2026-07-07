@@ -26,7 +26,7 @@ describe('pr-comment', () => {
     expect(body).not.toContain('Longest test');
   });
 
-  it('shows delta section when previous run differs', () => {
+  it('shows push delta section when previous run differs', () => {
     const previousRun: PreviousRun = {
       commitSha: 'prev123456789',
       commitShortSha: 'prev123',
@@ -48,9 +48,91 @@ describe('pr-comment', () => {
     };
     const ctx = buildReportingContext(sampleRun, sampleConfig, previousRun);
     const body = renderPrComment(ctx, sampleConfig, buildReportLinks(sampleRun.context));
-    expect(body).toContain('## Changes since [prev123]');
-    expect(body).toContain('**🆕 New failures (1)**');
+    expect(body).toContain('## Changes since last push [prev123]');
+    expect(body).toContain('**🆕 New failures (1)** — tests that were previously passing');
     expect(body).toContain('ShouldFail');
+  });
+
+  it('shows base branch delta section when base run differs', () => {
+    const baseBranchRun: PreviousRun = {
+      commitSha: 'base1234567890',
+      commitShortSha: 'base123',
+      outcomes: new Map([
+        ['SampleTests.ShouldPass', 'passed'],
+        ['SampleTests.ShouldFail', 'passed'],
+        ['SampleTests.ShouldSkip', 'skipped'],
+      ]),
+      durations: new Map([
+        ['SampleTests.ShouldPass', 10],
+        ['SampleTests.ShouldFail', 10],
+        ['SampleTests.ShouldSkip', 5],
+      ]),
+      testNames: new Set([
+        'SampleTests.ShouldPass',
+        'SampleTests.ShouldFail',
+        'SampleTests.ShouldSkip',
+      ]),
+    };
+    const run = {
+      ...sampleRun,
+      context: { ...sampleRun.context, prNumber: 42, baseBranch: 'main' },
+    };
+    const ctx = buildReportingContext(run, sampleConfig, undefined, baseBranchRun);
+    const body = renderPrComment(ctx, sampleConfig, buildReportLinks(run.context));
+    expect(body).toContain('## Compared to [main]');
+    expect(body).toContain('**🆕 New failures (1)** — tests that are passing in the base branch');
+    expect(body).toContain('ShouldFail');
+  });
+
+  it('shows both base and push delta sections on PR update', () => {
+    const previousRun: PreviousRun = {
+      commitSha: 'prev123456789',
+      commitShortSha: 'prev123',
+      outcomes: new Map([
+        ['SampleTests.ShouldPass', 'failed'],
+        ['SampleTests.ShouldFail', 'failed'],
+        ['SampleTests.ShouldSkip', 'skipped'],
+      ]),
+      durations: new Map([
+        ['SampleTests.ShouldPass', 10],
+        ['SampleTests.ShouldFail', 10],
+        ['SampleTests.ShouldSkip', 5],
+      ]),
+      testNames: new Set([
+        'SampleTests.ShouldPass',
+        'SampleTests.ShouldFail',
+        'SampleTests.ShouldSkip',
+      ]),
+    };
+    const baseBranchRun: PreviousRun = {
+      commitSha: 'base1234567890',
+      commitShortSha: 'base123',
+      outcomes: new Map([
+        ['SampleTests.ShouldPass', 'passed'],
+        ['SampleTests.ShouldFail', 'passed'],
+        ['SampleTests.ShouldSkip', 'skipped'],
+      ]),
+      durations: new Map([
+        ['SampleTests.ShouldPass', 10],
+        ['SampleTests.ShouldFail', 10],
+        ['SampleTests.ShouldSkip', 5],
+      ]),
+      testNames: new Set([
+        'SampleTests.ShouldPass',
+        'SampleTests.ShouldFail',
+        'SampleTests.ShouldSkip',
+      ]),
+    };
+    const run = {
+      ...sampleRun,
+      context: { ...sampleRun.context, prNumber: 42, baseBranch: 'main' },
+    };
+    const ctx = buildReportingContext(run, sampleConfig, previousRun, baseBranchRun);
+    const body = renderPrComment(ctx, sampleConfig, buildReportLinks(run.context));
+    expect(body).toContain('## Compared to [main]');
+    expect(body).toContain('## Changes since last push [prev123]');
+    expect(body).toContain('**✅ Fixed failures (1)** — tests that were previously failing');
+    expect(body).toContain('**🆕 New failures (1)** — tests that are passing in the base branch');
   });
 
   it('truncates many failures', () => {

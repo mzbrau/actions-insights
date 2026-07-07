@@ -5,6 +5,7 @@ export declare function applyNewFailureFlags(run: TestRun, previousFailed: strin
 export declare function integrateReportIntoSite(run: TestRun, config: ActionConfig, siteDir: string): {
     relativeReportPath: string;
     previousRun?: PreviousRun;
+    baseBranchRun?: PreviousRun;
     artifactDir: string;
 };
 //# sourceMappingURL=integrate.d.ts.map

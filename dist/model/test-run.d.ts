@@ -22,6 +22,7 @@ export interface RunContext {
     tag?: string;
     prNumber?: number;
     prUrl?: string;
+    baseBranch?: string;
     commitSha: string;
     commitShortSha: string;
     commitMessage: string;

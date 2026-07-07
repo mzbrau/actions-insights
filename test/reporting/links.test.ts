@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildTestCodeUrl,
   formatTestNameWithCodeLink,
+  formatTestNameWithCodeLinkForTable,
   formatTestNameWithLinks,
 } from '../../src/reporting/links';
 import { sampleRun } from './fixtures';
@@ -32,5 +33,20 @@ describe('links', () => {
     const url = buildTestCodeUrl(sampleRun.context, parameterized);
     expect(url).toContain(encodeURIComponent('repo:owner/repo ShouldFail'));
     expect(url).not.toContain('key');
+  });
+
+  it('formatTestNameWithCodeLinkForTable escapes pipes and omits backticks', () => {
+    const parameterized = {
+      ...test,
+      method: 'Shortcut_matches(key: K, modifiers: Alt | Control, expected: False)',
+    };
+    const formatted = formatTestNameWithCodeLinkForTable(
+      sampleRun.context,
+      parameterized.method,
+      parameterized,
+    );
+    expect(formatted).toMatch(/^\[Shortcut_matches\(key: K, modifiers: Alt \\| Control, expected: False\)\]\(/);
+    expect(formatted).not.toContain('`');
+    expect(formatted).toContain('type=code');
   });
 });

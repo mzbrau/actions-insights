@@ -17,7 +17,7 @@ export declare function classAnchorId(runIndex: number, classIndex: number): str
 export declare function groupTestsBySourceFile(tests: TestCase[], sourceFileOrder?: string[]): SourceFileGroup[];
 export declare function countOutcomes(tests: TestCase[]): OutcomeCounts;
 export declare function formatCountCell(count: number, emoji: string): string;
-export declare function formatJobSummaryTestTables(tests: TestCase[], sourceFiles: string[] | undefined, links: ReportLinks, formatName?: (test: TestCase) => string): string[];
+export declare function formatJobSummaryTestTables(tests: TestCase[], sourceFiles: string[] | undefined, _links: ReportLinks, formatName?: (test: TestCase) => string): string[];
 /** @deprecated Use formatJobSummaryTestTables */
 export declare function formatAllTestsSection(tests: TestCase[], links: ReportLinks, formatName?: (test: TestCase) => string): string[];
 export {};

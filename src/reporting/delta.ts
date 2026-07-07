@@ -137,6 +137,44 @@ function formatRegressionLine(regression: PerformanceRegression): string {
   return `- \`${formatDeltaTestName(test)}\` · ${formatDuration(previousDurationMs)} → ${formatDuration(currentDurationMs)} (${ratio}× slower)`;
 }
 
+export interface DeltaSectionConfig {
+  heading: string;
+  newFailuresHint: string;
+  fixedFailuresHint: string;
+  performanceRegressionsHint: string;
+}
+
+export const BASE_BRANCH_DELTA_CONFIG: Omit<DeltaSectionConfig, 'heading'> = {
+  newFailuresHint: 'tests that are passing in the base branch',
+  fixedFailuresHint: 'tests that are failing in the base branch',
+  performanceRegressionsHint: 'compared to the base branch',
+};
+
+export const PUSH_DELTA_CONFIG: Omit<DeltaSectionConfig, 'heading'> = {
+  newFailuresHint: 'tests that were previously passing',
+  fixedFailuresHint: 'tests that were previously failing',
+  performanceRegressionsHint: 'compared to the last push',
+};
+
+export function buildBaseBranchDeltaHeading(
+  branchLabel: string,
+  commitSha: string,
+  repositoryUrl: string,
+): string {
+  const commitUrl = `${repositoryUrl}/commit/${commitSha}`;
+  const shortSha = commitSha.slice(0, 7);
+  return `## Compared to [${branchLabel}](${commitUrl}) at \`${shortSha}\``;
+}
+
+export function buildPushDeltaHeading(
+  shortSha: string,
+  commitSha: string,
+  repositoryUrl: string,
+): string {
+  const commitUrl = `${repositoryUrl}/commit/${commitSha}`;
+  return `## Changes since last push [${shortSha}](${commitUrl})`;
+}
+
 function formatRemovedTestName(fullName: string): string {
   const lastDot = fullName.lastIndexOf('.');
   return lastDot >= 0 ? fullName.slice(lastDot + 1) : fullName;
@@ -145,7 +183,7 @@ function formatRemovedTestName(fullName: string): string {
 export function formatDeltaSection(
   delta: TestDelta,
   previousRun: PreviousRun | undefined,
-  repositoryUrl: string,
+  section: DeltaSectionConfig,
 ): string | undefined {
   const hasChanges =
     delta.newFailures.length > 0
@@ -158,14 +196,13 @@ export function formatDeltaSection(
     return undefined;
   }
 
-  const commitUrl = `${repositoryUrl}/commit/${delta.previousCommit.sha}`;
   const lines: string[] = [
-    `## Changes since [${delta.previousCommit.shortSha}](${commitUrl})`,
+    section.heading,
     '',
   ];
 
   if (delta.newFailures.length > 0) {
-    lines.push(`**🆕 New failures (${delta.newFailures.length.toLocaleString()})**`);
+    lines.push(`**🆕 New failures (${delta.newFailures.length.toLocaleString()})** — ${section.newFailuresHint}`);
     for (const test of delta.newFailures) {
       const prev = previousRun?.outcomes.get(test.fullName);
       lines.push(`- \`${formatDeltaTestName(test)}\` (was ${previousOutcomeLabel(prev)})`);
@@ -174,7 +211,7 @@ export function formatDeltaSection(
   }
 
   if (delta.fixedTests.length > 0) {
-    lines.push(`**✅ Fixed failures (${delta.fixedTests.length.toLocaleString()})**`);
+    lines.push(`**✅ Fixed failures (${delta.fixedTests.length.toLocaleString()})** — ${section.fixedFailuresHint}`);
     for (const test of delta.fixedTests) {
       lines.push(`- \`${formatDeltaTestName(test)}\` (was failing)`);
     }
@@ -182,7 +219,7 @@ export function formatDeltaSection(
   }
 
   if (delta.performanceRegressions.length > 0) {
-    lines.push(`**⏱️ Performance regressions (${delta.performanceRegressions.length.toLocaleString()})**`);
+    lines.push(`**⏱️ Performance regressions (${delta.performanceRegressions.length.toLocaleString()})** — ${section.performanceRegressionsHint}`);
     for (const regression of delta.performanceRegressions) {
       lines.push(formatRegressionLine(regression));
     }

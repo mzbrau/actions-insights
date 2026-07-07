@@ -12,13 +12,14 @@ export async function upsertPrComment(
   run: TestRun,
   config: ActionConfig,
   previousRun?: PreviousRun,
+  baseBranchRun?: PreviousRun,
 ): Promise<void> {
   const prNumber = run.context.prNumber;
   if (!prNumber || config.commentMode === 'off') return;
 
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
-  const ctx = buildReportingContext(run, config, previousRun);
+  const ctx = buildReportingContext(run, config, previousRun, baseBranchRun);
   const links = buildReportLinks(run.context);
   const body = renderPrComment(ctx, config, links);
 

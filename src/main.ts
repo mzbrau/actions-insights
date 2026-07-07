@@ -48,7 +48,7 @@ async function run(): Promise<void> {
   const { owner, repo } = github.context.repo;
 
   await prepareSiteWorkspace(config.siteOutput, owner, repo);
-  const { previousRun, artifactDir } = integrateReportIntoSite(testRun, config, config.siteOutput);
+  const { previousRun, baseBranchRun, artifactDir } = integrateReportIntoSite(testRun, config, config.siteOutput);
   await saveSiteCache(config.siteOutput, owner, repo);
 
   if (config.uploadHtmlReport) {
@@ -61,7 +61,7 @@ async function run(): Promise<void> {
   }
 
   if (config.commentMode === 'update' && context.prNumber) {
-    await upsertPrComment(config.githubToken, testRun, config, previousRun);
+    await upsertPrComment(config.githubToken, testRun, config, previousRun, baseBranchRun);
   }
 
   await writeJobSummary(testRun, config, previousRun);

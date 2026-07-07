@@ -11,6 +11,7 @@ export interface ReportingContext {
     skippedTests: TestCase[];
     extendedStats: ReturnType<typeof computeExtendedStats>;
     previousRun?: PreviousRun;
+    baseBranchRun?: PreviousRun;
 }
-export declare function buildReportingContext(run: TestRun, config: ActionConfig, previousRun?: PreviousRun): ReportingContext;
+export declare function buildReportingContext(run: TestRun, config: ActionConfig, previousRun?: PreviousRun, baseBranchRun?: PreviousRun): ReportingContext;
 //# sourceMappingURL=context.d.ts.map

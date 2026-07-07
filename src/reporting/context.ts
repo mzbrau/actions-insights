@@ -14,12 +14,14 @@ export interface ReportingContext {
   skippedTests: TestCase[];
   extendedStats: ReturnType<typeof computeExtendedStats>;
   previousRun?: PreviousRun;
+  baseBranchRun?: PreviousRun;
 }
 
 export function buildReportingContext(
   run: TestRun,
   config: ActionConfig,
   previousRun?: PreviousRun,
+  baseBranchRun?: PreviousRun,
 ): ReportingContext {
   const failedCount = countFailedTests(run.tests);
   const failedTests: TestCase[] = [];
@@ -42,5 +44,6 @@ export function buildReportingContext(
     skippedTests,
     extendedStats: computeExtendedStats(run.stats, run.tests),
     previousRun,
+    baseBranchRun,
   };
 }

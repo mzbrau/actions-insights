@@ -32,6 +32,10 @@ export function resolveReportPaths(
   };
 }
 
+export function sanitizeBranchKey(branch: string): string {
+  return branch.replace(/[^a-zA-Z0-9._/-]/g, '-');
+}
+
 export function resolveBranchKey(context: RunContext): {
   branchKey: string;
   branchLabel: string;
@@ -52,7 +56,7 @@ export function resolveBranchKey(context: RunContext): {
       branchType: 'tag',
     };
   }
-  const safeBranch = context.branch.replace(/[^a-zA-Z0-9._/-]/g, '-');
+  const safeBranch = sanitizeBranchKey(context.branch);
   return {
     branchKey: safeBranch,
     branchLabel: context.branch,

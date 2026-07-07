@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { computeTestDelta, formatDeltaSection } from '../../src/reporting/delta';
+import {
+  computeTestDelta,
+  formatDeltaSection,
+  BASE_BRANCH_DELTA_CONFIG,
+  PUSH_DELTA_CONFIG,
+  buildBaseBranchDeltaHeading,
+  buildPushDeltaHeading,
+} from '../../src/reporting/delta';
 import type { TestCase } from '../../src/model/test-case';
 import type { PreviousRun } from '../../src/history/previous-run';
 
@@ -100,7 +107,7 @@ describe('delta', () => {
     expect(delta.removedTests).toHaveLength(0);
   });
 
-  it('formats delta section with commit link and change categories', () => {
+  it('formats base branch delta section with descriptive hints', () => {
     const current = [
       makeTest('SampleTests.WasPassing', 'failed'),
       makeTest('SampleTests.WasFailing', 'passed'),
@@ -111,15 +118,32 @@ describe('delta', () => {
       slowdownRatio: 1.5,
       slowdownMinMs: 100,
     });
-    const section = formatDeltaSection(delta, previousRun, 'https://github.com/owner/repo');
-    expect(section).toContain('## Changes since [abc123d]');
-    expect(section).toContain('**🆕 New failures (1)**');
-    expect(section).toContain('**✅ Fixed failures (1)**');
-    expect(section).toContain('**⏱️ Performance regressions (1)**');
+    const section = formatDeltaSection(delta, previousRun, {
+      ...BASE_BRANCH_DELTA_CONFIG,
+      heading: buildBaseBranchDeltaHeading('main', previousRun.commitSha, 'https://github.com/owner/repo'),
+    });
+    expect(section).toContain('## Compared to [main]');
+    expect(section).toContain('**🆕 New failures (1)** — tests that are passing in the base branch');
+    expect(section).toContain('**✅ Fixed failures (1)** — tests that are failing in the base branch');
+    expect(section).toContain('**⏱️ Performance regressions (1)** — compared to the base branch');
     expect(section).toContain('**➕ New tests (1)**');
     expect(section).toContain('**➖ Removed tests (2)**');
     expect(section).toContain('was passing');
-    expect(section).toContain('was failing');
     expect(section).toContain('× slower');
+  });
+
+  it('formats push delta section with last-push hints', () => {
+    const current = [
+      makeTest('SampleTests.WasPassing', 'failed'),
+      makeTest('SampleTests.WasFailing', 'passed'),
+    ];
+    const delta = computeTestDelta(current, previousRun, 'newsha123');
+    const section = formatDeltaSection(delta, previousRun, {
+      ...PUSH_DELTA_CONFIG,
+      heading: buildPushDeltaHeading(previousRun.commitShortSha, previousRun.commitSha, 'https://github.com/owner/repo'),
+    });
+    expect(section).toContain('## Changes since last push [abc123d]');
+    expect(section).toContain('**🆕 New failures (1)** — tests that were previously passing');
+    expect(section).toContain('**✅ Fixed failures (1)** — tests that were previously failing');
   });
 });

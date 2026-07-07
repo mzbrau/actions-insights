@@ -3,7 +3,7 @@ import type { ReportingContext } from './context';
 import { formatJobSummaryTestTables } from './all-tests-summary';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
-import { formatFooterLinks, formatTestNameWithCodeLink, type ReportLinks } from './links';
+import { formatFooterLinks, formatTestNameWithCodeLink, formatTestNameWithCodeLinkForTable, type ReportLinks } from './links';
 import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
@@ -45,6 +45,9 @@ export function renderJobSummary(
 
   const formatTestName = (t: Parameters<typeof formatTestNameWithCodeLink>[2]) =>
     formatTestNameWithCodeLink(run.context, getShortTestName(t), t);
+
+  const formatTableTestName = (t: Parameters<typeof formatTestNameWithCodeLinkForTable>[2]) =>
+    formatTestNameWithCodeLinkForTable(run.context, getShortTestName(t), t);
 
   if (failedCount > 0) {
     lines.push(`## Failed Tests (${failedCount.toLocaleString()})`);
@@ -95,7 +98,7 @@ export function renderJobSummary(
     lines.push('');
   }
 
-  lines.push(...formatJobSummaryTestTables(run.tests, run.sourceFiles, links, formatTestName));
+  lines.push(...formatJobSummaryTestTables(run.tests, run.sourceFiles, links, formatTableTestName));
 
   lines.push('## Statistics');
   lines.push('');

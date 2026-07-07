@@ -1,6 +1,7 @@
 import type { RunContext } from '../model/test-run';
 import type { TestCase } from '../model/test-case';
 import { getCodeSearchName } from './grouping';
+import { escapeTableCell } from './markdown';
 
 export interface ReportLinks {
   workflowRun: string;
@@ -47,6 +48,17 @@ export function formatTestNameWithCodeLink(
 ): string {
   const codeUrl = buildTestCodeUrl(context, test);
   return codeUrl ? `[\`${shortName}\`](${codeUrl})` : `\`${shortName}\``;
+}
+
+/** Job summary tables: link without backticks and escape pipes in link text. */
+export function formatTestNameWithCodeLinkForTable(
+  context: RunContext,
+  shortName: string,
+  test: TestCase,
+): string {
+  const codeUrl = buildTestCodeUrl(context, test);
+  const escaped = escapeTableCell(shortName);
+  return codeUrl ? `[${escaped}](${codeUrl})` : escaped;
 }
 
 export function formatFooterLinks(links: ReportLinks): string {

@@ -1,7 +1,7 @@
 import type { ActionConfig } from '../config';
 import type { PreviousRun } from '../history/previous-run';
 import type { ReportingContext } from './context';
-import { computeTestDelta, formatDeltaSection } from './delta';
+import { computeTestDelta, formatDeltaSection, BASE_BRANCH_DELTA_CONFIG, PUSH_DELTA_CONFIG, buildBaseBranchDeltaHeading, buildPushDeltaHeading } from './delta';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
@@ -16,7 +16,7 @@ export function renderPrComment(
   config: ActionConfig,
   links: ReportLinks,
 ): string {
-  const { run, failedTests, failedCount, slowTests, extendedStats, previousRun } = ctx;
+  const { run, failedTests, failedCount, slowTests, extendedStats, previousRun, baseBranchRun } = ctx;
   const { context, status } = run;
   const emoji = status === 'passed' ? '✅' : '❌';
   const statusLabel = status === 'passed' ? 'Passed' : 'Failed';
@@ -40,14 +40,42 @@ export function renderPrComment(
     '',
   ];
 
-  const delta = computeTestDelta(run.tests, previousRun, context.commitSha, {
+  const deltaOptions = {
     slowdownRatio: 1.5,
     slowdownMinMs: Math.max(100, Math.floor(config.slowTestThresholdMs / 5)),
-  });
-  const deltaSection = formatDeltaSection(delta, previousRun, context.repositoryUrl);
-  if (deltaSection) {
-    lines.push(deltaSection);
-    lines.push('');
+  };
+
+  if (context.prNumber && baseBranchRun && baseBranchRun.commitSha !== context.commitSha) {
+    const baseDelta = computeTestDelta(run.tests, baseBranchRun, context.commitSha, deltaOptions);
+    const baseBranchLabel = context.baseBranch ?? 'main';
+    const baseSection = formatDeltaSection(baseDelta, baseBranchRun, {
+      ...BASE_BRANCH_DELTA_CONFIG,
+      heading: buildBaseBranchDeltaHeading(
+        baseBranchLabel,
+        baseBranchRun.commitSha,
+        context.repositoryUrl,
+      ),
+    });
+    if (baseSection) {
+      lines.push(baseSection);
+      lines.push('');
+    }
+  }
+
+  if (previousRun && previousRun.commitSha !== context.commitSha) {
+    const pushDelta = computeTestDelta(run.tests, previousRun, context.commitSha, deltaOptions);
+    const pushSection = formatDeltaSection(pushDelta, previousRun, {
+      ...PUSH_DELTA_CONFIG,
+      heading: buildPushDeltaHeading(
+        previousRun.commitShortSha,
+        previousRun.commitSha,
+        context.repositoryUrl,
+      ),
+    });
+    if (pushSection) {
+      lines.push(pushSection);
+      lines.push('');
+    }
   }
 
   if (failedCount > 0) {

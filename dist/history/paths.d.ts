@@ -10,6 +10,7 @@ export interface ReportPaths {
     relativeReportUrl: string;
 }
 export declare function resolveReportPaths(context: RunContext, reportsSubdirectory: string): ReportPaths;
+export declare function sanitizeBranchKey(branch: string): string;
 export declare function resolveBranchKey(context: RunContext): {
     branchKey: string;
     branchLabel: string;

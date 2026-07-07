@@ -11,6 +11,7 @@ export declare function appendRunToHistory(history: CanonicalHistory, run: TestR
 export declare function pruneHistory(history: CanonicalHistory, options: RetentionOptions): CanonicalHistory;
 export declare function branchRuns(history: CanonicalHistory, branchKey: string): RunManifestEntry[];
 export declare function composeTrendsFile(history: CanonicalHistory, run: TestRun, branchKey: string, branchLabel: string): TrendsFile;
+export declare function readLatestRunFromCanonical(history: CanonicalHistory, branchKey: string): PreviousRun | undefined;
 export declare function readPreviousRunFromCanonical(history: CanonicalHistory, branchKey: string, currentRunId: string): PreviousRun | undefined;
 export declare function readPreviousFailedFromCanonical(history: CanonicalHistory, branchKey: string, currentRunId: string): string[] | undefined;
 //# sourceMappingURL=trends-store.d.ts.map

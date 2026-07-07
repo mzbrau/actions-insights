@@ -15,6 +15,7 @@ export function detectContext(): RunContext {
   const tag = ref.startsWith('refs/tags/') ? ref.replace('refs/tags/', '') : undefined;
   const prNumber = ctx.payload.pull_request?.number as number | undefined;
   const prUrl = prNumber ? `${repositoryUrl}/pull/${prNumber}` : undefined;
+  const baseBranch = ctx.payload.pull_request?.base?.ref as string | undefined;
   const commitSha = ctx.sha;
   const commitShortSha = commitSha.slice(0, 7);
   const commitUrl = `${repositoryUrl}/commit/${commitSha}`;
@@ -36,6 +37,7 @@ export function detectContext(): RunContext {
     tag,
     prNumber,
     prUrl,
+    baseBranch,
     commitSha,
     commitShortSha,
     commitMessage,

@@ -6,6 +6,7 @@ import {
   MAIN_BRANCH_KEY,
   pruneHistory,
   readCanonicalHistory,
+  readLatestRunFromCanonical,
 } from '../../src/history/trends-store';
 import type { TestRun } from '../../src/model/test-run';
 
@@ -103,6 +104,20 @@ describe('trends-store', () => {
     expect(entry.passRate).toBeCloseTo(66.7, 0);
     expect(entry.points.some((p) => p.branchKey === MAIN_BRANCH_KEY)).toBe(true);
     expect(entry.points.some((p) => p.branchKey === 'pr-42')).toBe(true);
+  });
+
+  it('reads latest run from canonical history for a branch key', () => {
+    let history = readCanonicalHistory('/nonexistent', 'test-reports');
+
+    const olderRun = makeRun([makeTest('TestA', 'passed')], { runId: 1, branch: 'main' });
+    history = appendRunToHistory(history, olderRun, MAIN_BRANCH_KEY, 'main', 'branch');
+
+    const newerRun = makeRun([makeTest('TestA', 'failed')], { runId: 2, branch: 'main' });
+    history = appendRunToHistory(history, newerRun, MAIN_BRANCH_KEY, 'main', 'branch');
+
+    const latest = readLatestRunFromCanonical(history, MAIN_BRANCH_KEY);
+    expect(latest?.commitSha).toBe('sha2');
+    expect(latest?.outcomes.get('SampleTests.TestA')).toBe('failed');
   });
 
   it('prunes old runs and orphaned test points', () => {
