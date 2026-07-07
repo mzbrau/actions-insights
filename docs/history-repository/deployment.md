@@ -30,6 +30,7 @@ bash scripts/init-history-repo.sh init --dry-run
 ```bash
 gh extension install mzbrau/gh-actions-insights
 gh actions-insights init
+gh actions-insights update <owner>/<history-repo>
 ```
 
 Maintainers publish that extension from this monorepo with `npm run publish:extension`.
@@ -46,11 +47,36 @@ Maintainers publish that extension from this monorepo with `npm run publish:exte
 
 For project Pages: `https://{owner}.github.io/{repo-name}/`
 
-## Updating the web app
+## Updating the dashboard
 
-Modify `web/` in the history repository and push. The Pages workflow rebuilds on changes to `web/`, `data/`, or `config.json`.
+To pull in dashboard and workflow improvements from `actions-insights`, run the update script. It validates the target repository, syncs `web/` and `.github/workflows/pages.yml`, and opens a pull request. Your `data/` and `config.json` are left unchanged.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mzbrau/actions-insights/main/scripts/update-history-repo.sh | \
+  bash -s -- update <owner>/<history-repo>
+```
+
+From a local checkout:
+
+```bash
+bash scripts/update-history-repo.sh update <owner>/<history-repo>
+```
+
+Or with the GitHub CLI extension:
+
+```bash
+gh actions-insights update <owner>/<history-repo>
+```
+
+Use `--dry-run` to preview actions, or `--verify` to run `npm ci` and `npm run build` while preparing `web/`.
+
+You can still modify `web/` directly in the history repository and push. The Pages workflow rebuilds on changes to `web/`, `data/`, or `config.json`.
 
 JSON-only pushes from the action do not require React source changes — the workflow rebuilds the static site and copies current `data/` into the deploy artifact.
+
+## What not to commit
+
+The history repository template includes a `.gitignore` that excludes `web/node_modules/` and `web/dist/`. CI installs dependencies from `web/package-lock.json` during the Pages build. Commit `web/package-lock.json` and `web/vendor/history-models/`, but not install or build output.
 
 ## Fixing an already-created history repository
 
@@ -58,7 +84,13 @@ If your history repository was created before standalone web preparation was add
 
 > Some specified paths were not resolved, unable to cache dependencies.
 
-From a checkout of `actions-insights`, run (note the `/web` suffix on the history repo path):
+The easiest fix is the update script, which also adds `.gitignore` and removes tracked `node_modules` if present:
+
+```bash
+bash scripts/update-history-repo.sh update <owner>/<history-repo>
+```
+
+Manual fix from a checkout of `actions-insights` (note the `/web` suffix on the history repo path):
 
 ```bash
 git clone https://github.com/<owner>/<history-repo>.git /tmp/history-repo-fix
@@ -67,12 +99,14 @@ bash scripts/prepare-standalone-web.sh /tmp/history-repo-fix/web packages/histor
 
 You can also pass the history repo root instead of `web/`; the script will detect that and use `web/` automatically.
 
-Then update `.github/workflows/pages.yml` in the history repository to match the current template (Node 24, `npm ci`, and `cache-dependency-path: web/package-lock.json`), commit, and push:
+Then update `.github/workflows/pages.yml` in the history repository to match the current template (Node 24, `npm ci`, and `cache-dependency-path: web/package-lock.json`), add `.gitignore` from `templates/history-repo/.gitignore`, commit, and push:
 
 ```bash
 cd /tmp/history-repo-fix
 cp /path/to/actions-insights/templates/history-repo/.github/workflows/pages.yml .github/workflows/pages.yml
-git add web .github/workflows/pages.yml
+cp /path/to/actions-insights/templates/history-repo/.gitignore .gitignore
+git rm -r --cached web/node_modules 2>/dev/null || true
+git add web .github/workflows/pages.yml .gitignore
 git commit -m "Fix Pages workflow for standalone web build"
 git push
 ```

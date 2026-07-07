@@ -2,6 +2,7 @@
 
 ```
 /
+  .gitignore
   config.json
   web/
   data/
@@ -27,6 +28,7 @@
 
 | File | Purpose |
 |------|---------|
+| `.gitignore` | Excludes `web/node_modules/`, `web/dist/`, and other local artifacts |
 | `config.json` | Dashboard config (`defaultRepository`) |
 | `data/repositories.json` | Global index of all source repositories |
 | `metadata.json` | Per-repository summary |

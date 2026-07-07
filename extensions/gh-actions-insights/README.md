@@ -9,6 +9,7 @@ Most users do not need this extension — use the curl installer from the main r
 ```bash
 gh extension install mzbrau/gh-actions-insights
 gh actions-insights init
+gh actions-insights update <owner>/<history-repo>
 ```
 
 ## Development

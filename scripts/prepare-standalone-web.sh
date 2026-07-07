@@ -4,13 +4,38 @@ set -euo pipefail
 # Prepares a copied web/ directory for standalone use in a history repository:
 # vendors @actions-insights/history-models and generates package-lock.json.
 
+VERIFY=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verify)
+      VERIFY=true
+      shift
+      ;;
+    -h|--help)
+      VERIFY=false
+      break
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
 WEB_DIR="${1:-}"
 MODELS_DIR="${2:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 usage() {
-  echo "Usage: prepare-standalone-web.sh <web-dir> <history-models-dir>" >&2
+  echo "Usage: prepare-standalone-web.sh [--verify] <web-dir> <history-models-dir>" >&2
   echo "  Example: prepare-standalone-web.sh /path/to/history-repo/web ${REPO_ROOT}/packages/history-models" >&2
 }
 
@@ -87,7 +112,12 @@ fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2) + '\n');
 (
   cd "${WEB_DIR}"
   npm_config_fund=false npm_config_audit=false npm install --package-lock-only
-  npm_config_fund=false npm_config_audit=false npm ci
+  if [[ "${VERIFY}" == true ]]; then
+    npm_config_fund=false npm_config_audit=false npm ci
+    npm run build
+  fi
 )
+
+rm -rf "${WEB_DIR}/node_modules" "${WEB_DIR}/dist"
 
 echo "Standalone web prepared at ${WEB_DIR}"

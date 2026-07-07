@@ -1,40 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_REPO="${ACTIONS_INSIGHTS_SOURCE:-mzbrau/actions-insights}"
 SOURCE_REF="${ACTIONS_INSIGHTS_REF:-main}"
-SOURCE_CHECKOUT=""
+
+if [[ -f "${SCRIPT_DIR}/history-repo-lib.sh" ]]; then
+  # shellcheck source=history-repo-lib.sh
+  source "${SCRIPT_DIR}/history-repo-lib.sh"
+else
+  _LIB_TMP="$(mktemp)"
+  curl -fsSL \
+    "https://raw.githubusercontent.com/${SOURCE_REPO}/${SOURCE_REF}/scripts/history-repo-lib.sh" \
+    -o "${_LIB_TMP}"
+  # shellcheck source=/dev/null
+  source "${_LIB_TMP}"
+  rm -f "${_LIB_TMP}"
+fi
+WORKDIR=""
 
 cleanup() {
-  if [[ -n "${SOURCE_CHECKOUT}" ]]; then
-    rm -rf "${SOURCE_CHECKOUT}"
-  fi
-  if [[ -n "${WORKDIR:-}" ]]; then
+  cleanup_source_checkout
+  if [[ -n "${WORKDIR}" ]]; then
     rm -rf "${WORKDIR}"
   fi
 }
 
 trap cleanup EXIT
-
-resolve_source_dirs() {
-  local script_dir repo_root
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  repo_root="$(cd "${script_dir}/.." && pwd)"
-
-  if [[ -d "${repo_root}/templates/history-repo" ]]; then
-    TEMPLATE_DIR="${repo_root}/templates/history-repo"
-    WEB_DIR="${repo_root}/web"
-    MODELS_DIR="${repo_root}/packages/history-models"
-    return
-  fi
-
-  SOURCE_CHECKOUT="$(mktemp -d)"
-  git clone --depth 1 --branch "${SOURCE_REF}" \
-    "https://github.com/${SOURCE_REPO}.git" "${SOURCE_CHECKOUT}/src"
-  TEMPLATE_DIR="${SOURCE_CHECKOUT}/src/templates/history-repo"
-  WEB_DIR="${SOURCE_CHECKOUT}/src/web"
-  MODELS_DIR="${SOURCE_CHECKOUT}/src/packages/history-models"
-}
 
 usage() {
   cat <<'EOF'
@@ -148,11 +140,7 @@ WORKDIR="$(mktemp -d)"
 git clone "https://github.com/${FULL_REPO}.git" "${WORKDIR}/repo"
 cp -R "${TEMPLATE_DIR}/." "${WORKDIR}/repo/"
 if [[ -d "${WEB_DIR}" ]]; then
-  mkdir -p "${WORKDIR}/repo/web"
-  cp -R "${WEB_DIR}/." "${WORKDIR}/repo/web/"
-  rm -rf "${WORKDIR}/repo/web/node_modules" "${WORKDIR}/repo/web/dist"
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  bash "${SCRIPT_DIR}/prepare-standalone-web.sh" "${WORKDIR}/repo/web" "${MODELS_DIR}"
+  sync_dashboard "${WORKDIR}/repo"
 fi
 
 if [[ -n "${DEFAULT_REPO}" ]]; then
@@ -164,6 +152,8 @@ if [[ -n "${DEFAULT_REPO}" ]]; then
     fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
   "
 fi
+
+rm -rf "${WORKDIR}/repo/web/node_modules" "${WORKDIR}/repo/web/dist"
 
 pushd "${WORKDIR}/repo" >/dev/null
 git add -A

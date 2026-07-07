@@ -6,6 +6,19 @@ If `setup-node` fails with "Some specified paths were not resolved, unable to ca
 
 See [Fixing an already-created history repository](deployment.md#fixing-an-already-created-history-repository) in the deployment guide.
 
+## node_modules committed to git
+
+If `web/node_modules/` was committed (for example before `.gitignore` was added), remove it from version control:
+
+```bash
+cp /path/to/actions-insights/templates/history-repo/.gitignore .gitignore
+git rm -r --cached web/node_modules
+git commit -m "Stop tracking web/node_modules"
+git push
+```
+
+Or run `bash scripts/update-history-repo.sh update <owner>/<history-repo>` from an `actions-insights` checkout to open a PR with the fix.
+
 ## History publish skipped
 
 - Verify `history-enabled: true`

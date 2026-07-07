@@ -15,8 +15,15 @@ cp "${EXT_DIR}/README.md" "${WORKDIR}/"
 cp "${REPO_ROOT}/LICENSE" "${WORKDIR}/"
 mkdir -p "${WORKDIR}/scripts"
 cp "${REPO_ROOT}/scripts/init-history-repo.sh" "${WORKDIR}/scripts/"
+cp "${REPO_ROOT}/scripts/update-history-repo.sh" "${WORKDIR}/scripts/"
+cp "${REPO_ROOT}/scripts/history-repo-lib.sh" "${WORKDIR}/scripts/"
+cp "${REPO_ROOT}/scripts/prepare-standalone-web.sh" "${WORKDIR}/scripts/"
 
-chmod +x "${WORKDIR}/gh-actions-insights" "${WORKDIR}/scripts/init-history-repo.sh"
+chmod +x "${WORKDIR}/gh-actions-insights" \
+  "${WORKDIR}/scripts/init-history-repo.sh" \
+  "${WORKDIR}/scripts/update-history-repo.sh" \
+  "${WORKDIR}/scripts/history-repo-lib.sh" \
+  "${WORKDIR}/scripts/prepare-standalone-web.sh"
 
 pushd "${WORKDIR}" >/dev/null
 git init -b main
