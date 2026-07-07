@@ -8,6 +8,13 @@ import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
 
+export interface RenderJobSummaryOptions {
+  /** Include hierarchical all-tests tables. Defaults to true. */
+  includeAllTestsTables?: boolean;
+  /** Truncate the final markdown to this length, appending a link to the full report. */
+  maxLength?: number;
+}
+
 function formatHeaderMetadata(ctx: ReportingContext): string[] {
   const { run } = ctx;
   const timestamp = formatUtcTimestamp(run.context.completedAt);
@@ -21,7 +28,9 @@ export function renderJobSummary(
   ctx: ReportingContext,
   config: ActionConfig,
   links: ReportLinks,
+  options: RenderJobSummaryOptions = {},
 ): string {
+  const includeAllTestsTables = options.includeAllTestsTables ?? true;
   const { run, failedTests, failedCount, slowTests, skippedTests } = ctx;
   const emoji = run.status === 'passed' ? '✅' : '❌';
 
@@ -98,7 +107,9 @@ export function renderJobSummary(
     lines.push('');
   }
 
-  lines.push(...formatJobSummaryTestTables(run.tests, run.sourceFiles, links, formatTableTestName));
+  if (includeAllTestsTables) {
+    lines.push(...formatJobSummaryTestTables(run.tests, run.sourceFiles, links, formatTableTestName));
+  }
 
   lines.push('## Statistics');
   lines.push('');
@@ -107,5 +118,12 @@ export function renderJobSummary(
   lines.push('---');
   lines.push(formatFooterLinks(links));
 
-  return lines.join('\n');
+  let summary = lines.join('\n');
+  const maxLength = options.maxLength;
+  if (maxLength !== undefined && summary.length > maxLength) {
+    const suffix = `\n\n_Summary truncated at GitHub's ${maxLength.toLocaleString()}-character limit. [View full report](${links.artifacts})_`;
+    summary = summary.slice(0, maxLength - suffix.length) + suffix;
+  }
+
+  return summary;
 }

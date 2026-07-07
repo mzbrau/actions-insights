@@ -53,4 +53,24 @@ describe('job-summary', () => {
     expect(summary).toContain('## Slowest Tests');
     expect(summary).toContain('## Skipped Tests');
   });
+
+  it('can omit all-tests tables for compact check-run output', () => {
+    const ctx = buildReportingContext(sampleRun, sampleConfig);
+    const links = buildReportLinks(sampleRun.context);
+    const summary = renderJobSummary(ctx, sampleConfig, links, { includeAllTestsTables: false });
+
+    expect(summary).toContain('## Failed Tests');
+    expect(summary).toContain('## Statistics');
+    expect(summary).not.toContain('## All Tests');
+  });
+
+  it('truncates output when maxLength is exceeded', () => {
+    const ctx = buildReportingContext(sampleRun, sampleConfig);
+    const links = buildReportLinks(sampleRun.context);
+    const summary = renderJobSummary(ctx, sampleConfig, links, { maxLength: 200 });
+
+    expect(summary.length).toBeLessThanOrEqual(200);
+    expect(summary).toContain('Summary truncated');
+    expect(summary).toContain(links.artifacts);
+  });
 });

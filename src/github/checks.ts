@@ -6,6 +6,7 @@ import { buildCheckAnnotations } from '../reporting/checks';
 import { buildReportingContext } from '../reporting/context';
 import { renderJobSummary } from '../reporting/job-summary';
 import { buildReportLinks } from '../reporting/links';
+import { GITHUB_CHECK_OUTPUT_MAX_CHARS } from './limits';
 
 const MAX_ANNOTATIONS = 50;
 
@@ -18,11 +19,19 @@ export async function publishCheckRun(
   const { owner, repo } = github.context.repo;
   const ctx = buildReportingContext(run, config);
   const links = buildReportLinks(run.context);
-  const summary = renderJobSummary(ctx, {
-    ...config,
-    maxFailedTestsInSummary: Math.min(config.maxFailedTestsInSummary, 10),
-    includeSlowestTests: Math.min(config.includeSlowestTests, 5),
-  }, links);
+  const summary = renderJobSummary(
+    ctx,
+    {
+      ...config,
+      maxFailedTestsInSummary: Math.min(config.maxFailedTestsInSummary, 10),
+      includeSlowestTests: Math.min(config.includeSlowestTests, 5),
+    },
+    links,
+    {
+      includeAllTestsTables: false,
+      maxLength: GITHUB_CHECK_OUTPUT_MAX_CHARS,
+    },
+  );
 
   const annotations = buildCheckAnnotations(
     ctx.failedTests,

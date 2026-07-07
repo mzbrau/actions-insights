@@ -1,3 +1,4 @@
+import { GITHUB_CHECK_OUTPUT_MAX_CHARS } from '../github/limits';
 import type { TestCase } from '../model/test-case';
 import { truncateLines } from './truncate';
 
@@ -87,7 +88,7 @@ export function buildCheckAnnotations(
       end_line: location.line,
       annotation_level: 'failure',
       title: test.fullName.slice(0, 255),
-      message: messageParts.slice(0, 65535),
+      message: messageParts.slice(0, GITHUB_CHECK_OUTPUT_MAX_CHARS),
     });
   }
 
