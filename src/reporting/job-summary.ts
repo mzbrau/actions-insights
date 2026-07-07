@@ -6,10 +6,11 @@ import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
+import { formatUtcTimestamp } from './time';
 
 function formatHeaderMetadata(ctx: ReportingContext): string[] {
   const { run } = ctx;
-  const timestamp = new Date(run.context.completedAt).toISOString().replace('T', ' ').slice(0, 19);
+  const timestamp = formatUtcTimestamp(run.context.completedAt);
   return [
     `**${run.context.repository}** · \`${run.context.workflow}\` · \`${run.context.branch}\``,
     `\`${run.context.commitShortSha}\` ${run.context.commitMessage} · ${run.context.author} · ${timestamp}`,

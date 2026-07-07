@@ -5,6 +5,11 @@ export interface TestClassGroup {
   tests: TestCase[];
 }
 
+export function stripTestParameters(name: string): string {
+  const paren = name.indexOf('(');
+  return (paren >= 0 ? name.slice(0, paren) : name).trim();
+}
+
 export function getShortTestName(test: TestCase): string {
   const candidate = test.method ?? test.name;
   if (candidate && !candidate.includes('.')) {
@@ -14,6 +19,11 @@ export function getShortTestName(test: TestCase): string {
   const full = test.fullName ?? candidate ?? '';
   const lastDot = full.lastIndexOf('.');
   return lastDot >= 0 ? full.slice(lastDot + 1) : full;
+}
+
+/** Method name suitable for GitHub code search (no namespace or parameters). */
+export function getCodeSearchName(test: TestCase): string {
+  return stripTestParameters(getShortTestName(test));
 }
 
 export function getQualifiedClassName(test: TestCase): string {

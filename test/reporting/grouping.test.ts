@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getCodeSearchName,
   getQualifiedClassName,
   getShortTestName,
   groupTestsByClass,
   groupTestsByClassWithFailuresFirst,
+  stripTestParameters,
 } from '../../src/reporting/grouping';
 import type { TestCase } from '../../src/model/test-case';
 
@@ -32,6 +34,19 @@ describe('grouping', () => {
     });
     expect(getQualifiedClassName(test)).toBe('Notey.Tests.MainWindowShortcutTests');
     expect(getShortTestName(test)).toBe('IsNewTaskShortcut_matches');
+  });
+
+  it('strips parameterized suffixes for code search names', () => {
+    const test = makeTest({
+      fullName: 'Notey.Tests.MainWindowShortcutTests.IsNewTaskShortcut_matches_control_or_command_t(key: T, modifiers: Control, expected: False)',
+      name: 'IsNewTaskShortcut_matches_control_or_command_t(key: T, modifiers: Control, expected: False)',
+      method: 'Notey.Tests.MainWindowShortcutTests.IsNewTaskShortcut_matches_control_or_command_t(key: T, modifiers: Control, expected: False)',
+      namespace: 'Notey.Tests',
+      className: 'MainWindowShortcutTests',
+      outcome: 'failed',
+    });
+    expect(stripTestParameters(getShortTestName(test))).toBe('IsNewTaskShortcut_matches_control_or_command_t');
+    expect(getCodeSearchName(test)).toBe('IsNewTaskShortcut_matches_control_or_command_t');
   });
 
   it('derives class from fullName when method suffix matches', () => {

@@ -35,11 +35,21 @@ describe('pr-comment', () => {
         ['SampleTests.ShouldFail', 'passed'],
         ['SampleTests.ShouldSkip', 'skipped'],
       ]),
+      durations: new Map([
+        ['SampleTests.ShouldPass', 10],
+        ['SampleTests.ShouldFail', 10],
+        ['SampleTests.ShouldSkip', 5],
+      ]),
+      testNames: new Set([
+        'SampleTests.ShouldPass',
+        'SampleTests.ShouldFail',
+        'SampleTests.ShouldSkip',
+      ]),
     };
     const ctx = buildReportingContext(sampleRun, sampleConfig, previousRun);
     const body = renderPrComment(ctx, sampleConfig, buildReportLinks(sampleRun.context));
     expect(body).toContain('## Changes since [prev123]');
-    expect(body).toContain('**New failures (1)**');
+    expect(body).toContain('**🆕 New failures (1)**');
     expect(body).toContain('ShouldFail');
   });
 

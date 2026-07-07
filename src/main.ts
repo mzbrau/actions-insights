@@ -13,6 +13,7 @@ import { uploadReportArtifact } from './publisher/artifact';
 import { prepareSiteWorkspace, saveSiteCache } from './publisher/site-cache';
 import { ensureDir } from './publisher/site-merger';
 import { buildReportLinks } from './reporting/links';
+import { resolveRunCompletedAt } from './reporting/time';
 import type { TestRun } from './model/test-run';
 
 async function run(): Promise<void> {
@@ -27,6 +28,8 @@ async function run(): Promise<void> {
   if (tests.length === 0) {
     core.warning('No test results found. Ensure test-results glob matches your output files.');
   }
+
+  context.completedAt = resolveRunCompletedAt(sourceFiles, new Date().toISOString());
 
   const stats = computeStats(tests);
   const status = deriveStatus(tests);

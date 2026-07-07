@@ -5,6 +5,8 @@ export interface PreviousRun {
     commitSha: string;
     commitShortSha: string;
     outcomes: Map<string, TestOutcome>;
+    durations: Map<string, number>;
+    testNames: Set<string>;
 }
 export declare function readPreviousRunFromHistory(history: CanonicalHistory, branchKey: string, currentRunId: string): PreviousRun | undefined;
 export { CODE_TO_OUTCOME };

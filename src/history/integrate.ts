@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ActionConfig } from '../config';
@@ -42,6 +43,7 @@ export function integrateReportIntoSite(
 
   let history = readCanonicalHistory(siteDir, config.reportsSubdirectory);
   const currentRunId = String(run.context.runId);
+  core.info(`Loaded history with ${history.runs.runs.length} prior run(s)`);
 
   const previousRun = readPreviousRunFromCanonical(history, paths.branchKey, currentRunId);
   const previousFailed = readPreviousFailedFromCanonical(history, paths.branchKey, currentRunId);
@@ -61,6 +63,7 @@ export function integrateReportIntoSite(
     retainDays: config.retainDays,
   });
   writeCanonicalHistory(siteDir, config.reportsSubdirectory, history);
+  core.info(`Updated history to ${history.runs.runs.length} run(s)`);
 
   const trends = composeTrendsFile(history, mergedRun, paths.branchKey, paths.branchLabel);
 

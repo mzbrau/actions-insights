@@ -189,6 +189,12 @@
     return lastDot >= 0 ? full.slice(lastDot + 1) : full;
   }
 
+  function getCodeSearchName(test) {
+    const short = getShortName(test);
+    const paren = short.indexOf('(');
+    return (paren >= 0 ? short.slice(0, paren) : short).trim();
+  }
+
   function getClassName(test) {
     if (test.ns && test.c) return `${test.ns}.${test.c}`;
     const n = test.n || '';
@@ -300,7 +306,7 @@
           const outcome = OUTCOMES[test.o] || 'inconclusive';
           const id = `hist-${test.i}`;
           const pr = getPassRate(test.n);
-          const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getShortName(test)}`)}&type=code` : null;
+          const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getCodeSearchName(test)}`)}&type=code` : null;
           const cls = getClassName(test);
           const project = typeof test.a === 'string' ? test.a.trim() : '';
           const meta = project ? `${project} · ${cls}` : cls;
@@ -372,7 +378,7 @@
             const pr = getPassRate(test.n);
             const wfUrl = runData?.context?.jobUrl || runData?.context?.workflowUrl;
             const repo = runData?.context?.repository;
-            const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getShortName(test)}`)}&type=code` : null;
+            const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getCodeSearchName(test)}`)}&type=code` : null;
             html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
               <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
               <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>
@@ -435,11 +441,23 @@
     render();
   }
 
+  function initRunTimestamp() {
+    const el = $('#run-timestamp');
+    if (!el) return;
+    const iso = el.getAttribute('data-run-timestamp') || runData?.context?.completedAt;
+    if (!iso) return;
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return;
+    el.textContent = date.toLocaleString();
+    el.title = `${date.toISOString().replace('T', ' ').slice(0, 19)} UTC`;
+  }
+
   function init() {
     initTheme();
     initTabs();
     initFailures();
     parseRunData();
+    initRunTimestamp();
     renderPieChart();
     loadTrends();
   }

@@ -93,7 +93,11 @@ export function createRunEntry(
     branchLabel,
     branchType,
     failedTests,
-    testOutcomes: run.tests.map((t) => ({ n: t.fullName, o: OUTCOME_TO_CODE[t.outcome] ?? 3 })),
+    testOutcomes: run.tests.map((t) => ({
+      n: t.fullName,
+      o: OUTCOME_TO_CODE[t.outcome] ?? 3,
+      d: t.durationMs,
+    })),
   };
 }
 
@@ -238,14 +242,22 @@ export function readPreviousRunFromCanonical(
   if (!prior?.commitSha) return undefined;
 
   const outcomes = new Map<string, import('../model/test-case').TestOutcome>();
+  const durations = new Map<string, number>();
+  const testNames = new Set<string>();
   for (const t of prior.testOutcomes ?? []) {
+    testNames.add(t.n);
     outcomes.set(t.n, (['passed', 'failed', 'skipped', 'inconclusive'] as const)[t.o] ?? 'inconclusive');
+    if (typeof t.d === 'number') {
+      durations.set(t.n, t.d);
+    }
   }
 
   return {
     commitSha: prior.commitSha,
     commitShortSha: prior.commitShortSha,
     outcomes,
+    durations,
+    testNames,
   };
 }
 

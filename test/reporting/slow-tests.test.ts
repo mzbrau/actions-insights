@@ -28,9 +28,13 @@ describe('slow-tests', () => {
       splitCollapsed: true,
       formatName: (t) => `\`${t.name}\``,
     });
-    const body = lines.join('\n');
+    const body = formatSlowTestsSection(tests, 1000, {
+      splitCollapsed: true,
+      formatName: (t) => `\`${t.name}\``,
+    }).join('\n');
     expect(body).toContain('## Slowest Tests');
     expect(body).toContain('<details><summary>5 more slow tests</summary>');
+    expect(body).not.toContain('### ');
     const visibleCount = (body.match(/^- /gm) ?? []).length;
     expect(visibleCount).toBeGreaterThanOrEqual(SLOW_VISIBLE);
   });

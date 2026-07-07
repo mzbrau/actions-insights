@@ -85,7 +85,7 @@ export interface CanonicalRunEntry extends RunManifestEntry {
   branchLabel: string;
   branchType: 'branch' | 'pr' | 'tag';
   failedTests: string[];
-  testOutcomes: Array<{ n: string; o: number }>;
+  testOutcomes: Array<{ n: string; o: number; d: number }>;
 }
 
 export interface CanonicalRunsFile {

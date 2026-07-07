@@ -1,5 +1,6 @@
 import type { RunContext } from '../model/test-run';
 import type { TestCase } from '../model/test-case';
+import { getCodeSearchName } from './grouping';
 
 export interface ReportLinks {
   workflowRun: string;
@@ -20,9 +21,9 @@ export function buildReportLinks(context: RunContext): ReportLinks {
 }
 
 export function buildTestCodeUrl(context: RunContext, test: TestCase): string | undefined {
-  // Test results often contain runner absolute paths in sourceFile. Prefer a repo code search.
-  const shortName = (test.method ?? test.name ?? '').trim();
-  const q = `repo:${context.repository} ${shortName || test.fullName}`;
+  const searchName = getCodeSearchName(test);
+  if (!searchName) return undefined;
+  const q = `repo:${context.repository} ${searchName}`;
   return `https://github.com/search?q=${encodeURIComponent(q)}&type=code`;
 }
 

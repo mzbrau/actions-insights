@@ -7,6 +7,7 @@ import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSlowTestsSection, SLOW_TOTAL } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
+import { formatUtcTimestamp } from './time';
 
 export const COMMENT_MARKER = '<!-- actions-insights-report -->';
 
@@ -19,7 +20,7 @@ export function renderPrComment(
   const { context, status } = run;
   const emoji = status === 'passed' ? '✅' : '❌';
   const statusLabel = status === 'passed' ? 'Passed' : 'Failed';
-  const timestamp = new Date(context.completedAt).toISOString().replace('T', ' ').slice(0, 19);
+  const timestamp = formatUtcTimestamp(context.completedAt);
 
   const failureOptions = {
     maxStackTraceLines: config.maxStackTraceLines,
@@ -39,7 +40,10 @@ export function renderPrComment(
     '',
   ];
 
-  const delta = computeTestDelta(run.tests, previousRun, context.commitSha);
+  const delta = computeTestDelta(run.tests, previousRun, context.commitSha, {
+    slowdownRatio: 1.5,
+    slowdownMinMs: Math.max(100, Math.floor(config.slowTestThresholdMs / 5)),
+  });
   const deltaSection = formatDeltaSection(delta, previousRun, context.repositoryUrl);
   if (deltaSection) {
     lines.push(deltaSection);

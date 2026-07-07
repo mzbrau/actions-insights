@@ -79,6 +79,7 @@ export interface CanonicalRunEntry extends RunManifestEntry {
     testOutcomes: Array<{
         n: string;
         o: number;
+        d: number;
     }>;
 }
 export interface CanonicalRunsFile {

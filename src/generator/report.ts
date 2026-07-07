@@ -6,7 +6,7 @@ import { OUTCOME_TO_CODE } from '../model/manifest';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
 import { formatDuration } from '../model/test-run';
-import { getShortTestName, groupTestsByClass } from '../reporting/grouping';
+import { getCodeSearchName, getShortTestName, groupTestsByClass } from '../reporting/grouping';
 import { escapeHtml } from './escape';
 
 function resolveAssetsDir(): string {
@@ -56,7 +56,7 @@ function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
 
   const shortName = getShortTestName(test);
   const logUrl = ctx.jobUrl || ctx.workflowUrl;
-  const codeUrl = `https://github.com/search?q=${encodeURIComponent(`repo:${ctx.repository} ${shortName}`)}&type=code`;
+  const codeUrl = `https://github.com/search?q=${encodeURIComponent(`repo:${ctx.repository} ${getCodeSearchName(test)}`)}&type=code`;
   const links = `<span class="test-links">
       <a href="${escapeHtml(logUrl)}" target="_blank" rel="noopener">log</a>
       · <a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>
@@ -109,7 +109,6 @@ export function renderReportHtml(
 ): string {
   const { stats, context: ctx, status } = run;
   const runTimestamp = ctx.completedAt || ctx.startedAt;
-  const runTimestampLabel = runTimestamp ? new Date(runTimestamp).toLocaleString() : '';
   const css = readAsset('report-v2.css');
   const js = readAsset('report-app.js');
   const trendsJson = trends
@@ -129,6 +128,7 @@ export function renderReportHtml(
       repositoryUrl: ctx.repositoryUrl,
       prNumber: ctx.prNumber,
       prUrl: ctx.prUrl,
+      completedAt: runTimestamp,
     },
     tests: toCompactTests(run, slowThresholdMs),
     slowThreshold: slowThresholdMs,
@@ -159,7 +159,7 @@ export function renderReportHtml(
         <span>${escapeHtml(ctx.workflow)}</span>
         <span>${escapeHtml(ctx.branch)}</span>
         <span><a href="${escapeHtml(ctx.commitUrl)}" target="_blank" rel="noopener"><code>${escapeHtml(ctx.commitShortSha)}</code></a> ${escapeHtml(ctx.author)}</span>
-        ${runTimestampLabel ? `<span>${escapeHtml(runTimestampLabel)}</span>` : ''}
+        ${runTimestamp ? `<span id="run-timestamp" data-run-timestamp="${escapeHtml(runTimestamp)}"></span>` : ''}
       </div>
     </div>
     <div class="header-actions">

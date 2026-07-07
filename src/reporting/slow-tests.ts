@@ -1,10 +1,5 @@
 import type { TestCase } from '../model/test-case';
 import { formatDuration, outcomeLabel } from '../model/test-run';
-import {
-  groupTestsByClass,
-  groupTestsByClassWithFailuresFirst,
-  type TestClassGroup,
-} from './grouping';
 
 export const SLOW_VISIBLE = 3;
 export const SLOW_COLLAPSED = 15;
@@ -32,18 +27,14 @@ export function formatSkippedTestLine(test: TestCase): string {
   return `- \`${test.fullName}\`${reason}`;
 }
 
-function renderGroupedSlowLines(
-  groups: TestClassGroup[],
+function renderFlatSlowLines(
+  tests: TestCase[],
   slowThresholdMs: number,
   formatName: (test: TestCase) => string,
 ): string[] {
   const lines: string[] = [];
-  for (const group of groups) {
-    lines.push(`### ${group.qualifiedClassName}`);
-    for (const test of group.tests) {
-      lines.push(formatSlowTestLine(test, slowThresholdMs, formatName(test)));
-    }
-    lines.push('');
+  for (const test of tests) {
+    lines.push(formatSlowTestLine(test, slowThresholdMs, formatName(test)));
   }
   return lines;
 }
@@ -62,24 +53,17 @@ export function formatSlowTestsSection(
     const visible = slowTests.slice(0, SLOW_VISIBLE);
     const collapsed = slowTests.slice(SLOW_VISIBLE, SLOW_TOTAL);
 
-    lines.push(...renderGroupedSlowLines(groupTestsByClass(visible), slowThresholdMs, formatName));
+    lines.push(...renderFlatSlowLines(visible, slowThresholdMs, formatName));
 
     if (collapsed.length > 0) {
-      const collapsedLines = renderGroupedSlowLines(
-        groupTestsByClass(collapsed),
-        slowThresholdMs,
-        formatName,
-      );
       lines.push(`<details><summary>${collapsed.length} more slow test${collapsed.length === 1 ? '' : 's'}</summary>`);
       lines.push('');
-      lines.push(...collapsedLines);
+      lines.push(...renderFlatSlowLines(collapsed, slowThresholdMs, formatName));
       lines.push('</details>');
       lines.push('');
     }
   } else {
-    lines.push(
-      ...renderGroupedSlowLines(groupTestsByClass(slowTests), slowThresholdMs, formatName),
-    );
+    lines.push(...renderFlatSlowLines(slowTests, slowThresholdMs, formatName));
   }
 
   return lines;
