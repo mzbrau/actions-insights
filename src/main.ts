@@ -4,6 +4,7 @@ import { loadConfig } from './config';
 import { publishCheckRun } from './github/checks';
 import { upsertPrComment } from './github/comment';
 import { detectContext } from './github/context';
+import { resolveCurrentJobUrl } from './github/jobs';
 import { writeJobSummary } from './github/job-summary';
 import { integrateReportIntoSite } from './history/integrate';
 import { computeStats, deriveStatus } from './model/test-run';
@@ -17,6 +18,7 @@ import type { TestRun } from './model/test-run';
 async function run(): Promise<void> {
   const config = loadConfig();
   const context = detectContext();
+  context.jobUrl = await resolveCurrentJobUrl(config.githubToken, context);
   const links = buildReportLinks(context);
 
   core.info(`Parsing test results: ${config.testResults}`);
@@ -48,7 +50,7 @@ async function run(): Promise<void> {
 
   if (config.uploadHtmlReport) {
     try {
-      await uploadReportArtifact(artifactDir, config.artifactRetentionDays);
+      await uploadReportArtifact(artifactDir, config.artifactRetentionDays, context.commitShortSha);
     } catch (error) {
       core.warning(`Artifact upload failed: ${error instanceof Error ? error.message : String(error)}`);
       core.info(`Report files are available locally at ${config.siteOutput}`);

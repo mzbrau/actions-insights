@@ -10,7 +10,6 @@ declare function toCompactTests(run: TestRun, slowThresholdMs: number): {
     ns: string | undefined;
     c: string | undefined;
     m: string;
-    sf: string;
     nf: boolean | undefined;
 }[];
 export declare function writeRunReport(run: TestRun, outputDir: string, config: {

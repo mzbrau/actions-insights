@@ -20,9 +20,10 @@ export function buildReportLinks(context: RunContext): ReportLinks {
 }
 
 export function buildTestCodeUrl(context: RunContext, test: TestCase): string | undefined {
-  const sourceFile = (test.sourceFile ?? '').trim().replace(/^\/+/, '');
-  if (!sourceFile) return undefined;
-  return `${context.repositoryUrl}/blob/${context.commitSha}/${sourceFile}`;
+  // Test results often contain runner absolute paths in sourceFile. Prefer a repo code search.
+  const shortName = (test.method ?? test.name ?? '').trim();
+  const q = `repo:${context.repository} ${shortName || test.fullName}`;
+  return `https://github.com/search?q=${encodeURIComponent(q)}&type=code`;
 }
 
 export function formatTestNameWithLinks(
@@ -31,7 +32,8 @@ export function formatTestNameWithLinks(
   shortName: string,
   test: TestCase,
 ): string {
-  const log = `[\`${shortName}\`](${links.workflowRun})`;
+  const logUrl = context.jobUrl || links.workflowRun;
+  const log = `[\`${shortName}\`](${logUrl})`;
   const codeUrl = buildTestCodeUrl(context, test);
   return codeUrl ? `${log} ([code](${codeUrl}))` : log;
 }
@@ -39,7 +41,7 @@ export function formatTestNameWithLinks(
 export function formatFooterLinks(links: ReportLinks): string {
   const items = [
     `[Workflow run](${links.workflowRun})`,
-    `[Artifacts](${links.artifacts})`,
+    `[Report](${links.artifacts})`,
     `[Commit](${links.commit})`,
   ];
   if (links.pullRequest) {

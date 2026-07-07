@@ -14,6 +14,7 @@ export interface RunContext {
     repositoryUrl: string;
     workflow: string;
     workflowUrl: string;
+    jobUrl?: string;
     runId: number;
     runAttempt: number;
     branch: string;

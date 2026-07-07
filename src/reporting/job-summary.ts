@@ -54,7 +54,7 @@ export function renderJobSummary(
     );
     const remaining = failedCount - Math.min(failedCount, config.maxFailedTestsInSummary);
     if (remaining > 0) {
-      lines.push(`_…and ${remaining.toLocaleString()} more failed test${remaining === 1 ? '' : 's'}. [View artifacts](${links.artifacts})_`);
+      lines.push(`_…and ${remaining.toLocaleString()} more failed test${remaining === 1 ? '' : 's'}. [View report](${links.artifacts})_`);
       lines.push('');
     }
   }

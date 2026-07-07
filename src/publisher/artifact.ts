@@ -10,6 +10,7 @@ const ARTIFACT_FILES = ['report.html', 'trends.json'] as const;
 export async function uploadReportArtifact(
   artifactDir: string,
   retentionDays: number,
+  commitShortSha: string,
 ): Promise<void> {
   if (!fs.existsSync(artifactDir)) {
     throw new Error(`Artifact directory does not exist: ${artifactDir}`);
@@ -23,7 +24,8 @@ export async function uploadReportArtifact(
     throw new Error(`No report files found in: ${artifactDir}`);
   }
 
+  const name = `${ARTIFACT_NAME}-${commitShortSha}`;
   const client = new artifact.DefaultArtifactClient();
-  await client.uploadArtifact(ARTIFACT_NAME, files, artifactDir, { retentionDays });
-  core.info(`Uploaded ${ARTIFACT_NAME} artifact (${files.length} files, ${retentionDays} day retention)`);
+  await client.uploadArtifact(name, files, artifactDir, { retentionDays });
+  core.info(`Uploaded ${name} artifact (${files.length} files, ${retentionDays} day retention)`);
 }

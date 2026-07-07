@@ -274,17 +274,15 @@
       const filtered = sortTests(filteredTests());
 
       if (sortBy !== 'default') {
-        const wfUrl = runData?.context?.workflowUrl;
-        const repoUrl = runData?.context?.repositoryUrl;
-        const commitSha = runData?.context?.commitSha;
+        const wfUrl = runData?.context?.jobUrl || runData?.context?.workflowUrl;
+        const repo = runData?.context?.repository;
 
         let html = '<div class="flat-list">';
         for (const test of filtered) {
           const outcome = OUTCOMES[test.o] || 'inconclusive';
           const id = `hist-${test.i}`;
           const pr = getPassRate(test.n);
-          const sf = (test.sf || '').replace(/^\/+/, '');
-          const codeUrl = repoUrl && commitSha && sf ? `${repoUrl}/blob/${commitSha}/${sf}` : null;
+          const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getShortName(test)}`)}&type=code` : null;
           const cls = getClassName(test);
           const project = test.a || 'Unknown Project';
 
@@ -347,11 +345,9 @@
             const outcome = OUTCOMES[test.o] || 'inconclusive';
             const id = `hist-${test.i}`;
             const pr = getPassRate(test.n);
-            const wfUrl = runData?.context?.workflowUrl;
-            const repoUrl = runData?.context?.repositoryUrl;
-            const commitSha = runData?.context?.commitSha;
-            const sf = (test.sf || '').replace(/^\/+/, '');
-            const codeUrl = repoUrl && commitSha && sf ? `${repoUrl}/blob/${commitSha}/${sf}` : null;
+            const wfUrl = runData?.context?.jobUrl || runData?.context?.workflowUrl;
+            const repo = runData?.context?.repository;
+            const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getShortName(test)}`)}&type=code` : null;
             html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
               <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
               <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>

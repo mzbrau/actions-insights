@@ -38,14 +38,8 @@ function toCompactTests(run: TestRun, slowThresholdMs: number) {
     ns: test.namespace,
     c: test.className,
     m: test.method ?? test.name,
-    sf: test.sourceFile,
     nf: test.isNewFailure,
   }));
-}
-
-function safeRepoPath(p: string | undefined): string | undefined {
-  const v = (p ?? '').trim().replace(/^\/+/, '');
-  return v ? v : undefined;
 }
 
 function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
@@ -61,11 +55,11 @@ function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
     : '';
 
   const shortName = getShortTestName(test);
-  const codePath = safeRepoPath(test.sourceFile);
-  const codeUrl = codePath ? `${ctx.repositoryUrl}/blob/${ctx.commitSha}/${codePath}` : undefined;
+  const logUrl = ctx.jobUrl || ctx.workflowUrl;
+  const codeUrl = `https://github.com/search?q=${encodeURIComponent(`repo:${ctx.repository} ${shortName}`)}&type=code`;
   const links = `<span class="test-links">
-      <a href="${escapeHtml(ctx.workflowUrl)}" target="_blank" rel="noopener">log</a>
-      ${codeUrl ? ` · <a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>` : ''}
+      <a href="${escapeHtml(logUrl)}" target="_blank" rel="noopener">log</a>
+      · <a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>
     </span>`;
 
   return `<article class="failure-item${newClass}">
@@ -127,6 +121,7 @@ export function renderReportHtml(
       commitSha: ctx.commitSha,
       author: ctx.author,
       workflowUrl: ctx.workflowUrl,
+      jobUrl: ctx.jobUrl,
       repositoryUrl: ctx.repositoryUrl,
     },
     tests: toCompactTests(run, slowThresholdMs),
