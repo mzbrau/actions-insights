@@ -1,5 +1,11 @@
 # Troubleshooting
 
+## Pages workflow fails on initial commit
+
+If `setup-node` fails with "Some specified paths were not resolved, unable to cache dependencies", the history repo is missing `web/package-lock.json` and the vendored `@actions-insights/history-models` package.
+
+See [Fixing an already-created history repository](deployment.md#fixing-an-already-created-history-repository) in the deployment guide.
+
 ## History publish skipped
 
 - Verify `history-enabled: true`

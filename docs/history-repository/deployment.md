@@ -38,8 +38,9 @@ Maintainers publish that extension from this monorepo with `npm run publish:exte
 
 1. Create a new repository
 2. Copy contents from `templates/history-repo/` and `web/` from this monorepo
-3. Enable GitHub Pages with source: **GitHub Actions**
-4. Push to `main` — the `pages.yml` workflow builds and deploys
+3. Run `bash scripts/prepare-standalone-web.sh web packages/history-models` to vendor shared types and generate `web/package-lock.json`
+4. Enable GitHub Pages with source: **GitHub Actions**
+5. Push to `main` — the `pages.yml` workflow builds and deploys
 
 ## Dashboard URL
 
@@ -50,3 +51,28 @@ For project Pages: `https://{owner}.github.io/{repo-name}/`
 Modify `web/` in the history repository and push. The Pages workflow rebuilds on changes to `web/`, `data/`, or `config.json`.
 
 JSON-only pushes from the action do not require React source changes — the workflow rebuilds the static site and copies current `data/` into the deploy artifact.
+
+## Fixing an already-created history repository
+
+If your history repository was created before standalone web preparation was added, the Pages workflow may fail on the first run with:
+
+> Some specified paths were not resolved, unable to cache dependencies.
+
+From a checkout of `actions-insights`, run (note the `/web` suffix on the history repo path):
+
+```bash
+git clone https://github.com/<owner>/<history-repo>.git /tmp/history-repo-fix
+bash scripts/prepare-standalone-web.sh /tmp/history-repo-fix/web packages/history-models
+```
+
+You can also pass the history repo root instead of `web/`; the script will detect that and use `web/` automatically.
+
+Then update `.github/workflows/pages.yml` in the history repository to match the current template (Node 24, `npm ci`, and `cache-dependency-path: web/package-lock.json`), commit, and push:
+
+```bash
+cd /tmp/history-repo-fix
+cp /path/to/actions-insights/templates/history-repo/.github/workflows/pages.yml .github/workflows/pages.yml
+git add web .github/workflows/pages.yml
+git commit -m "Fix Pages workflow for standalone web build"
+git push
+```

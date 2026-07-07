@@ -24,6 +24,7 @@ resolve_source_dirs() {
   if [[ -d "${repo_root}/templates/history-repo" ]]; then
     TEMPLATE_DIR="${repo_root}/templates/history-repo"
     WEB_DIR="${repo_root}/web"
+    MODELS_DIR="${repo_root}/packages/history-models"
     return
   fi
 
@@ -32,6 +33,7 @@ resolve_source_dirs() {
     "https://github.com/${SOURCE_REPO}.git" "${SOURCE_CHECKOUT}/src"
   TEMPLATE_DIR="${SOURCE_CHECKOUT}/src/templates/history-repo"
   WEB_DIR="${SOURCE_CHECKOUT}/src/web"
+  MODELS_DIR="${SOURCE_CHECKOUT}/src/packages/history-models"
 }
 
 usage() {
@@ -132,6 +134,7 @@ echo "Creating history repository: ${FULL_REPO}"
 if [[ "${DRY_RUN}" == true ]]; then
   echo "[dry-run] gh repo create ${FULL_REPO} ${VISIBILITY}"
   echo "[dry-run] Copy template from ${TEMPLATE_DIR}"
+  echo "[dry-run] Copy web from ${WEB_DIR} and prepare standalone (vendor history-models, lockfile)"
   echo "[dry-run] Enable GitHub Pages (GitHub Actions source)"
   exit 0
 fi
@@ -148,6 +151,8 @@ if [[ -d "${WEB_DIR}" ]]; then
   mkdir -p "${WORKDIR}/repo/web"
   cp -R "${WEB_DIR}/." "${WORKDIR}/repo/web/"
   rm -rf "${WORKDIR}/repo/web/node_modules" "${WORKDIR}/repo/web/dist"
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  bash "${SCRIPT_DIR}/prepare-standalone-web.sh" "${WORKDIR}/repo/web" "${MODELS_DIR}"
 fi
 
 if [[ -n "${DEFAULT_REPO}" ]]; then
