@@ -1,13 +1,38 @@
 # Deploying the History Repository
 
-## Quick start
+## Quick start (recommended)
+
+No clone and no separate extension repository required:
 
 ```bash
-gh extension install owner/actions-insights/extensions/gh-actions-insight
-gh actions-insight init my-org-test-history --org my-org --default-repository my-org/my-project
+curl -fsSL https://raw.githubusercontent.com/mzbrau/actions-insights/main/scripts/init-history-repo.sh | bash -s -- init
 ```
 
-This creates the repository, copies the React app and folder structure, commits, and enables GitHub Pages.
+With options:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mzbrau/actions-insights/main/scripts/init-history-repo.sh | \
+  bash -s -- init my-org-test-history --org my-org --default-repository my-org/my-project
+```
+
+Requires `gh` and `git` on your PATH. The script shallow-clones `mzbrau/actions-insights` into a temporary directory to copy templates, then creates your history repository.
+
+From a local checkout you can run the same script directly:
+
+```bash
+bash scripts/init-history-repo.sh init --dry-run
+```
+
+## Optional: GitHub CLI extension
+
+`gh extension install` requires a repository whose name starts with `gh-`, so the main `actions-insights` repository cannot be used directly. If you prefer a `gh` subcommand, install the optional extension:
+
+```bash
+gh extension install mzbrau/gh-actions-insights
+gh actions-insights init
+```
+
+Maintainers publish that extension from this monorepo with `npm run publish:extension`.
 
 ## Manual setup
 

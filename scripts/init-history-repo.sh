@@ -1,13 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-TEMPLATE_DIR="${REPO_ROOT}/templates/history-repo"
+SOURCE_REPO="${ACTIONS_INSIGHTS_SOURCE:-mzbrau/actions-insights}"
+SOURCE_REF="${ACTIONS_INSIGHTS_REF:-main}"
+SOURCE_CHECKOUT=""
+
+cleanup() {
+  if [[ -n "${SOURCE_CHECKOUT}" ]]; then
+    rm -rf "${SOURCE_CHECKOUT}"
+  fi
+  if [[ -n "${WORKDIR:-}" ]]; then
+    rm -rf "${WORKDIR}"
+  fi
+}
+
+trap cleanup EXIT
+
+resolve_source_dirs() {
+  local script_dir repo_root
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  repo_root="$(cd "${script_dir}/.." && pwd)"
+
+  if [[ -d "${repo_root}/templates/history-repo" ]]; then
+    TEMPLATE_DIR="${repo_root}/templates/history-repo"
+    WEB_DIR="${repo_root}/web"
+    return
+  fi
+
+  SOURCE_CHECKOUT="$(mktemp -d)"
+  git clone --depth 1 --branch "${SOURCE_REF}" \
+    "https://github.com/${SOURCE_REPO}.git" "${SOURCE_CHECKOUT}/src"
+  TEMPLATE_DIR="${SOURCE_CHECKOUT}/src/templates/history-repo"
+  WEB_DIR="${SOURCE_CHECKOUT}/src/web"
+}
 
 usage() {
   cat <<'EOF'
-Usage: gh actions-insight init [name] [flags]
+Usage: init-history-repo.sh init [name] [flags]
 
 Create an Actions Insights history repository with React dashboard and GitHub Pages.
 
@@ -18,6 +47,10 @@ Flags:
   --default-repository <repo>  Default source repository (owner/repo)
   --dry-run                    Print actions without executing
   -h, --help                   Show help
+
+Install without cloning this repository:
+
+  curl -fsSL https://raw.githubusercontent.com/mzbrau/actions-insights/main/scripts/init-history-repo.sh | bash -s -- init
 EOF
 }
 
@@ -26,10 +59,12 @@ ORG_FLAG=""
 VISIBILITY="--public"
 DEFAULT_REPO=""
 DRY_RUN=false
+COMMAND=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     init)
+      COMMAND="init"
       shift
       ;;
     -h|--help)
@@ -69,6 +104,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ "${COMMAND}" != "init" ]]; then
+  usage
+  exit 1
+fi
+
 if [[ -z "${REPO_NAME}" ]]; then
   USER="$(gh api user -q .login)"
   REPO_NAME="${USER}-actions-insights"
@@ -78,6 +118,13 @@ if [[ -n "${ORG_FLAG}" ]]; then
   FULL_REPO="${ORG_FLAG}/${REPO_NAME}"
 else
   FULL_REPO="$(gh api user -q .login)/${REPO_NAME}"
+fi
+
+resolve_source_dirs
+
+if [[ ! -d "${TEMPLATE_DIR}" ]]; then
+  echo "Templates not found at ${TEMPLATE_DIR}." >&2
+  exit 1
 fi
 
 echo "Creating history repository: ${FULL_REPO}"
@@ -94,13 +141,13 @@ if ! gh repo view "${FULL_REPO}" >/dev/null 2>&1; then
 fi
 
 WORKDIR="$(mktemp -d)"
-trap 'rm -rf "${WORKDIR}"' EXIT
 
 git clone "https://github.com/${FULL_REPO}.git" "${WORKDIR}/repo"
 cp -R "${TEMPLATE_DIR}/." "${WORKDIR}/repo/"
-if [[ -d "${REPO_ROOT}/web" ]]; then
+if [[ -d "${WEB_DIR}" ]]; then
   mkdir -p "${WORKDIR}/repo/web"
-  cp -R "${REPO_ROOT}/web/." "${WORKDIR}/repo/web/"
+  cp -R "${WEB_DIR}/." "${WORKDIR}/repo/web/"
+  rm -rf "${WORKDIR}/repo/web/node_modules" "${WORKDIR}/repo/web/dist"
 fi
 
 if [[ -n "${DEFAULT_REPO}" ]]; then
@@ -143,7 +190,7 @@ Next steps:
 2. Add secret ACTIONS_INSIGHTS_HISTORY_TOKEN to your source repositories
 3. Enable history publishing in your workflow:
 
-  - uses: owner/actions-insights@v1
+  - uses: mzbrau/actions-insights@v1
     with:
       history-enabled: true
       history-repository: ${FULL_REPO}
