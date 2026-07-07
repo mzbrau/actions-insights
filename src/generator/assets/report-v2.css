@@ -170,12 +170,15 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--outline-variant); background: var(--surface-container-low);
   font-size: 14px; color: var(--on-surface);
 }
+.search-input::placeholder { color: var(--on-surface-variant); opacity: 0.9; }
 .search-input:focus { outline: 2px solid var(--primary); outline-offset: 0; }
 .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
   padding: 6px 12px; border-radius: 999px; border: 1px solid var(--outline-variant);
   background: var(--surface-container); font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
+  color: var(--on-surface);
 }
+[data-theme="dark"] .chip { color: #fff; }
 .chip.active { background: var(--primary-container); color: var(--on-primary-container); border-color: var(--primary-container); }
 .chip.active.failed { background: var(--error); color: #fff; border-color: var(--error); }
 .chip.active.passed { background: var(--success); color: #fff; border-color: var(--success); }

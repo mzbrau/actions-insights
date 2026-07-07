@@ -17,6 +17,6 @@ export declare function writeRunReport(run: TestRun, outputDir: string, config: 
     theme: ThemeMode;
     slowTestThresholdMs: number;
 }, trends: TrendsFile): void;
-export declare function renderReportHtml(run: TestRun, reportTitle: string, theme: ThemeMode, slowThresholdMs: number): string;
+export declare function renderReportHtml(run: TestRun, reportTitle: string, theme: ThemeMode, slowThresholdMs: number, trends?: TrendsFile): string;
 export { toCompactTests };
 //# sourceMappingURL=report.d.ts.map

@@ -95,7 +95,7 @@ export function writeRunReport(
   trends: TrendsFile,
 ): void {
   fs.mkdirSync(outputDir, { recursive: true });
-  const html = renderReportHtml(run, config.reportTitle, config.theme, config.slowTestThresholdMs);
+  const html = renderReportHtml(run, config.reportTitle, config.theme, config.slowTestThresholdMs, trends);
   fs.writeFileSync(path.join(outputDir, 'report.html'), html);
   fs.writeFileSync(path.join(outputDir, 'trends.json'), JSON.stringify(trends, null, 2));
 }
@@ -105,12 +105,16 @@ export function renderReportHtml(
   reportTitle: string,
   theme: ThemeMode,
   slowThresholdMs: number,
+  trends?: TrendsFile,
 ): string {
   const { stats, context: ctx, status } = run;
   const runTimestamp = ctx.completedAt || ctx.startedAt;
   const runTimestampLabel = runTimestamp ? new Date(runTimestamp).toLocaleString() : '';
   const css = readAsset('report-v2.css');
   const js = readAsset('report-app.js');
+  const trendsJson = trends
+    ? JSON.stringify(trends).replace(/</g, '\\u003c')
+    : '';
   const runJson = JSON.stringify({
     stats,
     context: {
@@ -123,6 +127,8 @@ export function renderReportHtml(
       workflowUrl: ctx.workflowUrl,
       jobUrl: ctx.jobUrl,
       repositoryUrl: ctx.repositoryUrl,
+      prNumber: ctx.prNumber,
+      prUrl: ctx.prUrl,
     },
     tests: toCompactTests(run, slowThresholdMs),
     slowThreshold: slowThresholdMs,
@@ -158,6 +164,7 @@ export function renderReportHtml(
     </div>
     <div class="header-actions">
       <button id="theme-toggle" class="btn" type="button" aria-label="Toggle theme">◐ Theme</button>
+      ${ctx.prUrl ? `<a href="${escapeHtml(ctx.prUrl)}" class="btn" target="_blank" rel="noopener">Pull request</a>` : ''}
       <a href="${escapeHtml(ctx.workflowUrl)}" class="btn btn-primary" target="_blank" rel="noopener">Workflow</a>
     </div>
   </header>
@@ -230,6 +237,7 @@ export function renderReportHtml(
     <span>${escapeHtml(ctx.commitMessage)}</span>
   </footer>
 </div>
+${trends ? `<script id="trends-data" type="application/json">${trendsJson}</script>` : ''}
 <script id="run-data" type="application/json">${runJson}</script>
 <script>${js}</script>
 </body>

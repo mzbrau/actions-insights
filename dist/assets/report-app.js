@@ -72,8 +72,22 @@
     try { runData = JSON.parse(el.textContent || '{}'); } catch { runData = {}; }
   }
 
+  function parseEmbeddedTrends() {
+    const el = $('#trends-data');
+    if (!el) return null;
+    try { return JSON.parse(el.textContent || 'null'); } catch { return null; }
+  }
+
   async function loadTrends() {
     const notice = $('#trends-notice');
+    const embedded = parseEmbeddedTrends();
+    if (embedded) {
+      trendsData = embedded;
+      if (notice) notice.classList.add('hidden');
+      renderTrendCharts();
+      renderAllTests();
+      return;
+    }
     try {
       const res = await fetch('./trends.json');
       if (res.ok) {
@@ -168,7 +182,11 @@
   }
 
   function getShortName(test) {
-    return test.m || test.n?.split('.').pop() || test.n;
+    const candidate = test.m || test.n || '';
+    if (candidate && !candidate.includes('.')) return candidate;
+    const full = test.n || candidate;
+    const lastDot = full.lastIndexOf('.');
+    return lastDot >= 0 ? full.slice(lastDot + 1) : full;
   }
 
   function getClassName(test) {
@@ -284,12 +302,13 @@
           const pr = getPassRate(test.n);
           const codeUrl = repo ? `https://github.com/search?q=${encodeURIComponent(`repo:${repo} ${getShortName(test)}`)}&type=code` : null;
           const cls = getClassName(test);
-          const project = test.a || 'Unknown Project';
+          const project = typeof test.a === 'string' ? test.a.trim() : '';
+          const meta = project ? `${project} · ${cls}` : cls;
 
           html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
             <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
             <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>
-            <span class="test-meta">${escapeHtml(project)} · ${escapeHtml(cls)}</span>
+            <span class="test-meta">${escapeHtml(meta)}</span>
             <span class="test-links">
               ${wfUrl ? `<a href="${escapeHtml(wfUrl)}" target="_blank" rel="noopener">log</a>` : ''}
               ${codeUrl ? `${wfUrl ? ' · ' : ''}<a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>` : ''}
@@ -322,19 +341,25 @@
       const byProject = new Map();
 
       for (const test of filtered) {
-        const project = test.a || 'Unknown Project';
-        if (!byProject.has(project)) byProject.set(project, new Map());
-        const byClass = byProject.get(project);
+        const project = typeof test.a === 'string' ? test.a.trim() : '';
+        const key = project || '—';
+        if (!byProject.has(key)) byProject.set(key, new Map());
+        const byClass = byProject.get(key);
         const cls = getClassName(test);
         if (!byClass.has(cls)) byClass.set(cls, []);
         byClass.get(cls).push(test);
       }
 
       let html = '';
-      const sortedProjects = [...byProject.keys()].sort();
+      const sortedProjects = [...byProject.keys()].sort((a, b) => {
+        if (a === '—' && b !== '—') return 1;
+        if (a !== '—' && b === '—') return -1;
+        return a.localeCompare(b);
+      });
 
       for (const project of sortedProjects) {
-        html += `<div class="project-group"><div class="project-title">${escapeHtml(project)}</div>`;
+        const showProjectTitle = project !== '—';
+        html += `<div class="project-group">${showProjectTitle ? `<div class="project-title">${escapeHtml(project)}</div>` : ''}`;
         const byClass = byProject.get(project);
         const sortedClasses = [...byClass.keys()].sort();
 
