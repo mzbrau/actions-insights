@@ -177,9 +177,11 @@ a:hover { text-decoration: underline; }
   background: var(--surface-container); font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
 }
 .chip.active { background: var(--primary-container); color: var(--on-primary-container); border-color: var(--primary-container); }
-.chip.active.failed { background: var(--error-container); color: var(--on-error-container); border-color: var(--error); }
-.chip.active.passed { background: var(--success-container); color: var(--success); border-color: var(--success); }
-.sort-select { padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--outline-variant); background: var(--surface-container-low); font-size: 12px; }
+.chip.active.failed { background: var(--error); color: #fff; border-color: var(--error); }
+.chip.active.passed { background: var(--success); color: #fff; border-color: var(--success); }
+.chip.active { color: #fff; }
+.sort-select { padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--primary-container); background: var(--primary-container); color: #fff; font-size: 12px; }
+.sort-select option { color: #111; }
 
 .project-group { margin-bottom: 20px; }
 .project-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 8px; }
@@ -193,6 +195,10 @@ a:hover { text-decoration: underline; }
 .test-row:hover { background: var(--surface-container-low); }
 .test-outcome { width: 20px; text-align: center; flex-shrink: 0; }
 .test-name { flex: 1; font-family: var(--font-mono); font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.test-meta { font-size: 12px; color: var(--on-surface-variant); flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 42vw; }
+.test-links { font-size: 12px; color: var(--on-surface-variant); flex-shrink: 0; white-space: nowrap; }
+.test-links a { color: var(--primary); text-decoration: none; }
+.test-links a:hover { text-decoration: underline; }
 .test-duration { color: var(--on-surface-variant); font-size: 12px; flex-shrink: 0; }
 .history-btn {
   padding: 2px 8px; font-size: 11px; border-radius: 999px; border: 1px solid var(--outline-variant);

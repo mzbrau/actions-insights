@@ -56,7 +56,7 @@ describe('delta', () => {
     ];
     const delta = computeTestDelta(current, previousRun, 'newsha123');
     const section = formatDeltaSection(delta, previousRun, 'https://github.com/owner/repo');
-    expect(section).toContain('### Changes since [abc123d]');
+    expect(section).toContain('## Changes since [abc123d]');
     expect(section).toContain('**New failures (1)**');
     expect(section).toContain('**Fixed (1)**');
     expect(section).toContain('was passing');

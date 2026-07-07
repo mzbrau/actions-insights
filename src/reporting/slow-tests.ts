@@ -16,10 +16,10 @@ export function selectSlowestTests(tests: TestCase[], limit: number): TestCase[]
   return sorted.slice(0, limit);
 }
 
-export function formatSlowTestLine(test: TestCase, slowThresholdMs: number, shortName?: string): string {
+export function formatSlowTestLine(test: TestCase, slowThresholdMs: number, displayName?: string): string {
   const slow = test.durationMs >= slowThresholdMs ? '⚠ ' : '';
-  const name = shortName ?? test.fullName;
-  return `- ${slow}\`${name}\` · ${formatDuration(test.durationMs)}`;
+  const name = displayName ?? `\`${test.fullName}\``;
+  return `- ${slow}${name} · ${formatDuration(test.durationMs)}`;
 }
 
 export function formatSlowTestTableRow(test: TestCase, slowThresholdMs: number): string {
@@ -35,13 +35,13 @@ export function formatSkippedTestLine(test: TestCase): string {
 function renderGroupedSlowLines(
   groups: TestClassGroup[],
   slowThresholdMs: number,
-  getShortName: (test: TestCase) => string,
+  formatName: (test: TestCase) => string,
 ): string[] {
   const lines: string[] = [];
   for (const group of groups) {
-    lines.push(`#### ${group.qualifiedClassName}`);
+    lines.push(`### ${group.qualifiedClassName}`);
     for (const test of group.tests) {
-      lines.push(formatSlowTestLine(test, slowThresholdMs, getShortName(test)));
+      lines.push(formatSlowTestLine(test, slowThresholdMs, formatName(test)));
     }
     lines.push('');
   }
@@ -51,24 +51,24 @@ function renderGroupedSlowLines(
 export function formatSlowTestsSection(
   slowTests: TestCase[],
   slowThresholdMs: number,
-  options: { splitCollapsed?: boolean; getShortName?: (test: TestCase) => string },
+  options: { splitCollapsed?: boolean; formatName?: (test: TestCase) => string },
 ): string[] {
   if (slowTests.length === 0) return [];
 
-  const getShortName = options.getShortName ?? ((t) => t.fullName);
-  const lines: string[] = ['### Slowest Tests', ''];
+  const formatName = options.formatName ?? ((t) => `\`${t.fullName}\``);
+  const lines: string[] = ['## Slowest Tests', ''];
 
   if (options.splitCollapsed && slowTests.length > SLOW_VISIBLE) {
     const visible = slowTests.slice(0, SLOW_VISIBLE);
     const collapsed = slowTests.slice(SLOW_VISIBLE, SLOW_TOTAL);
 
-    lines.push(...renderGroupedSlowLines(groupTestsByClass(visible), slowThresholdMs, getShortName));
+    lines.push(...renderGroupedSlowLines(groupTestsByClass(visible), slowThresholdMs, formatName));
 
     if (collapsed.length > 0) {
       const collapsedLines = renderGroupedSlowLines(
         groupTestsByClass(collapsed),
         slowThresholdMs,
-        getShortName,
+        formatName,
       );
       lines.push(`<details><summary>${collapsed.length} more slow test${collapsed.length === 1 ? '' : 's'}</summary>`);
       lines.push('');
@@ -78,7 +78,7 @@ export function formatSlowTestsSection(
     }
   } else {
     lines.push(
-      ...renderGroupedSlowLines(groupTestsByClass(slowTests), slowThresholdMs, getShortName),
+      ...renderGroupedSlowLines(groupTestsByClass(slowTests), slowThresholdMs, formatName),
     );
   }
 
@@ -98,8 +98,8 @@ export function outcomeEmoji(outcome: TestCase['outcome']): string {
   }
 }
 
-export function formatAllTestLine(test: TestCase, shortName: string): string {
-  return `${outcomeEmoji(test.outcome)} \`${shortName}\` · ${formatDuration(test.durationMs)}`;
+export function formatAllTestLine(test: TestCase, displayName: string): string {
+  return `${outcomeEmoji(test.outcome)} ${displayName} · ${formatDuration(test.durationMs)}`;
 }
 
 export function classOutcomeCounts(tests: TestCase[]): string {

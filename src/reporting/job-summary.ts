@@ -3,7 +3,7 @@ import type { ReportingContext } from './context';
 import { formatAllTestsSection } from './all-tests-summary';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
-import { formatFooterLinks, type ReportLinks } from './links';
+import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 
@@ -32,7 +32,7 @@ export function renderJobSummary(
   };
 
   const lines: string[] = [
-    `## ${emoji} ${config.reportTitle}`,
+    `# ${emoji} ${config.reportTitle}`,
     '',
     ...formatHeaderMetadata(ctx),
     '',
@@ -41,14 +41,14 @@ export function renderJobSummary(
   ];
 
   if (failedCount > 0) {
-    lines.push(`### Failed Tests (${failedCount.toLocaleString()})`);
+    lines.push(`## Failed Tests (${failedCount.toLocaleString()})`);
     lines.push('');
     lines.push(
       ...formatGroupedFailures(
         failedTests,
         config.maxFailedTestsInSummary,
         failureOptions,
-        getShortTestName,
+        (t) => formatTestNameWithLinks(run.context, links, getShortTestName(t), t),
         groupTestsByClass,
       ),
     );
@@ -62,14 +62,14 @@ export function renderJobSummary(
   if (config.includeSlowestTests > 0 && slowTests.length > 0) {
     lines.push(
       ...formatSlowTestsSection(slowTests, config.slowTestThresholdMs, {
-        getShortName: getShortTestName,
+        formatName: (t) => formatTestNameWithLinks(run.context, links, getShortTestName(t), t),
       }),
     );
   }
 
   if (skippedTests.length > 0) {
     const shown = skippedTests.slice(0, 10);
-    lines.push(`### Skipped Tests (${skippedTests.length.toLocaleString()})`);
+    lines.push(`## Skipped Tests (${skippedTests.length.toLocaleString()})`);
     lines.push('');
     if (skippedTests.length <= 10) {
       for (const test of shown) {
@@ -89,9 +89,9 @@ export function renderJobSummary(
     lines.push('');
   }
 
-  lines.push(...formatAllTestsSection(run.tests, links));
+  lines.push(...formatAllTestsSection(run.tests, links, (t) => formatTestNameWithLinks(run.context, links, getShortTestName(t), t)));
 
-  lines.push('### Statistics');
+  lines.push('## Statistics');
   lines.push('');
   lines.push(formatCommentStatsTable(ctx.extendedStats));
   lines.push('');

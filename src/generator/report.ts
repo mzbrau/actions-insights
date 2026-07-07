@@ -38,11 +38,17 @@ function toCompactTests(run: TestRun, slowThresholdMs: number) {
     ns: test.namespace,
     c: test.className,
     m: test.method ?? test.name,
+    sf: test.sourceFile,
     nf: test.isNewFailure,
   }));
 }
 
-function renderFailureBlock(test: TestCase): string {
+function safeRepoPath(p: string | undefined): string | undefined {
+  const v = (p ?? '').trim().replace(/^\/+/, '');
+  return v ? v : undefined;
+}
+
+function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
   const newClass = test.isNewFailure ? ' new-failure' : '';
   const stack = test.stackTrace
     ? `<div class="code-block"><button class="copy-btn" type="button">Copy</button><pre>${escapeHtml(test.stackTrace)}</pre></div>`
@@ -54,10 +60,18 @@ function renderFailureBlock(test: TestCase): string {
     ? `<div class="code-block"><pre>${escapeHtml(test.stderr)}</pre></div>`
     : '';
 
+  const shortName = getShortTestName(test);
+  const codePath = safeRepoPath(test.sourceFile);
+  const codeUrl = codePath ? `${ctx.repositoryUrl}/blob/${ctx.commitSha}/${codePath}` : undefined;
+  const links = `<span class="test-links">
+      <a href="${escapeHtml(ctx.workflowUrl)}" target="_blank" rel="noopener">log</a>
+      ${codeUrl ? ` · <a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>` : ''}
+    </span>`;
+
   return `<article class="failure-item${newClass}">
     <div class="failure-header">
       <div>
-        <div class="failure-name">${escapeHtml(getShortTestName(test))}</div>
+        <div class="failure-name">${escapeHtml(shortName)} ${links}</div>
         ${test.message ? `<div class="failure-message">${escapeHtml(test.message)}</div>` : ''}
       </div>
       <span>${formatDuration(test.durationMs)}</span>
@@ -76,7 +90,7 @@ function renderFailuresSection(run: TestRun): string {
   return groups.map((group) => `
     <div class="failure-group">
       <div class="failure-group-title">${escapeHtml(group.qualifiedClassName)}</div>
-      ${group.tests.map(renderFailureBlock).join('')}
+      ${group.tests.map((t) => renderFailureBlock(t, run.context)).join('')}
     </div>`).join('');
 }
 
@@ -99,6 +113,8 @@ export function renderReportHtml(
   slowThresholdMs: number,
 ): string {
   const { stats, context: ctx, status } = run;
+  const runTimestamp = ctx.completedAt || ctx.startedAt;
+  const runTimestampLabel = runTimestamp ? new Date(runTimestamp).toLocaleString() : '';
   const css = readAsset('report-v2.css');
   const js = readAsset('report-app.js');
   const runJson = JSON.stringify({
@@ -108,7 +124,10 @@ export function renderReportHtml(
       workflow: ctx.workflow,
       branch: ctx.branch,
       commitShortSha: ctx.commitShortSha,
+      commitSha: ctx.commitSha,
       author: ctx.author,
+      workflowUrl: ctx.workflowUrl,
+      repositoryUrl: ctx.repositoryUrl,
     },
     tests: toCompactTests(run, slowThresholdMs),
     slowThreshold: slowThresholdMs,
@@ -138,7 +157,8 @@ export function renderReportHtml(
         <span><strong>${escapeHtml(ctx.repository)}</strong></span>
         <span>${escapeHtml(ctx.workflow)}</span>
         <span>${escapeHtml(ctx.branch)}</span>
-        <span><code>${escapeHtml(ctx.commitShortSha)}</code> ${escapeHtml(ctx.author)}</span>
+        <span><a href="${escapeHtml(ctx.commitUrl)}" target="_blank" rel="noopener"><code>${escapeHtml(ctx.commitShortSha)}</code></a> ${escapeHtml(ctx.author)}</span>
+        ${runTimestampLabel ? `<span>${escapeHtml(runTimestampLabel)}</span>` : ''}
       </div>
     </div>
     <div class="header-actions">
@@ -191,6 +211,7 @@ export function renderReportHtml(
     <div class="toolbar">
       <input id="test-search" class="search-input" type="search" placeholder="Search tests..."/>
       <select id="sort-select" class="sort-select">
+        <option value="default">Sort: Default (Grouped)</option>
         <option value="name">Sort: Name</option>
         <option value="duration">Sort: Duration</option>
         <option value="outcome">Sort: Outcome</option>

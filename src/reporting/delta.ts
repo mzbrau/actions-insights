@@ -73,7 +73,7 @@ export function formatDeltaSection(
 
   const commitUrl = `${repositoryUrl}/commit/${delta.previousCommit.sha}`;
   const lines: string[] = [
-    `### Changes since [${delta.previousCommit.shortSha}](${commitUrl})`,
+    `## Changes since [${delta.previousCommit.shortSha}](${commitUrl})`,
     '',
   ];
 

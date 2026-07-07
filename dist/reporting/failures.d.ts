@@ -8,7 +8,7 @@ export interface FailureFormatOptions {
 export declare function selectFailedTests(tests: TestCase[], limit: number): TestCase[];
 export declare function countFailedTests(tests: TestCase[]): number;
 export declare function formatFailureBlock(test: TestCase, options: FailureFormatOptions, displayName?: string): string;
-export declare function formatGroupedFailures(failedTests: TestCase[], maxCount: number, options: FailureFormatOptions, getShortName: (test: TestCase) => string, groupByClass: (tests: TestCase[]) => Array<{
+export declare function formatGroupedFailures(failedTests: TestCase[], maxCount: number, options: FailureFormatOptions, formatName: (test: TestCase) => string, groupByClass: (tests: TestCase[]) => Array<{
     qualifiedClassName: string;
     tests: TestCase[];
 }>): string[];

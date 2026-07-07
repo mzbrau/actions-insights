@@ -31,19 +31,19 @@ export function formatFailureBlock(
 ): string {
   const lines: string[] = [];
   const newTag = test.isNewFailure ? ' 🆕' : '';
-  const name = displayName ?? test.fullName;
+  const name = displayName ?? `\`${test.fullName}\``;
   const className = test.className ?? test.namespace ?? '—';
   const project = test.assembly ?? '—';
 
   if (options.compact) {
-    lines.push(`❌ \`${name}\`${newTag} · ${formatDuration(test.durationMs)}`);
+    lines.push(`❌ ${name}${newTag} · ${formatDuration(test.durationMs)}`);
   } else if (displayName) {
-    lines.push(`❌ \`${name}\`${newTag} · ${formatDuration(test.durationMs)}`);
+    lines.push(`❌ ${name}${newTag} · ${formatDuration(test.durationMs)}`);
     if (project !== '—') {
       lines.push(`Project: \`${project}\``);
     }
   } else {
-    lines.push(`❌ \`${test.fullName}\`${newTag}`);
+    lines.push(`❌ ${name}${newTag}`);
     lines.push(`Class: \`${className}\` · Project: \`${project}\` · ${formatDuration(test.durationMs)}`);
   }
 
@@ -94,7 +94,7 @@ export function formatGroupedFailures(
   failedTests: TestCase[],
   maxCount: number,
   options: FailureFormatOptions,
-  getShortName: (test: TestCase) => string,
+  formatName: (test: TestCase) => string,
   groupByClass: (tests: TestCase[]) => Array<{ qualifiedClassName: string; tests: TestCase[] }>,
 ): string[] {
   const lines: string[] = [];
@@ -102,9 +102,9 @@ export function formatGroupedFailures(
   const groups = groupByClass(shown);
 
   for (const group of groups) {
-    lines.push(`#### ${group.qualifiedClassName}`);
+    lines.push(`### ${group.qualifiedClassName}`);
     for (const test of group.tests) {
-      lines.push(formatFailureBlock(test, options, getShortName(test)));
+      lines.push(formatFailureBlock(test, options, formatName(test)));
       lines.push('');
     }
   }

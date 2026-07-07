@@ -12,11 +12,12 @@ const MAX_SUMMARY_BYTES = 55_000;
 export function formatAllTestsSection(
   tests: TestCase[],
   links: ReportLinks,
+  formatName: (test: TestCase) => string = (t) => `\`${t.fullName}\``,
 ): string[] {
   if (tests.length === 0) return [];
 
   const lines: string[] = [
-    `### All Tests (${tests.length.toLocaleString()})`,
+    `## All Tests (${tests.length.toLocaleString()})`,
     '',
   ];
 
@@ -26,8 +27,8 @@ export function formatAllTestsSection(
   for (const group of groups) {
     const hasFailure = group.tests.some((t) => t.outcome === 'failed');
     const counts = classOutcomeCounts(group.tests);
-    const header = `#### ${group.qualifiedClassName} (${counts})`;
-    const testLines = group.tests.map((t) => formatAllTestLine(t, getShortTestName(t)));
+    const header = `### ${group.qualifiedClassName} (${counts})`;
+    const testLines = group.tests.map((t) => formatAllTestLine(t, formatName(t)));
 
     const expandedBlock = [header, ...testLines, ''].join('\n');
     const collapsedBlock = [

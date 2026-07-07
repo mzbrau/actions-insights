@@ -192,7 +192,7 @@
 
     let activeFilters = new Set();
     let searchQuery = '';
-    let sortBy = 'name';
+    let sortBy = 'default';
 
     function getPassRate(fullName) {
       const entry = trendsData?.tests?.[fullName];
@@ -227,6 +227,7 @@
           const rb = getPassRate(b.n)?.rate ?? -1;
           return ra - rb;
         }
+        // default + name
         return getShortName(a).localeCompare(getShortName(b));
       });
       return sorted;
@@ -271,6 +272,55 @@
 
     function render() {
       const filtered = sortTests(filteredTests());
+
+      if (sortBy !== 'default') {
+        const wfUrl = runData?.context?.workflowUrl;
+        const repoUrl = runData?.context?.repositoryUrl;
+        const commitSha = runData?.context?.commitSha;
+
+        let html = '<div class="flat-list">';
+        for (const test of filtered) {
+          const outcome = OUTCOMES[test.o] || 'inconclusive';
+          const id = `hist-${test.i}`;
+          const pr = getPassRate(test.n);
+          const sf = (test.sf || '').replace(/^\/+/, '');
+          const codeUrl = repoUrl && commitSha && sf ? `${repoUrl}/blob/${commitSha}/${sf}` : null;
+          const cls = getClassName(test);
+          const project = test.a || 'Unknown Project';
+
+          html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
+            <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
+            <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>
+            <span class="test-meta">${escapeHtml(project)} · ${escapeHtml(cls)}</span>
+            <span class="test-links">
+              ${wfUrl ? `<a href="${escapeHtml(wfUrl)}" target="_blank" rel="noopener">log</a>` : ''}
+              ${codeUrl ? `${wfUrl ? ' · ' : ''}<a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>` : ''}
+            </span>
+            <span class="test-duration">${formatDuration(test.d)}</span>
+            ${pr ? `<span class="pass-rate">${pr.rate}%</span>` : ''}
+            <button class="history-btn" data-target="${id}" type="button">History</button>
+          </div>
+          <div class="test-history" id="${id}">${renderHistory(test.n)}</div>`;
+        }
+        html += '</div>';
+
+        if (filtered.length === 0) {
+          html = '<div class="empty-state">No tests match the current filters.</div>';
+        }
+
+        container.innerHTML = html;
+        $('#visible-count').textContent = String(filtered.length);
+
+        $$('.history-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const target = document.getElementById(btn.getAttribute('data-target'));
+            target?.classList.toggle('open');
+          });
+        });
+
+        return;
+      }
+
       const byProject = new Map();
 
       for (const test of filtered) {
@@ -292,13 +342,23 @@
 
         for (const cls of sortedClasses) {
           html += `<div class="class-group"><div class="class-title">${escapeHtml(cls)}</div>`;
+          byClass.get(cls).sort((a, b) => getShortName(a).localeCompare(getShortName(b)));
           for (const test of byClass.get(cls)) {
             const outcome = OUTCOMES[test.o] || 'inconclusive';
             const id = `hist-${test.i}`;
             const pr = getPassRate(test.n);
+            const wfUrl = runData?.context?.workflowUrl;
+            const repoUrl = runData?.context?.repositoryUrl;
+            const commitSha = runData?.context?.commitSha;
+            const sf = (test.sf || '').replace(/^\/+/, '');
+            const codeUrl = repoUrl && commitSha && sf ? `${repoUrl}/blob/${commitSha}/${sf}` : null;
             html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
               <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
               <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>
+              <span class="test-links">
+                ${wfUrl ? `<a href="${escapeHtml(wfUrl)}" target="_blank" rel="noopener">log</a>` : ''}
+                ${codeUrl ? `${wfUrl ? ' · ' : ''}<a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>` : ''}
+              </span>
               <span class="test-duration">${formatDuration(test.d)}</span>
               ${pr ? `<span class="pass-rate">${pr.rate}%</span>` : ''}
               <button class="history-btn" data-target="${id}" type="button">History</button>

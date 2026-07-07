@@ -6,7 +6,14 @@ export interface TestClassGroup {
 }
 
 export function getShortTestName(test: TestCase): string {
-  return test.method ?? test.name;
+  const candidate = test.method ?? test.name;
+  if (candidate && !candidate.includes('.')) {
+    return candidate;
+  }
+
+  const full = test.fullName ?? candidate ?? '';
+  const lastDot = full.lastIndexOf('.');
+  return lastDot >= 0 ? full.slice(lastDot + 1) : full;
 }
 
 export function getQualifiedClassName(test: TestCase): string {
@@ -67,7 +74,7 @@ export function formatGroupedTestLines(
 ): string[] {
   const lines: string[] = [];
   for (const group of groups) {
-    lines.push(`#### ${group.qualifiedClassName}`);
+    lines.push(`### ${group.qualifiedClassName}`);
     for (const test of group.tests) {
       lines.push(formatLine(test));
     }

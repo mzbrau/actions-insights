@@ -4,7 +4,7 @@ import type { ReportingContext } from './context';
 import { computeTestDelta, formatDeltaSection } from './delta';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
-import { formatFooterLinks, type ReportLinks } from './links';
+import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSlowTestsSection, SLOW_TOTAL } from './slow-tests';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 
@@ -30,7 +30,7 @@ export function renderPrComment(
 
   const lines: string[] = [
     COMMENT_MARKER,
-    `## ${emoji} ${statusLabel} — ${config.reportTitle}`,
+    `# ${emoji} ${statusLabel} — ${config.reportTitle}`,
     '',
     `**${context.repository}** · \`${context.workflow}\` · \`${context.branch}\``,
     `\`${context.commitShortSha}\` ${context.commitMessage} · ${context.author} · ${timestamp}`,
@@ -47,14 +47,14 @@ export function renderPrComment(
   }
 
   if (failedCount > 0) {
-    lines.push(`### Failed Tests (${failedCount.toLocaleString()})`);
+    lines.push(`## Failed Tests (${failedCount.toLocaleString()})`);
     lines.push('');
     lines.push(
       ...formatGroupedFailures(
         failedTests,
         config.maxFailedTestsInComment,
         failureOptions,
-        getShortTestName,
+        (t) => formatTestNameWithLinks(context, links, getShortTestName(t), t),
         groupTestsByClass,
       ),
     );
@@ -73,12 +73,12 @@ export function renderPrComment(
     lines.push(
       ...formatSlowTestsSection(selectedSlow, config.slowTestThresholdMs, {
         splitCollapsed: true,
-        getShortName: getShortTestName,
+        formatName: (t) => formatTestNameWithLinks(context, links, getShortTestName(t), t),
       }),
     );
   }
 
-  lines.push('### Statistics');
+  lines.push('## Statistics');
   lines.push('');
   lines.push(formatCommentStatsTable(extendedStats));
   lines.push('');

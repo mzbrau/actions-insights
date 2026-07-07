@@ -13,9 +13,9 @@ describe('pr-comment', () => {
     expect(body).toContain('❌ Failed');
     expect(body).toContain('✅ 1 passed');
     expect(body).toContain('❌ 1 failed');
-    expect(body).toContain('### Failed Tests');
-    expect(body).toContain('#### SampleTests');
-    expect(body).toContain('`ShouldFail`');
+    expect(body).toContain('## Failed Tests');
+    expect(body).toContain('### SampleTests');
+    expect(body).toContain('[`ShouldFail`]');
     expect(body).toContain('Expected true but was false');
     expect(body).toContain('Actions Insights · [Workflow run]');
   });
@@ -38,7 +38,7 @@ describe('pr-comment', () => {
     };
     const ctx = buildReportingContext(sampleRun, sampleConfig, previousRun);
     const body = renderPrComment(ctx, sampleConfig, buildReportLinks(sampleRun.context));
-    expect(body).toContain('### Changes since [prev123]');
+    expect(body).toContain('## Changes since [prev123]');
     expect(body).toContain('**New failures (1)**');
     expect(body).toContain('ShouldFail');
   });
@@ -82,7 +82,7 @@ describe('pr-comment', () => {
     };
     const config = { ...sampleConfig, includeSlowestTests: 18 };
     const body = renderPrComment(buildReportingContext(run, config), config, buildReportLinks(run.context));
-    expect(body).toContain('### Slowest Tests');
+    expect(body).toContain('## Slowest Tests');
     expect(body).toContain('<details><summary>3 more slow tests</summary>');
   });
 });
