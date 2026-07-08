@@ -19,7 +19,10 @@ const config: Config = {
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
+    mermaid: true,
   },
+
+  themes: ['@docusaurus/theme-mermaid'],
 
   i18n: {
     defaultLocale: 'en',
@@ -108,6 +111,9 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
       additionalLanguages: ['bash', 'yaml'],
+    },
+    mermaid: {
+      theme: {dark: 'dark'},
     },
   } satisfies Preset.ThemeConfig,
 };

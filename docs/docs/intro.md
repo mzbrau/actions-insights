@@ -21,7 +21,7 @@ Actions Insights is a GitHub Action you add as a step in your build pipeline. Yo
 | **HTML artifact** | A standalone responsive, interactive HTML report uploaded as a build artifact with basic test history |
 | **History repository** | Structured JSON pushed to a separate git repository, powering a GitHub Pages dashboard across branches and repos |
 
-Each output is **optional** and configured independently.
+Each output is **optional** and configured independently. PR comments only post when the workflow runs in a pull-request context.
 
 ## How It Works
 

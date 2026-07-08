@@ -23,7 +23,7 @@ The workflow summary is **enabled by default** (`generate-job-summary: true`).
     test-results: '**/*.trx'
     generate-job-summary: true
     max-failed-tests-in-summary: 20
-    include-slowest-tests: 10
+    include-slowest-tests: 18
 ```
 
 To disable:
@@ -46,7 +46,7 @@ with:
 |-------|---------|-------------|
 | `generate-job-summary` | `true` | Write job summary |
 | `max-failed-tests-in-summary` | `20` | Cap failures in the table |
-| `include-slowest-tests` | `10` | Slow test count |
+| `include-slowest-tests` | `18` | Slow test count |
 
 No additional permissions beyond `contents: read` are required for the summary itself.
 

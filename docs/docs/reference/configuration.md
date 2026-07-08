@@ -131,7 +131,7 @@ Duration threshold for marking tests as slow.
 #### `include-slowest-tests`
 Number of slowest tests to include (0 to disable).
 
-- **Default:** `10`
+- **Default:** `18`
 
 ### Authentication
 
@@ -189,7 +189,7 @@ These inputs are ignored with a deprecation warning:
     comment-mode: update
     max-failed-tests-in-comment: 10
     max-stack-trace-lines: 25
-    include-slowest-tests: 10
+    include-slowest-tests: 18
     upload-html-report: true
     publish-checks: true
 ```

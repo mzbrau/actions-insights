@@ -26,7 +26,7 @@ PR comments are **enabled by default** (`comment-mode: update`).
     comment-mode: update          # upsert a single comment per PR
     max-failed-tests-in-comment: 10
     max-stack-trace-lines: 25
-    include-slowest-tests: 10
+    include-slowest-tests: 18
 ```
 
 To disable:
@@ -50,7 +50,7 @@ permissions:
 | `comment-mode` | `update` | `update` (upsert) or `off` |
 | `max-failed-tests-in-comment` | `10` | Cap failures shown in the comment |
 | `max-stack-trace-lines` | `25` | Stack trace truncation |
-| `include-slowest-tests` | `10` | Slow test count (0 to disable) |
+| `include-slowest-tests` | `18` | Slow test count (0 to disable) |
 | `include-stdout` / `include-stderr` | `true` | Include output in failure details |
 
 ## Learn More
