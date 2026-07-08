@@ -43,6 +43,12 @@ Multiple workflows pushing simultaneously may conflict on index files. The actio
 - Check the Pages workflow completed successfully
 - Verify `VITE_BASE_PATH` matches your Pages URL (`/{repo-name}/` for project pages)
 
+## Deep links do not load
+
+The dashboard uses hash-based URLs (for example `.../repo-name/#/r/owner.repo/b/main/run/1`). Path-based URLs without the `#` (for example `.../repo-name/r/owner.repo/...`) will not work on GitHub Pages.
+
+If you have an older dashboard build that used path-based routing, run `bash scripts/update-history-repo.sh update <owner>/<history-repo>` to pick up hash routing.
+
 ## Empty repository list
 
 - Confirm the action has published at least one run

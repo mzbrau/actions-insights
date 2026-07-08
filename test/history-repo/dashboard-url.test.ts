@@ -33,7 +33,7 @@ describe('history-repo dashboard-url', () => {
       },
       '1',
     );
-    expect(url).toBe('https://my-org.github.io/test-history/r/owner.repo/b/pr-42/run/1');
+    expect(url).toBe('https://my-org.github.io/test-history/#/r/owner.repo/b/pr-42/run/1');
   });
 
   it('resolveHistoryPagesBaseUrl prefers explicit history-pages-url', async () => {

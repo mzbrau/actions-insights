@@ -60,7 +60,7 @@ export function buildHistoryRunUrl(
   const base = normalizePagesBaseUrl(baseUrl);
   const repoKey = repositoryKeyFromName(repositoryName);
   const { branchKey } = resolveBranchKey(context);
-  return `${base}r/${encodeURIComponent(repoKey)}/b/${encodeURIComponent(branchKey)}/run/${encodeURIComponent(
+  return `${base}#/r/${encodeURIComponent(repoKey)}/b/${encodeURIComponent(branchKey)}/run/${encodeURIComponent(
     runId,
   )}`;
 }

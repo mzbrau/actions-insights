@@ -57,8 +57,8 @@ describe('links', () => {
       artifacts: 'https://example.com/run#artifacts',
       commit: 'https://example.com/commit',
       repository: 'https://example.com/repo',
-      historyRun: 'https://history.example.com/r/owner.repo/b/main/run/1',
+      historyRun: 'https://history.example.com/#/r/owner.repo/b/main/run/1',
     });
-    expect(formatted).toContain('[Test history](https://history.example.com/r/owner.repo/b/main/run/1)');
+    expect(formatted).toContain('[Test history](https://history.example.com/#/r/owner.repo/b/main/run/1)');
   });
 });

@@ -59,6 +59,12 @@ Maintainers publish that extension from this monorepo with `npm run publish:exte
 
 For project Pages: `https://{owner}.github.io/{repo-name}/`
 
+The dashboard uses hash-based routing so deep links work on static GitHub Pages hosting. Run detail URLs look like:
+
+`https://{owner}.github.io/{repo-name}/#/r/{repo-key}/b/{branch}/run/{run-id}`
+
+For example: `https://my-org.github.io/test-history/#/r/owner.repo/b/main/run/42`
+
 ## Updating the dashboard
 
 To pull in dashboard and workflow improvements from `actions-insights`, run the update script. It validates the target repository, syncs `web/` and `.github/workflows/pages.yml`, and opens a pull request. Your `data/` and `config.json` are left unchanged.
