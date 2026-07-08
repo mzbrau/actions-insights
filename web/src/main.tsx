@@ -5,11 +5,9 @@ import { App } from './App';
 import { ThemeProvider } from './theme/ThemeProvider';
 import './styles/global.css';
 
-const base = import.meta.env.BASE_URL;
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HashRouter basename={base === '/' ? undefined : base.replace(/\/$/, '')}>
+    <HashRouter>
       <ThemeProvider>
         <App />
       </ThemeProvider>

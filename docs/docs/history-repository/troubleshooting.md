@@ -49,6 +49,12 @@ The dashboard uses hash-based URLs (for example `.../repo-name/#/r/owner.repo/b/
 
 If you have an older dashboard build that used path-based routing, run `bash scripts/update-history-repo.sh update <owner>/<history-repo>` to pick up hash routing.
 
+## Blank page after dashboard update
+
+The dashboard uses `HashRouter` for GitHub Pages. Do not set `basename` on `HashRouter` — unlike `BrowserRouter`, it applies to the hash segment, not the repo path, and causes the router to match no routes. `VITE_BASE_PATH` is only for static assets and data fetches (`import.meta.env.BASE_URL`).
+
+If the site is blank after updating, run `bash scripts/update-history-repo.sh update <owner>/<history-repo>` to pick up the latest dashboard build.
+
 ## Empty repository list
 
 - Confirm the action has published at least one run
