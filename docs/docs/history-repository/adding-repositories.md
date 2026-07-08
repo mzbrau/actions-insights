@@ -1,3 +1,8 @@
+---
+sidebar_position: 8
+title: Adding Repositories
+---
+
 # Adding Source Repositories
 
 A single history repository supports multiple source projects. No manual registration is required.

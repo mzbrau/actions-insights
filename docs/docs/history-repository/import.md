@@ -1,3 +1,8 @@
+---
+sidebar_position: 4
+title: Import
+---
+
 # Importing historical test data
 
 Backfill a history repository with test results from **previous workflow runs** on a source repository. The import tool downloads **raw test-result artifacts** (TRX, JUnit, NUnit, xUnit), parses them with the same parsers as the action, converts them to history JSON, and opens a pull request.

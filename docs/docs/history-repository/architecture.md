@@ -1,3 +1,8 @@
+---
+sidebar_position: 1
+title: Architecture
+---
+
 # History Repository Architecture
 
 Actions Insights uses a three-part architecture for long-term test history:

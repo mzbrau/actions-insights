@@ -1,3 +1,8 @@
+---
+sidebar_position: 7
+title: Folder Structure
+---
+
 # History Repository Folder Structure
 
 ```

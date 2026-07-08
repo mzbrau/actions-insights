@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+title: Migrate from GitHub Pages
+---
+
 # Migration from GitHub Pages
 
 Actions Insights no longer publishes to GitHub Pages. Reports are delivered through GitHub-native channels (PR comments, job summaries, checks) with the HTML report uploaded as a workflow artifact.

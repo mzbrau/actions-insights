@@ -1,3 +1,8 @@
+---
+sidebar_position: 2
+title: Architecture
+---
+
 # Architecture
 
 Actions Insights is a GitHub Action that parses test result files and publishes results through GitHub-native channels. The pull request comment is the primary experience; the HTML report is a secondary artifact for deep investigation.

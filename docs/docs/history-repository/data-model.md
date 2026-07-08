@@ -1,3 +1,8 @@
+---
+sidebar_position: 6
+title: Data Model
+---
+
 # History Repository Data Model
 
 All JSON files use `version: 1`. Types are defined in `packages/history-models`.

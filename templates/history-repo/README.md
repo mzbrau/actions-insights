@@ -16,4 +16,4 @@ This repository stores structured JSON test history and hosts the Actions Insigh
 
 ## Documentation
 
-See the [Actions Insights documentation](https://github.com/actions-insights/actions-insights/tree/main/docs/history-repository).
+See the [Actions Insights documentation](https://mzbrau.github.io/actions-insights/docs/history-repository/deployment).

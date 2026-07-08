@@ -1,3 +1,8 @@
+---
+sidebar_position: 2
+title: Configuration
+---
+
 # History Repository Configuration
 
 ## Action inputs

@@ -1,6 +1,10 @@
 # Actions Insights
 
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-498fff)](https://mzbrau.github.io/actions-insights/)
+
 GitHub-native test reports for GitHub Actions. Parse TRX, JUnit, NUnit, and xUnit results, then surface failures directly in pull requests, job summaries, and checks — with a polished HTML report uploaded as a workflow artifact for deep investigation.
+
+**[Read the full documentation →](https://mzbrau.github.io/actions-insights/)**
 
 ## Quick Start
 
@@ -59,11 +63,11 @@ jobs:
 | `publish-checks` | `true` | Publish GitHub check run |
 | `generate-job-summary` | `true` | Write job summary |
 
-See [docs/configuration.md](docs/configuration.md) for the full reference.
+See the [Configuration Reference](https://mzbrau.github.io/actions-insights/docs/reference/configuration) for the full reference.
 
 ## Migration from GitHub Pages
 
-If you previously used the Pages-based workflow with a separate `deploy-pages` job, see [docs/migration.md](docs/migration.md).
+If you previously used the Pages-based workflow with a separate `deploy-pages` job, see [Migrate from GitHub Pages](https://mzbrau.github.io/actions-insights/docs/reference/migration).
 
 ## Development
 
@@ -74,7 +78,7 @@ npm run build
 npm run generate-sample   # creates _report/ and _site/ sample output
 ```
 
-See [docs/development.md](docs/development.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+See the [Development Guide](https://mzbrau.github.io/actions-insights/docs/development) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

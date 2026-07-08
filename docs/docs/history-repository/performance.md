@@ -1,3 +1,8 @@
+---
+sidebar_position: 9
+title: Performance
+---
+
 # Performance Guidance
 
 ## Scale targets

@@ -1,3 +1,8 @@
+---
+sidebar_position: 1
+title: Development
+---
+
 # Development Guide
 
 ## Prerequisites
@@ -70,4 +75,4 @@ The build uses TypeScript + `@vercel/ncc` to produce a single `dist/index.js` bu
 3. Add fixture in `test/fixtures/`
 4. Add tests in `test/parsers/`
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md).
+See [Contributing](./contributing).

@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+title: Deployment
+---
+
 # Deploying the History Repository
 
 ## Quick start (recommended)

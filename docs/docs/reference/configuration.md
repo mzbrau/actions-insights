@@ -1,3 +1,8 @@
+---
+sidebar_position: 1
+title: Configuration
+---
+
 # Configuration Reference
 
 ## Permissions
@@ -149,7 +154,7 @@ Token for GitHub API calls.
 
 ## History Repository (optional)
 
-Publish structured JSON to a persistent history repository for the GitHub Pages dashboard. See [history-repository/configuration.md](history-repository/configuration.md) for full details.
+Publish structured JSON to a persistent history repository for the GitHub Pages dashboard. See [History Repository Configuration](../history-repository/configuration) for full details.
 
 | Input | Default | Description |
 |-------|---------|-------------|

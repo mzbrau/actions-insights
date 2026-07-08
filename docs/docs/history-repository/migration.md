@@ -1,3 +1,8 @@
+---
+sidebar_position: 5
+title: Migrate to History Repository
+---
+
 # Migration Guide
 
 ## From cache-only history

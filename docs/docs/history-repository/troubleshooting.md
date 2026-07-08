@@ -1,3 +1,8 @@
+---
+sidebar_position: 10
+title: Troubleshooting
+---
+
 # Troubleshooting
 
 ## Pages workflow fails on initial commit
