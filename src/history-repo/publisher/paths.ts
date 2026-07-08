@@ -110,6 +110,7 @@ export interface HistoryPaths {
   branchRunsDir: string;
   runFile: string;
   runFileName: string;
+  testsFile: string;
   prDir?: string;
 }
 
@@ -136,6 +137,7 @@ export function resolveHistoryPaths(
     branchRunsDir: `${branchDir}/runs`,
     runFile: `${branchDir}/runs/${runFileName}`,
     runFileName,
+    testsFile: `${repoDir}/tests.json`,
   };
   if (prNumber) {
     paths.prDir = `${repoDir}/pull-requests/${prNumber}`;

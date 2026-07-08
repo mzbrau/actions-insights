@@ -182,6 +182,28 @@ export interface RunRecord {
   extensions?: Record<string, unknown>;
 }
 
+export interface TestHistoryPoint {
+  runId: string;
+  date: string;
+  o: number;
+  d: number;
+  commitShortSha: string;
+  branchKey: string;
+  branchLabel: string;
+}
+
+export interface TestHistoryEntry {
+  passRate: number;
+  runCount: number;
+  points: TestHistoryPoint[];
+}
+
+export interface RepositoryTestsFile {
+  version: typeof HISTORY_SCHEMA_VERSION;
+  updatedAt: string;
+  tests: Record<string, TestHistoryEntry>;
+}
+
 export interface HistoryPublishConfig {
   enabled: boolean;
   repository: string;

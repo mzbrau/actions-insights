@@ -72,6 +72,7 @@ export interface HistoryPaths {
     branchRunsDir: string;
     runFile: string;
     runFileName: string;
+    testsFile: string;
     prDir?: string;
 }
 export declare function resolveHistoryPaths(dataPath: string, repositoryKey: string, branchKey: string, runFileName: string, prNumber?: number): HistoryPaths;

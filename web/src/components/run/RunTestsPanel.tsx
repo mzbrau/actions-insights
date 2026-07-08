@@ -1,88 +1,159 @@
-import { useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import type { CompactTestRecord } from '@actions-insights/history-models';
-import { FilterChips } from '../ui/FilterChips';
-import { formatDuration, outcomeIcon } from '../../utils/format';
-
-type TestFilter = 'all' | 'failed' | 'passed' | 'skipped';
+import { useMemo, useState } from 'react';
+import type { CompactTestRecord, TestHistoryEntry } from '@actions-insights/history-models';
+import { TestListGrouped } from './TestListGrouped';
+import { TestRow } from './TestRow';
+import { TestsTable } from './TestsTable';
+import {
+  filterTests,
+  groupTestsByProjectAndClass,
+  sortTests,
+  type TestFilterKey,
+  type TestSortBy,
+} from '../../utils/testList';
 
 interface RunTestsPanelProps {
   tests: CompactTestRecord[];
   totalCount: number;
-  search: string;
-  onSearchChange: (value: string) => void;
-  filter: TestFilter;
-  onFilterChange: (value: TestFilter) => void;
+  trends: Record<string, TestHistoryEntry> | null;
+  repository: string;
+  workflowUrl?: string;
+  jobUrl?: string;
+  slowThreshold?: number;
 }
 
-const FILTER_OPTIONS = [
-  { value: 'all' as const, label: 'All' },
-  { value: 'failed' as const, label: 'Failed', variant: 'failed' as const },
-  { value: 'passed' as const, label: 'Passed', variant: 'passed' as const },
-  { value: 'skipped' as const, label: 'Skipped', variant: 'skipped' as const },
+const FILTER_OPTIONS: { value: TestFilterKey; label: string; variant?: 'failed' | 'passed' | 'skipped' }[] = [
+  { value: 'failed', label: 'Failed', variant: 'failed' },
+  { value: 'passed', label: 'Passed', variant: 'passed' },
+  { value: 'skipped', label: 'Skipped', variant: 'skipped' },
+  { value: 'slow', label: 'Slow' },
+  { value: 'new', label: 'New' },
+];
+
+const SORT_OPTIONS: { value: TestSortBy; label: string }[] = [
+  { value: 'default', label: 'Default (grouped)' },
+  { value: 'name', label: 'Name' },
+  { value: 'duration', label: 'Duration' },
+  { value: 'outcome', label: 'Outcome' },
+  { value: 'passRate', label: 'Pass rate' },
 ];
 
 export function RunTestsPanel({
   tests,
   totalCount,
-  search,
-  onSearchChange,
-  filter,
-  onFilterChange,
+  trends,
+  repository,
+  workflowUrl,
+  jobUrl,
+  slowThreshold = 1000,
 }: RunTestsPanelProps) {
-  const listRef = useRef<HTMLDivElement>(null);
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<Set<TestFilterKey>>(new Set());
+  const [sortBy, setSortBy] = useState<TestSortBy>('default');
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const virtualizer = useVirtualizer({
-    count: tests.length,
-    getScrollElement: () => listRef.current,
-    estimateSize: () => 40,
-    overscan: 10,
-  });
+  const getPassRate = (fullName: string) => trends?.[fullName]?.passRate ?? null;
+
+  const filtered = useMemo(
+    () => filterTests(tests, { search, filters, slowThreshold }),
+    [tests, search, filters, slowThreshold],
+  );
+
+  const sorted = useMemo(
+    () => sortTests(filtered, sortBy === 'default' ? 'name' : sortBy, getPassRate),
+    [filtered, sortBy, trends],
+  );
+
+  const grouped = useMemo(
+    () => (sortBy === 'default' ? groupTestsByProjectAndClass(filtered) : null),
+    [filtered, sortBy],
+  );
+
+  const toggleFilter = (key: TestFilterKey) => {
+    setFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleHistory = (fullName: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(fullName)) next.delete(fullName);
+      else next.add(fullName);
+      return next;
+    });
+  };
 
   return (
     <div className="tab-panel" role="tabpanel">
       <h2 className="section-title">All Tests ({totalCount})</h2>
-      <div className="toolbar">
-        <input
-          type="search"
-          className="search-input"
-          placeholder="Search tests…"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          aria-label="Search tests"
-        />
-        <FilterChips options={FILTER_OPTIONS} value={filter} onChange={onFilterChange} ariaLabel="Filter tests" />
+
+      <div className="tests-toolbar">
+        <div className="tests-toolbar-row">
+          <input
+            type="search"
+            className="search-input tests-search"
+            placeholder="Search tests…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search tests"
+          />
+          <select
+            className="sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as TestSortBy)}
+            aria-label="Sort tests"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-chips tests-filter-chips" role="group" aria-label="Filter tests">
+          {FILTER_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`chip${filters.has(opt.value) ? ' active' : ''}${opt.variant ? ` ${opt.variant}` : ''}`}
+              onClick={() => toggleFilter(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {tests.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="empty-state">No tests match your filters.</p>
       ) : (
-        <div className="virtual-list" ref={listRef}>
-          <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
-            {virtualizer.getVirtualItems().map((item) => {
-              const test = tests[item.index];
-              return (
-                <div
-                  key={test.n}
-                  className="test-row"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: item.size,
-                    transform: `translateY(${item.start}px)`,
-                  }}
-                >
-                  <span>{outcomeIcon(test.o)}</span>
-                  <span className="test-name">{test.n}</span>
-                  <span className="muted">{formatDuration(test.d)}</span>
-                  {test.nf && <span className="badge">new</span>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <TestsTable visibleCount={filtered.length}>
+          {sortBy === 'default' && grouped ? (
+            <TestListGrouped
+              grouped={grouped}
+              repository={repository}
+              workflowUrl={workflowUrl}
+              jobUrl={jobUrl}
+              trends={trends}
+              expanded={expanded}
+              onToggleHistory={toggleHistory}
+            />
+          ) : (
+            sorted.map((test) => (
+              <TestRow
+                key={test.n}
+                test={test}
+                repository={repository}
+                workflowUrl={workflowUrl}
+                jobUrl={jobUrl}
+                trends={trends}
+                expanded={expanded.has(test.n)}
+                onToggleHistory={() => toggleHistory(test.n)}
+              />
+            ))
+          )}
+        </TestsTable>
       )}
     </div>
   );

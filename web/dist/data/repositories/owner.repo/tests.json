@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-07T10:00:00.000Z",
+  "tests": {
+    "SampleTests.ShouldPass": {
+      "passRate": 100,
+      "runCount": 2,
+      "points": [
+        {
+          "runId": "2",
+          "date": "2026-07-07T09:00:00.000Z",
+          "o": 0,
+          "d": 123,
+          "commitShortSha": "def456a",
+          "branchKey": "main",
+          "branchLabel": "main"
+        },
+        {
+          "runId": "1",
+          "date": "2026-07-07T10:00:00.000Z",
+          "o": 0,
+          "d": 123,
+          "commitShortSha": "abc123d",
+          "branchKey": "pr-42",
+          "branchLabel": "PR #42"
+        }
+      ]
+    },
+    "SampleTests.ShouldFail": {
+      "passRate": 0,
+      "runCount": 1,
+      "points": [
+        {
+          "runId": "1",
+          "date": "2026-07-07T10:00:00.000Z",
+          "o": 1,
+          "d": 1500,
+          "commitShortSha": "abc123d",
+          "branchKey": "pr-42",
+          "branchLabel": "PR #42"
+        }
+      ]
+    },
+    "SampleTests.ShouldSkip": {
+      "passRate": 0,
+      "runCount": 0,
+      "points": [
+        {
+          "runId": "1",
+          "date": "2026-07-07T10:00:00.000Z",
+          "o": 2,
+          "d": 10,
+          "commitShortSha": "abc123d",
+          "branchKey": "pr-42",
+          "branchLabel": "PR #42"
+        }
+      ]
+    }
+  }
+}

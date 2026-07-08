@@ -40,13 +40,19 @@ describe('history-publisher', () => {
 
     expect(update.repositoryKey).toBe('owner.repo');
     expect(update.branchKey).toBe('pr-42');
-    expect(update.files.length).toBeGreaterThanOrEqual(6);
+    expect(update.files.length).toBeGreaterThanOrEqual(7);
 
     const runFile = update.files.find((f) => f.path.endsWith('.json') && f.path.includes('/runs/'));
     expect(runFile).toBeDefined();
     const record = runFile!.content as { failures: unknown[]; tests: unknown[] };
     expect(record.failures).toHaveLength(1);
     expect(record.tests).toHaveLength(3);
+
+    const testsFile = update.files.find((f) => f.path.endsWith('tests.json'));
+    expect(testsFile).toBeDefined();
+    const tests = testsFile!.content as { tests: Record<string, { runCount: number }> };
+    expect(tests.tests['SampleTests.ShouldFail']).toBeDefined();
+    expect(tests.tests['SampleTests.ShouldFail'].runCount).toBe(1);
   });
 
   it('updates repositories index with repo entry', () => {
@@ -128,5 +134,45 @@ describe('history-publisher', () => {
 
     const history2 = second.files.find((f) => f.path.endsWith('history.json'))!.content as BranchHistory;
     expect(history2.runs.filter((r) => r.runId === recentRun.id)).toHaveLength(1);
+  });
+
+  it('appends test history points across publishes', () => {
+    const recentDate = new Date().toISOString();
+    const firstRun = {
+      ...sampleRun,
+      context: { ...sampleRun.context, completedAt: recentDate },
+    };
+
+    const first = buildHistoryUpdate(firstRun, {
+      dataPath: 'data',
+      repositoryName: 'owner/repo',
+      historyLimit: 20,
+      retainDays: 30,
+      existing: {},
+    });
+
+    const repositoryTests = first.files.find((f) => f.path.endsWith('tests.json'))!.content;
+    const branchHistory = first.files.find((f) => f.path.endsWith('history.json'))!.content as BranchHistory;
+
+    const secondRun = {
+      ...firstRun,
+      id: '2',
+      context: { ...firstRun.context, runId: 2, completedAt: new Date().toISOString() },
+    };
+
+    const second = buildHistoryUpdate(secondRun, {
+      dataPath: 'data',
+      repositoryName: 'owner/repo',
+      historyLimit: 20,
+      retainDays: 30,
+      existing: { repositoryTests: repositoryTests as never, branchHistory },
+    });
+
+    const tests2 = second.files.find((f) => f.path.endsWith('tests.json'))!.content as {
+      tests: Record<string, { runCount: number; points: { runId: string }[] }>;
+    };
+    const entry = tests2.tests['SampleTests.ShouldFail'];
+    expect(entry.runCount).toBe(2);
+    expect(entry.points.map((p) => p.runId)).toContain('2');
   });
 });

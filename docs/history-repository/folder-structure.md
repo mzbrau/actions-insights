@@ -32,6 +32,7 @@
 | `config.json` | Dashboard config (`defaultRepository`) |
 | `data/repositories.json` | Global index of all source repositories |
 | `metadata.json` | Per-repository summary |
+| `tests.json` | Cross-branch per-test history (outcomes, durations, branch labels) |
 | `branches.json` | Branch index with latest status per branch |
 | `latest.json` | Pointer to the newest run on a branch |
 | `history.json` | Run summaries for a branch (no full test data) |

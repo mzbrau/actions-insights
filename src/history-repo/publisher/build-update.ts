@@ -9,8 +9,11 @@ import type {
   RepositoriesIndex,
   RepositoryIndexEntry,
   RepositoryMetadata,
+  RepositoryTestsFile,
   RunRecord,
   RunSummary,
+  TestHistoryEntry,
+  TestHistoryPoint,
 } from '../models';
 import { HISTORY_SCHEMA_VERSION, OUTCOME_TO_CODE } from '../models';
 import {
@@ -30,6 +33,7 @@ export interface ExistingHistoryState {
   branchesIndex?: BranchesIndex;
   branchHistory?: BranchHistory;
   branchLatest?: BranchLatest;
+  repositoryTests?: RepositoryTestsFile;
 }
 
 export interface HistoryFileWrite {
@@ -106,6 +110,15 @@ export function buildHistoryUpdate(
   );
   const repoConfig = updateRepoConfig(options.existing.repoConfig, options.defaultRepository);
 
+  const repositoryTests = updateRepositoryTests(
+    options.existing.repositoryTests,
+    run,
+    branchKey,
+    branchLabel,
+    branchHistory,
+    options.retainDays,
+  );
+
   const files: HistoryFileWrite[] = [
     { path: paths.repositoriesIndex, content: repositoriesIndex },
     { path: paths.metadata, content: metadata },
@@ -113,6 +126,7 @@ export function buildHistoryUpdate(
     { path: paths.branchLatest, content: branchLatest },
     { path: paths.branchHistory, content: branchHistory },
     { path: paths.runFile, content: runRecord },
+    { path: paths.testsFile, content: repositoryTests },
   ];
 
   if (repoConfig) {
@@ -126,6 +140,7 @@ export function buildHistoryUpdate(
     paths.branchLatest,
     paths.branchHistory,
     paths.runFile,
+    paths.testsFile,
   ];
   if (repoConfig) {
     commitPaths.push(paths.configFile);
@@ -356,6 +371,80 @@ function updateRepoConfig(
     return existing;
   }
   return { defaultRepository };
+}
+
+function computeTestPassRate(points: TestHistoryPoint[]): { passRate: number; runCount: number } {
+  const counted = points.filter((p) => p.o === 0 || p.o === 1);
+  const runCount = counted.length;
+  if (runCount === 0) return { passRate: 0, runCount: 0 };
+  const passed = counted.filter((p) => p.o === 0).length;
+  return { passRate: Math.round((passed / runCount) * 1000) / 10, runCount };
+}
+
+function dedupeTestPoints(points: TestHistoryPoint[]): TestHistoryPoint[] {
+  const seen = new Set<string>();
+  const result: TestHistoryPoint[] = [];
+  for (const point of points) {
+    const key = `${point.runId}:${point.branchKey}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(point);
+  }
+  return result;
+}
+
+function updateRepositoryTests(
+  existing: RepositoryTestsFile | undefined,
+  run: PublishTestRun,
+  branchKey: string,
+  branchLabel: string,
+  branchHistory: BranchHistory,
+  retainDays: number,
+): RepositoryTestsFile {
+  const retainedRunIds = new Set(branchHistory.runs.map((r) => r.runId));
+  const cutoff = Date.now() - retainDays * 24 * 60 * 60 * 1000;
+  const tests: Record<string, TestHistoryEntry> = {};
+
+  for (const [name, entry] of Object.entries(existing?.tests ?? {})) {
+    const filtered = entry.points.filter((p) => {
+      if (new Date(p.date).getTime() < cutoff) return false;
+      if (p.branchKey === branchKey && !retainedRunIds.has(p.runId)) return false;
+      return true;
+    });
+    if (filtered.length > 0) {
+      const points = dedupeTestPoints(filtered).sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+      tests[name] = { ...computeTestPassRate(points), points };
+    }
+  }
+
+  for (const test of run.tests) {
+    const point: TestHistoryPoint = {
+      runId: run.id,
+      date: run.context.completedAt,
+      o: OUTCOME_TO_CODE[test.outcome],
+      d: test.durationMs,
+      commitShortSha: run.context.commitShortSha,
+      branchKey,
+      branchLabel,
+    };
+
+    const existingPoints = tests[test.fullName]?.points ?? [];
+    const withoutRun = existingPoints.filter(
+      (p) => !(p.runId === run.id && p.branchKey === branchKey),
+    );
+    const points = dedupeTestPoints([point, ...withoutRun]).sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+    tests[test.fullName] = { ...computeTestPassRate(points), points };
+  }
+
+  return {
+    version: HISTORY_SCHEMA_VERSION,
+    updatedAt: new Date().toISOString(),
+    tests,
+  };
 }
 
 export function createEmptyRepositoriesIndex(): RepositoriesIndex {

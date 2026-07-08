@@ -10,6 +10,7 @@ import type {
   HistoryRepoConfig,
   RepositoriesIndex,
   RepositoryMetadata,
+  RepositoryTestsFile,
 } from './models';
 import {
   buildHistoryUpdate,
@@ -127,6 +128,7 @@ function readExistingState(
     branchesIndex: readJsonFile<BranchesIndex>(path.join(repoDir, 'branches.json')),
     branchHistory: readJsonFile<BranchHistory>(path.join(branchDir, 'history.json')),
     branchLatest: readJsonFile<BranchLatest>(path.join(branchDir, 'latest.json')),
+    repositoryTests: readJsonFile<RepositoryTestsFile>(path.join(repoDir, 'tests.json')),
   };
 }
 

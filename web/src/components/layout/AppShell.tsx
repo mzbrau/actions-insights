@@ -25,7 +25,11 @@ export function AppShell({ children, topBar }: AppShellProps) {
       <aside className={`sidebar${sidebarOpen ? ' open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-brand">
-            <span className="sidebar-brand-icon" aria-hidden="true">⚡</span>
+            <img
+              src={`${import.meta.env.BASE_URL}logo.png`}
+              alt=""
+              className="sidebar-brand-logo"
+            />
             <span className="sidebar-brand-text">Actions Insights</span>
           </div>
           <button

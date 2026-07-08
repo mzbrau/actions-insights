@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import type { BranchHistory, RunRecord } from '@actions-insights/history-models';
+import type { RunRecord } from '@actions-insights/history-models';
 import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
 import { loadBranchHistory, loadRun } from '../data/loader';
+import { useRepositoryTestTrends } from '../hooks/useRepositoryTestTrends';
 import { formatDate, formatDuration, statusIcon } from '../utils/format';
 import { AppShell } from '../components/layout/AppShell';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -22,12 +23,11 @@ export function RunDetailPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [run, setRun] = useState<RunRecord | null>(null);
-  const [history, setHistory] = useState<BranchHistory | null>(null);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'failed' | 'passed' | 'skipped'>('all');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { trends } = useRepositoryTestTrends(repoKey);
 
   const activeTab = (searchParams.get('tab') === 'tests' ? 'tests' : 'summary') as RunTab;
 
@@ -46,7 +46,6 @@ export function RunDetailPage() {
         const record = await loadRun(repoKey, branchKey, summary.runFile);
         if (!cancelled) {
           setRun(record);
-          setHistory(branchHistory);
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -58,19 +57,6 @@ export function RunDetailPage() {
   }, [repoKey, branchKey, runId]);
 
   const slowThreshold = 1000;
-
-  const filteredTests = useMemo(() => {
-    if (!run) return [];
-    const q = search.toLowerCase();
-    return run.tests.filter((t) => {
-      const outcome = CODE_TO_OUTCOME[t.o] ?? 'inconclusive';
-      if (filter === 'failed' && outcome !== 'failed') return false;
-      if (filter === 'passed' && outcome !== 'passed') return false;
-      if (filter === 'skipped' && outcome !== 'skipped') return false;
-      if (q && !t.n.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [run, search, filter]);
 
   const slowTests = useMemo(() => {
     if (!run) return [];
@@ -128,19 +114,19 @@ export function RunDetailPage() {
       {activeTab === 'summary' ? (
         <RunSummaryPanel
           run={run}
-          history={history}
           expanded={expanded}
           onToggleFailure={toggleExpanded}
           slowTests={slowTests}
         />
       ) : (
         <RunTestsPanel
-          tests={filteredTests}
-          totalCount={filteredTests.length}
-          search={search}
-          onSearchChange={setSearch}
-          filter={filter}
-          onFilterChange={setFilter}
+          tests={run.tests}
+          totalCount={run.stats.total}
+          trends={trends}
+          repository={run.context.repository}
+          workflowUrl={run.links.workflowUrl}
+          jobUrl={run.links.jobUrl}
+          slowThreshold={slowThreshold}
         />
       )}
     </AppShell>

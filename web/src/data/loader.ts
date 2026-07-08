@@ -5,6 +5,7 @@ import type {
   HistoryRepoConfig,
   RepositoriesIndex,
   RepositoryMetadata,
+  RepositoryTestsFile,
   RunRecord,
 } from '@actions-insights/history-models';
 
@@ -73,4 +74,12 @@ export async function loadRepository(repoKey: string): Promise<RepositoryData> {
     loadBranchesIndex(repoKey),
   ]);
   return { metadata, branches };
+}
+
+export async function loadRepositoryTests(repoKey: string): Promise<RepositoryTestsFile | null> {
+  try {
+    return await fetchJson<RepositoryTestsFile>(`data/repositories/${repoKey}/tests.json`);
+  } catch {
+    return null;
+  }
 }

@@ -1,4 +1,4 @@
-import type { BranchHistory, BranchLatest, BranchesIndex, HistoryRepoConfig, RepositoriesIndex, RepositoryMetadata } from '../models';
+import type { BranchHistory, BranchLatest, BranchesIndex, HistoryRepoConfig, RepositoriesIndex, RepositoryMetadata, RepositoryTestsFile } from '../models';
 import { type HistoryPaths, type PublishTestRun } from './paths';
 export interface ExistingHistoryState {
     repositoriesIndex?: RepositoriesIndex;
@@ -7,6 +7,7 @@ export interface ExistingHistoryState {
     branchesIndex?: BranchesIndex;
     branchHistory?: BranchHistory;
     branchLatest?: BranchLatest;
+    repositoryTests?: RepositoryTestsFile;
 }
 export interface HistoryFileWrite {
     path: string;
