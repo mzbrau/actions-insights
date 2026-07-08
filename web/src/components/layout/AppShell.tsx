@@ -10,6 +10,8 @@ interface AppShellProps {
 export function AppShell({ children, topBar }: AppShellProps) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const logoFile = theme === 'dark' ? 'logo-white.png' : 'logo-black.png';
+  const logoSrc = `${import.meta.env.BASE_URL}${logoFile}`;
 
   return (
     <div className="app-shell">
@@ -26,7 +28,7 @@ export function AppShell({ children, topBar }: AppShellProps) {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <img
-              src={`${import.meta.env.BASE_URL}logo.png`}
+              src={logoSrc}
               alt=""
               className="sidebar-brand-logo"
             />
