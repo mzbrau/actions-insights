@@ -5,6 +5,7 @@ export interface HistoryConfig {
     enabled: boolean;
     repository: string;
     token: string;
+    pagesUrl?: string;
     branch: string;
     dataPath: string;
     repositoryName: string;

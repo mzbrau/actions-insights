@@ -16,6 +16,7 @@ import { publishToHistoryRepository } from './history-repo/publish';
 import { buildReportLinks } from './reporting/links';
 import { resolveRunCompletedAt } from './reporting/time';
 import type { TestRun } from './model/test-run';
+import { buildHistoryRunUrl, resolveHistoryPagesBaseUrl } from './history-repo/dashboard-url';
 
 async function run(): Promise<void> {
   const config = loadConfig();
@@ -70,7 +71,14 @@ async function run(): Promise<void> {
   }
 
   if (config.commentMode === 'update' && context.prNumber) {
-    await upsertPrComment(config.githubToken, testRun, config, previousRun, baseBranchRun);
+    let historyRunUrl: string | undefined;
+    if (config.history.enabled && config.history.repositoryName) {
+      const base = await resolveHistoryPagesBaseUrl(config.history);
+      if (base) {
+        historyRunUrl = buildHistoryRunUrl(base, config.history.repositoryName, testRun.context, testRun.id);
+      }
+    }
+    await upsertPrComment(config.githubToken, testRun, config, previousRun, baseBranchRun, historyRunUrl);
   }
 
   await writeJobSummary(testRun, config, previousRun);

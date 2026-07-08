@@ -9,6 +9,7 @@ export interface ReportLinks {
   commit: string;
   repository: string;
   pullRequest?: string;
+  historyRun?: string;
 }
 
 export function buildReportLinks(context: RunContext): ReportLinks {
@@ -69,6 +70,9 @@ export function formatFooterLinks(links: ReportLinks): string {
   ];
   if (links.pullRequest) {
     items.push(`[Pull request](${links.pullRequest})`);
+  }
+  if (links.historyRun) {
+    items.push(`[Test history](${links.historyRun})`);
   }
   items.push(`[Repository](${links.repository})`);
   return `Actions Insights · ${items.join(' · ')}`;

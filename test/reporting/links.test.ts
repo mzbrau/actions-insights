@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildTestCodeUrl,
+  formatFooterLinks,
   formatTestNameWithCodeLink,
   formatTestNameWithCodeLinkForTable,
   formatTestNameWithLinks,
@@ -48,5 +49,16 @@ describe('links', () => {
     expect(formatted).toMatch(/^\[Shortcut_matches\(key: K, modifiers: Alt \\| Control, expected: False\)\]\(/);
     expect(formatted).not.toContain('`');
     expect(formatted).toContain('type=code');
+  });
+
+  it('formatFooterLinks includes optional history run link', () => {
+    const formatted = formatFooterLinks({
+      workflowRun: 'https://example.com/run',
+      artifacts: 'https://example.com/run#artifacts',
+      commit: 'https://example.com/commit',
+      repository: 'https://example.com/repo',
+      historyRun: 'https://history.example.com/r/owner.repo/b/main/run/1',
+    });
+    expect(formatted).toContain('[Test history](https://history.example.com/r/owner.repo/b/main/run/1)');
   });
 });

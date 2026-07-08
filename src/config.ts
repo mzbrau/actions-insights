@@ -8,6 +8,7 @@ export interface HistoryConfig {
   enabled: boolean;
   repository: string;
   token: string;
+  pagesUrl?: string;
   branch: string;
   dataPath: string;
   repositoryName: string;
@@ -91,11 +92,13 @@ function loadHistoryConfig(): HistoryConfig {
     : repositoryNameInput;
 
   const defaultRepository = core.getInput('history-default-repository') || undefined;
+  const pagesUrl = (core.getInput('history-pages-url') || '').trim() || undefined;
 
   return {
     enabled,
     repository: core.getInput('history-repository') || '',
     token: core.getInput('history-token') || '',
+    pagesUrl,
     branch: core.getInput('history-branch') || 'main',
     dataPath: normalizeSubdirectory(core.getInput('history-path') || 'data'),
     repositoryName,

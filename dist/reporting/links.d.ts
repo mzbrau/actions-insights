@@ -6,6 +6,7 @@ export interface ReportLinks {
     commit: string;
     repository: string;
     pullRequest?: string;
+    historyRun?: string;
 }
 export declare function buildReportLinks(context: RunContext): ReportLinks;
 export declare function buildTestCodeUrl(context: RunContext, test: TestCase): string | undefined;

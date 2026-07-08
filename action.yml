@@ -125,6 +125,10 @@ inputs:
     description: Token with contents write access to the history repository
     required: false
     default: ''
+  history-pages-url:
+    description: Base URL for the history dashboard (GitHub Pages). If unset, Actions Insights will try to discover it or fall back to https://{owner}.github.io/{repo}/.
+    required: false
+    default: ''
   history-branch:
     description: Branch in the history repository to publish to
     required: false

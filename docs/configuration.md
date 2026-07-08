@@ -161,6 +161,7 @@ Publish structured JSON to a persistent history repository for the GitHub Pages 
 | `history-repository-name` | `auto` | Source repo key |
 | `history-mode` | `multi` | Reserved |
 | `history-default-repository` | `''` | Default dashboard repository |
+| `history-pages-url` | `''` | Base URL for the history dashboard (GitHub Pages). If unset, Actions Insights will try to discover it or fall back to `https://{owner}.github.io/{repo}/`. |
 
 ## Deprecated Inputs
 

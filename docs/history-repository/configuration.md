@@ -12,6 +12,7 @@
 | `history-repository-name` | `auto` | Source repo key (`auto` = `GITHUB_REPOSITORY`) |
 | `history-mode` | `multi` | Reserved (`multi` only in v1) |
 | `history-default-repository` | `''` | Written to `config.json` on first publish |
+| `history-pages-url` | `''` | Base URL for the history dashboard (GitHub Pages). If unset, Actions Insights will try to discover it or fall back to `https://{owner}.github.io/{repo}/`. |
 
 ## Workflow example
 
