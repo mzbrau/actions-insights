@@ -1,0 +1,456 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Actions Insight Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10141a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #424754;
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#353940",
+                        "secondary-fixed-dim": "#4ae176",
+                        "tertiary-fixed": "#ffdad7",
+                        "surface-container-high": "#262a31",
+                        "tertiary": "#ffb3ad",
+                        "primary": "#adc6ff",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#ff5451",
+                        "on-primary-fixed": "#001a42",
+                        "tertiary-fixed-dim": "#ffb3ad",
+                        "on-secondary-fixed-variant": "#005321",
+                        "on-secondary-fixed": "#002109",
+                        "surface-tint": "#adc6ff",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#004395",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#dfe2eb",
+                        "on-tertiary-fixed": "#410004",
+                        "on-secondary": "#003915",
+                        "surface-container": "#1c2026",
+                        "inverse-on-surface": "#2d3137",
+                        "background": "#10141a",
+                        "on-primary": "#002e6a",
+                        "secondary": "#4ae176",
+                        "inverse-primary": "#005ac2",
+                        "on-secondary-container": "#004119",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#181c22",
+                        "primary-container": "#4d8eff",
+                        "on-surface": "#dfe2eb",
+                        "surface-dim": "#10141a",
+                        "on-tertiary": "#68000a",
+                        "on-error": "#690005",
+                        "on-surface-variant": "#c2c6d6",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-container": "#00285d",
+                        "secondary-container": "#00b954",
+                        "surface": "#10141a",
+                        "outline-variant": "#424754",
+                        "on-tertiary-container": "#5c0008",
+                        "surface-container-lowest": "#0a0e14",
+                        "surface-variant": "#31353c",
+                        "surface-container-highest": "#31353c",
+                        "outline": "#8c909f",
+                        "on-background": "#dfe2eb",
+                        "secondary-fixed": "#6bff8f",
+                        "on-tertiary-fixed-variant": "#930013"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "container-max": "1280px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-code": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "mono-code": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden">
+<!-- Global Layout Wrapper -->
+<div class="flex h-screen w-full">
+<!-- SideNavBar Component (Shared Anchor) -->
+<aside class="flex flex-col h-full overflow-y-auto bg-surface-container-low border-r border-outline-variant w-64 shrink-0 transition-all duration-300">
+<!-- Header -->
+<div class="p-lg">
+<div class="flex items-center gap-2 mb-base">
+<span class="material-symbols-outlined text-primary fill-icon" style="font-size: 28px;">bolt</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Actions Insight</h1>
+</div>
+<p class="font-body-sm text-body-sm text-outline">v2.4.0-stable</p>
+</div>
+<!-- CTA -->
+
+<!-- Navigation Tree -->
+<nav class="flex-1 px-sm space-y-1">
+<!-- Repositories (Active) -->
+<div>
+<div class="bg-secondary-container text-on-secondary-container rounded-lg font-bold flex items-center px-3 py-2 cursor-pointer active:scale-95">
+<span class="material-symbols-outlined mr-3 text-md">folder_open</span>
+<span class="flex-1">Repositories</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+<!-- Hierarchical Tree view -->
+<div class="ml-4 mt-1 border-l border-outline-variant pl-4 py-1 space-y-1">
+<div class="group flex items-center px-3 py-2 text-on-surface-variant hover:bg-surface-variant hover:text-on-surface rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined mr-2 text-sm">terminal</span>
+<span class="text-sm font-bold">mzbrau/notey</span>
+</div>
+<div class="ml-4 space-y-1">
+<div class="flex items-center px-3 py-1 text-xs text-primary font-bold">
+<span class="material-symbols-outlined mr-2 text-[16px]">account_tree</span>
+<span class="">Branches</span>
+</div>
+<div class="flex items-center px-3 py-1 text-xs text-on-surface-variant hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined mr-2 text-[16px]">p2p</span>
+<span class="">Pull Requests</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Other Tabs -->
+
+
+
+
+</nav>
+<!-- User Footer -->
+
+</aside>
+<!-- Content Canvas -->
+<div class="flex-1 flex flex-col min-w-0">
+<!-- TopAppBar Component (Shared Anchor) -->
+<header class="flex justify-between items-center w-full px-lg h-16 sticky top-0 z-50 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<!-- Breadcrumbs -->
+<div class="flex items-center text-body-md font-body-md gap-2">
+<span class="material-symbols-outlined text-primary cursor-pointer">arrow_back</span>
+<span class="text-on-surface-variant">Repositories</span>
+<span class="text-outline">/</span>
+<span class="text-on-surface font-bold">mzbrau/notey</span>
+</div>
+<!-- Search Bar -->
+<div class="relative ml-xl hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-1.5 w-64 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder-outline transition-all" placeholder="Search logs or runs..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md">
+<nav class="hidden lg:flex items-center gap-lg mr-lg">
+<a class="text-primary border-b-2 border-primary pb-2 font-bold transition-opacity duration-200" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-opacity duration-200" href="#">Metrics</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-opacity duration-200" href="#">Logs</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-opacity duration-200" href="#">Security</a>
+</nav>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-opacity duration-200">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-opacity duration-200">help_outline</span>
+
+</div>
+</div>
+</header>
+<!-- Main Content Scrollable Area -->
+<main class="flex-1 overflow-y-auto p-lg bg-background pb-12">
+<!-- Page Header & Health -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-xl">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">mzbrau/notey</h2>
+<p class="text-on-surface-variant mt-1">Actions workflow monitoring and deployment analytics.</p>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low border border-outline-variant p-3 rounded-xl">
+<div class="flex flex-col items-center border-r border-outline-variant pr-4">
+<span class="text-label-caps font-label-caps text-outline uppercase mb-1">Overall Health</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed-dim fill-icon">check_circle</span>
+<span class="text-headline-md font-headline-md text-secondary-fixed-dim">94.2%</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-label-caps font-label-caps text-outline uppercase mb-1">Active Runners</span>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed-dim status-pulse"></div>
+<span class="text-sm font-bold">12 / 16 Available</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex items-center justify-between mb-lg bg-surface-container-lowest p-2 rounded-lg border border-outline-variant">
+<div class="flex items-center gap-2">
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-variant rounded-md text-sm hover:bg-outline-variant transition-colors">
+<span class="material-symbols-outlined text-sm">account_tree</span>
+<span class="">Showing all branches</span>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+<span class="text-outline text-xs">|</span>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-surface-container-high rounded text-[10px] font-bold text-on-surface-variant border border-outline-variant">main</span>
+<span class="px-2 py-0.5 bg-surface-container-high rounded text-[10px] font-bold text-on-surface-variant border border-outline-variant">staging</span>
+<span class="px-2 py-0.5 bg-primary-container/20 text-primary border border-primary/30 rounded text-[10px] font-bold">PR #50</span>
+</div>
+</div>
+<div class="flex items-center gap-3 px-2">
+<span class="text-xs text-outline">Last updated: 2m ago</span>
+<button class="material-symbols-outlined text-on-surface-variant text-sm hover:text-on-surface">refresh</button>
+</div>
+</div>
+<!-- Metrics Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-md mb-xl">
+<!-- Pass Rate Card -->
+<div class="md:col-span-2 bg-surface-container-low border border-outline-variant rounded-xl p-lg flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="font-label-caps text-label-caps text-outline uppercase">Pass Rate (Last 30d)</h3><span class="material-symbols-outlined text-secondary-fixed-dim text-sm">analytics</span></div><div class="flex-1 flex items-center justify-center relative h-20"><svg class="w-16 h-16 transform -rotate-90"><circle cx="32" cy="32" fill="transparent" r="28" stroke="#1c2026" stroke-width="8"></circle><circle cx="32" cy="32" fill="transparent" r="28" stroke="#4ae176" stroke-dasharray="175.9" stroke-dashoffset="10" stroke-width="8"></circle></svg><div class="absolute inset-0 flex items-center justify-center flex-col"><span class="text-lg font-bold leading-none">94%</span></div></div></div>
+<!-- Build Performance Card -->
+<div class="md:col-span-2 lg:col-span-3 bg-surface-container-low border border-outline-variant rounded-xl p-lg flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="font-label-caps text-label-caps text-outline uppercase">Build Performance (s)</h3><span class="text-[10px] text-outline">Trend</span></div><div class="flex-1 flex items-end justify-between gap-1 h-20"><div class="w-full bg-secondary-fixed-dim/40 h-2/3 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-3/4 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-full rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-1/2 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-2/3 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-3/5 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-2/5 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-2/3 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-1/2 rounded-t-sm"></div><div class="w-full bg-secondary-fixed-dim/40 h-3/4 rounded-t-sm"></div></div></div>
+<!-- Numeric Quick Stats -->
+<div class="lg:col-span-1 grid grid-rows-3 gap-md"><div class="bg-surface-container-low border border-outline-variant rounded-xl p-2 flex flex-col justify-center"><span class="text-[9px] text-outline uppercase font-bold">Total</span><span class="text-md font-bold">1,284</span></div><div class="bg-surface-container-low border border-outline-variant rounded-xl p-2 flex flex-col justify-center"><span class="text-[9px] text-outline uppercase font-bold">Avg</span><span class="text-md font-bold">42s</span></div><div class="bg-surface-container-low border border-outline-variant rounded-xl p-2 flex flex-col justify-center"><span class="text-[9px] text-outline uppercase font-bold">Fail</span><span class="text-md font-bold text-error">5.8%</span></div></div>
+</div>
+<!-- Unified Run History Table -->
+<section class="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden">
+<div class="px-lg py-4 border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-bold text-on-surface">Unified Run History</h3>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-xs bg-surface-variant hover:bg-outline-variant rounded border border-outline-variant">Filter</button>
+
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container-lowest">
+<th class="px-lg py-3 font-label-caps text-label-caps text-outline">STATUS</th>
+<th class="px-md py-3 font-label-caps text-label-caps text-outline">RUN</th>
+<th class="px-md py-3 font-label-caps text-label-caps text-outline">BRANCH/PR</th>
+<th class="px-md py-3 font-label-caps text-label-caps text-outline">DURATION</th>
+<th class="px-md py-3 font-label-caps text-label-caps text-outline">COMMIT</th>
+<th class="px-md py-3 font-label-caps text-label-caps text-outline">AUTHOR</th>
+<th class="px-lg py-3 font-label-caps text-label-caps text-outline text-right">DATE</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Running -->
+<tr class="hover:bg-surface-variant/50 transition-colors cursor-pointer group">
+<td class="px-lg py-2"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary-fixed-dim text-sm fill-icon">check_circle</span><span class="text-secondary-fixed-dim text-[10px] font-bold uppercase">Passed</span></div></td>
+<td class="px-md py-2 font-mono-code text-mono-code">#512</td>
+<td class="px-md py-2">
+<span class="px-2 py-0.5 bg-primary-container/20 text-primary rounded text-[10px] font-bold border border-primary/30">PR #50</span>
+</td>
+<td class="px-md py-2 font-bold" style="opacity: 0;">52s</td>
+<td class="px-md py-2">
+<div class="flex flex-col">
+<span class="font-mono-code text-xs text-on-surface">a4f2b1c</span>
+<span class="text-[10px] text-outline truncate max-w-[150px]">feat: update landing page hero</span>
+</div>
+</td>
+<td class="px-md py-2">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-surface-variant border border-outline-variant"></div>
+<span class="text-xs">mzbrau</span>
+</div>
+</td>
+<td class="px-lg py-2 text-right text-xs text-outline">Just now</td>
+</tr>
+<!-- Success -->
+<tr class="hover:bg-surface-variant/50 transition-colors cursor-pointer group">
+<td class="px-lg py-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm fill-icon">check_circle</span>
+<span class="text-secondary-fixed-dim text-[10px] font-bold uppercase">Passed</span>
+</div>
+</td>
+<td class="px-md py-2 font-mono-code text-mono-code">#511</td>
+<td class="px-md py-2">
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface-variant rounded text-[10px] font-bold border border-outline-variant">main</span>
+</td>
+<td class="px-md py-2 text-on-surface text-xs font-bold">48s</td>
+<td class="px-md py-2">
+<div class="flex flex-col">
+<span class="font-mono-code text-xs text-on-surface">9e8d7c6</span>
+<span class="text-[10px] text-outline truncate max-w-[150px]">fix: auth provider logout loop</span>
+</div>
+</td>
+<td class="px-md py-2">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-surface-variant border border-outline-variant"></div>
+<span class="text-xs">octocat</span>
+</div>
+</td>
+<td class="px-lg py-2 text-right text-xs text-outline">14m ago</td>
+</tr>
+<!-- Failed -->
+<tr class="hover:bg-surface-variant/50 transition-colors cursor-pointer group">
+<td class="px-lg py-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-sm fill-icon">cancel</span>
+<span class="text-error text-[10px] font-bold uppercase">Failed</span>
+</div>
+</td>
+<td class="px-md py-2 font-mono-code text-mono-code">#510</td>
+<td class="px-md py-2">
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface-variant rounded text-[10px] font-bold border border-outline-variant">staging</span>
+</td>
+<td class="px-md py-2 text-on-surface text-xs font-bold">1m 24s</td>
+<td class="px-md py-2">
+<div class="flex flex-col">
+<span class="font-mono-code text-xs text-on-surface">5b4a3d2</span>
+<span class="text-[10px] text-outline truncate max-w-[150px]">chore: bump dependabot versions</span>
+</div>
+</td>
+<td class="px-md py-2">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-surface-variant border border-outline-variant"></div>
+<span class="text-xs">dev_alpha</span>
+</div>
+</td>
+<td class="px-lg py-2 text-right text-xs text-outline">45m ago</td>
+</tr>
+<!-- Success -->
+<tr class="hover:bg-surface-variant/50 transition-colors cursor-pointer group">
+<td class="px-lg py-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm fill-icon">check_circle</span>
+<span class="text-secondary-fixed-dim text-[10px] font-bold uppercase">Passed</span>
+</div>
+</td>
+<td class="px-md py-2 font-mono-code text-mono-code">#509</td>
+<td class="px-md py-2">
+<span class="px-2 py-0.5 bg-surface-container-high text-on-surface-variant rounded text-[10px] font-bold border border-outline-variant">main</span>
+</td>
+<td class="px-md py-2 text-on-surface text-xs font-bold">39s</td>
+<td class="px-md py-2">
+<div class="flex flex-col">
+<span class="font-mono-code text-xs text-on-surface">f0e1d2c</span>
+<span class="text-[10px] text-outline truncate max-w-[150px]">docs: update contributing guide</span>
+</div>
+</td>
+<td class="px-md py-2">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-surface-variant border border-outline-variant"></div>
+<span class="text-xs">mzbrau</span>
+</div>
+</td>
+<td class="px-lg py-2 text-right text-xs text-outline">2h ago</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-lg py-3 flex items-center justify-between border-t border-outline-variant bg-surface-container-lowest">
+<span class="text-xs text-outline">Showing 4 of 1,284 runs</span>
+<div class="flex gap-2">
+<button class="p-1 hover:bg-surface-variant rounded text-outline disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="p-1 hover:bg-surface-variant rounded text-outline">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component (Shared Anchor) -->
+<footer class="fixed bottom-0 w-full flex items-center justify-between px-md z-50 bg-surface-container-lowest border-t border-outline-variant h-[40px] font-label-caps text-label-caps">
+<div class="flex items-center gap-4 text-outline">
+<span class="flex items-center gap-1">
+<span class="px-1.5 py-0.5 border border-outline-variant rounded bg-surface-variant text-[9px]">/</span>
+<span class="">Search</span>
+</span>
+<span class="flex items-center gap-1">
+<span class="px-1.5 py-0.5 border border-outline-variant rounded bg-surface-variant text-[9px]">G</span>
+<span class="">Go to...</span>
+</span>
+<span class="flex items-center gap-1">
+<span class="px-1.5 py-0.5 border border-outline-variant rounded bg-surface-variant text-[9px]">R</span>
+<span class="">Refresh</span>
+</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="text-secondary-fixed-dim">© 2024 Actions Insight Engine</span>
+<div class="flex gap-4">
+<a class="text-outline hover:text-secondary-fixed transition-colors" href="#">Documentation</a>
+<a class="text-outline hover:text-secondary-fixed transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('click', () => {
+                // Mock interaction: Highlight row
+                row.classList.add('bg-primary/5');
+                setTimeout(() => row.classList.remove('bg-primary/5'), 300);
+            });
+        });
+
+        // Search trigger mock
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                document.querySelector('input').focus();
+            }
+        });
+    </script>
+
+
+</body></html>

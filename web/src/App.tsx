@@ -1,18 +1,18 @@
 import { Route, Routes } from 'react-router-dom';
-import { Layout } from './components/Layout';
-import { LandingPage } from './pages/LandingPage';
-import { RepositoryPage } from './pages/RepositoryPage';
-import { BranchPage } from './pages/BranchPage';
+import { AppShell } from './components/layout/AppShell';
+import { HomeRedirect } from './pages/HomeRedirect';
+import { RepositoryDashboardPage } from './pages/RepositoryDashboardPage';
+import { BranchRedirect } from './pages/BranchRedirect';
 import { RunDetailPage } from './pages/RunDetailPage';
 
 export function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/r/:repoKey" element={<RepositoryPage />} />
-      <Route path="/r/:repoKey/b/:branchKey" element={<BranchPage />} />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route path="/r/:repoKey" element={<RepositoryDashboardPage />} />
+      <Route path="/r/:repoKey/b/:branchKey" element={<BranchRedirect />} />
       <Route path="/r/:repoKey/b/:branchKey/run/:runId" element={<RunDetailPage />} />
-      <Route path="*" element={<Layout><p>Page not found</p></Layout>} />
+      <Route path="*" element={<AppShell><p>Page not found</p></AppShell>} />
     </Routes>
   );
 }

@@ -4,7 +4,7 @@ import type { BranchHistory, RunRecord } from '@actions-insights/history-models'
 import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
 import { loadBranchHistory, loadRun } from '../data/loader';
 import { formatDate, formatDuration, statusIcon } from '../utils/format';
-import { Layout } from '../components/Layout';
+import { AppShell } from '../components/layout/AppShell';
 import { PageHeader } from '../components/ui/PageHeader';
 import { TabBar } from '../components/ui/TabBar';
 import { RunSummaryPanel } from '../components/run/RunSummaryPanel';
@@ -89,8 +89,10 @@ export function RunDetailPage() {
     });
   };
 
-  if (loading) return <Layout><p className="muted">Loading run…</p></Layout>;
-  if (error || !run) return <Layout><p className="error">{error ?? 'Run not found'}</p></Layout>;
+  const dashboardUrl = `/r/${repoKey}?branch=${encodeURIComponent(branchKey)}`;
+
+  if (loading) return <AppShell><p className="muted">Loading run…</p></AppShell>;
+  if (error || !run) return <AppShell><p className="error">{error ?? 'Run not found'}</p></AppShell>;
 
   const tabs = [
     { id: 'summary', label: 'Summary' },
@@ -98,10 +100,10 @@ export function RunDetailPage() {
   ];
 
   return (
-    <Layout>
+    <AppShell>
       <PageHeader
-        backLabel="Branch"
-        onBack={() => navigate(`/r/${repoKey}/b/${encodeURIComponent(branchKey)}`)}
+        backLabel="Dashboard"
+        onBack={() => navigate(dashboardUrl)}
         title={`Run #${run.workflowRunId}`}
         meta={
           <>
@@ -141,6 +143,6 @@ export function RunDetailPage() {
           onFilterChange={setFilter}
         />
       )}
-    </Layout>
+    </AppShell>
   );
 }
