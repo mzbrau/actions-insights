@@ -34,4 +34,13 @@ You can run both in parallel:
 
 ## Migrating existing data
 
-There is no automatic migration from cache to history repo in v1. New runs will populate the history repository going forward. Consider backfilling with a script that reads `runs.json` from cache and publishes if needed.
+There is no automatic migration from cache to history repo in v1. New runs will populate the history repository going forward.
+
+To backfill from **workflow artifacts** (when your CI uploads TRX/JUnit/XML test results), use the [import script](import.md):
+
+```bash
+bash scripts/import-history-repo.sh import owner/my-app owner/my-history \
+  --artifact-name test-results --limit 50
+```
+
+Cache-based `runs.json` is not imported automatically in v1.

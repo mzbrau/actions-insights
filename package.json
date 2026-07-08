@@ -14,6 +14,7 @@
     "lint": "tsc --noEmit",
     "generate-sample": "tsx scripts/generate-sample.ts",
     "generate-local": "tsx scripts/generate-local.ts",
+    "import-history": "tsx scripts/import-history.ts",
     "build:web": "npm run build --workspace=@actions-insights/web",
     "publish:extension": "bash scripts/publish-extension.sh"
   },

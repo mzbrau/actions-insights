@@ -19,6 +19,9 @@ case "${1:-}" in
   init)
     exec "$(resolve_script init-history-repo.sh)" "$@"
     ;;
+  import)
+    exec "$(resolve_script import-history-repo.sh)" "$@"
+    ;;
 esac
 
 exec "$(resolve_script init-history-repo.sh)" "$@"

@@ -419,3 +419,158 @@ edit_update_settings() {
     esac
   done
 }
+
+import_artifact_label() {
+  local labels=()
+  if [[ ${#IMPORT_ARTIFACT_NAMES[@]} -gt 0 ]]; then
+    labels+=("names: ${IMPORT_ARTIFACT_NAMES[*]}")
+  fi
+  if [[ ${#IMPORT_ARTIFACT_PATTERNS[@]} -gt 0 ]]; then
+    labels+=("patterns: ${IMPORT_ARTIFACT_PATTERNS[*]}")
+  fi
+  if [[ ${#labels[@]} -eq 0 ]]; then
+    echo "auto-detect parseable artifacts"
+  else
+    (IFS=', '; echo "${labels[*]}")
+  fi
+}
+
+import_since_label() {
+  if [[ -n "${IMPORT_SINCE}" ]]; then
+    echo "${IMPORT_SINCE}"
+  else
+    echo "(not set)"
+  fi
+}
+
+import_branch_label() {
+  if [[ -n "${IMPORT_BRANCH}" ]]; then
+    echo "${IMPORT_BRANCH}"
+  else
+    echo "(all branches)"
+  fi
+}
+
+import_workflow_label() {
+  if [[ -n "${IMPORT_WORKFLOW}" ]]; then
+    echo "${IMPORT_WORKFLOW}"
+  else
+    echo "(all workflows)"
+  fi
+}
+
+print_import_plan_summary() {
+  cat <<EOF
+
+Actions Insights — Import history from source repository
+
+Source repo:      ${SOURCE_REPO_ARG}
+History repo:     ${HISTORY_REPO}
+Artifacts:        $(import_artifact_label)
+Test results:     ${IMPORT_TEST_GLOB}
+Workflow filter:  $(import_workflow_label)
+Branch filter:    $(import_branch_label)
+Since:            $(import_since_label)
+Run limit:        ${IMPORT_LIMIT}
+History limit:    ${IMPORT_HISTORY_LIMIT}
+Retain days:      ${IMPORT_RETAIN_DAYS}
+PR branch:        ${BRANCH}
+
+Steps:
+  1. Clone and validate history repository structure
+  2. List completed workflow runs on the source repository
+  3. Download raw test-result artifacts and parse TRX/JUnit/NUnit/xUnit
+  4. Convert runs to history JSON and write under data/
+  5. Commit, push branch, and open pull request
+EOF
+
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    echo ""
+    echo "[dry-run] No changes will be made."
+  fi
+}
+
+edit_import_settings() {
+  local choice="" source="" history="" name="" pattern="" workflow="" branch="" since="" limit=""
+
+  while true; do
+    echo ""
+    echo "What would you like to change?"
+    echo "  1) Source repository"
+    echo "  2) History repository"
+    echo "  3) Artifact name"
+    echo "  4) Artifact pattern"
+    echo "  5) Workflow filter"
+    echo "  6) Branch filter"
+    echo "  7) Since date"
+    echo "  8) Run limit"
+    echo "  9) Back to summary"
+    history_repo_prompt "Choice [1-9]: " choice
+    case "${choice}" in
+      1)
+        history_repo_prompt "Source repository (owner/repo) [${SOURCE_REPO_ARG}]: " source
+        if [[ -n "${source}" ]]; then
+          if [[ "${source}" != */* ]]; then
+            echo "Repository must be owner/repo." >&2
+            continue
+          fi
+          SOURCE_REPO_ARG="${source}"
+        fi
+        ;;
+      2)
+        history_repo_prompt "History repository (owner/repo) [${HISTORY_REPO}]: " history
+        if [[ -n "${history}" ]]; then
+          if [[ "${history}" != */* ]]; then
+            echo "Repository must be owner/repo." >&2
+            continue
+          fi
+          if ! gh repo view "${history}" >/dev/null 2>&1; then
+            echo "Repository not found or not accessible: ${history}" >&2
+            continue
+          fi
+          HISTORY_REPO="${history}"
+        fi
+        ;;
+      3)
+        history_repo_prompt "Artifact name (blank to clear) [${IMPORT_ARTIFACT_NAMES[*]-}]: " name
+        if [[ -n "${name}" ]]; then
+          IMPORT_ARTIFACT_NAMES=("${name}")
+        else
+          IMPORT_ARTIFACT_NAMES=()
+        fi
+        ;;
+      4)
+        history_repo_prompt "Artifact pattern (blank to clear) [${IMPORT_ARTIFACT_PATTERNS[*]-}]: " pattern
+        if [[ -n "${pattern}" ]]; then
+          IMPORT_ARTIFACT_PATTERNS=("${pattern}")
+        else
+          IMPORT_ARTIFACT_PATTERNS=()
+        fi
+        ;;
+      5)
+        history_repo_prompt "Workflow filter (blank for all) [${IMPORT_WORKFLOW}]: " workflow
+        IMPORT_WORKFLOW="${workflow}"
+        ;;
+      6)
+        history_repo_prompt "Branch filter (blank for all) [${IMPORT_BRANCH}]: " branch
+        IMPORT_BRANCH="${branch}"
+        ;;
+      7)
+        history_repo_prompt "Since date (ISO, blank for none) [${IMPORT_SINCE}]: " since
+        IMPORT_SINCE="${since}"
+        ;;
+      8)
+        history_repo_prompt "Run limit [${IMPORT_LIMIT}]: " limit
+        if [[ -n "${limit}" ]]; then
+          IMPORT_LIMIT="${limit}"
+        fi
+        ;;
+      9|"")
+        return
+        ;;
+      *)
+        echo "Invalid choice."
+        ;;
+    esac
+  done
+}

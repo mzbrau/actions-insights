@@ -3,24 +3,14 @@ import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import type {
-  BranchHistory,
-  BranchLatest,
-  BranchesIndex,
-  HistoryRepoConfig,
-  RepositoriesIndex,
-  RepositoryMetadata,
-  RepositoryTestsFile,
-} from './models';
 import {
   buildHistoryUpdate,
   resolveBranchKey,
-  resolveRepositoryKey,
-  type ExistingHistoryState,
 } from './publisher';
 import type { ActionConfig } from '../config';
 import type { TestRun } from '../model/test-run';
-import { readJsonFile, writeJsonFile } from '../publisher/site-merger';
+import { readExistingState } from './import/existing-state';
+import { writeJsonFile } from '../publisher/site-merger';
 
 const MAX_PUSH_RETRIES = 3;
 
@@ -53,7 +43,14 @@ export async function publishToHistoryRepository(
     configureGitIdentity(workDir);
 
     for (let attempt = 1; attempt <= MAX_PUSH_RETRIES; attempt++) {
-      const existing = readExistingState(workDir, history.dataPath, history.repositoryName, run);
+      const { branchKey } = resolveBranchKey(run.context);
+      const existing = readExistingState(
+        workDir,
+        history.dataPath,
+        history.repositoryName,
+        run.context,
+        branchKey,
+      );
       const update = buildHistoryUpdate(run, {
         dataPath: history.dataPath,
         repositoryName: history.repositoryName,
@@ -107,29 +104,6 @@ function cloneRepository(repoUrl: string, branch: string, workDir: string): void
 function configureGitIdentity(workDir: string): void {
   git(['config', 'user.email', 'actions-insights@users.noreply.github.com'], workDir);
   git(['config', 'user.name', 'Actions Insights'], workDir);
-}
-
-function readExistingState(
-  workDir: string,
-  dataPath: string,
-  repositoryName: string,
-  run: TestRun,
-): ExistingHistoryState {
-  const repositoryKey = resolveRepositoryKey(repositoryName);
-  const { branchKey } = resolveBranchKey(run.context);
-  const dataRoot = path.join(workDir, dataPath);
-  const repoDir = path.join(dataRoot, 'repositories', repositoryKey);
-  const branchDir = path.join(repoDir, 'branches', branchKey);
-
-  return {
-    repositoriesIndex: readJsonFile<RepositoriesIndex>(path.join(dataRoot, 'repositories.json')),
-    repoConfig: readJsonFile<HistoryRepoConfig>(path.join(workDir, 'config.json')),
-    metadata: readJsonFile<RepositoryMetadata>(path.join(repoDir, 'metadata.json')),
-    branchesIndex: readJsonFile<BranchesIndex>(path.join(repoDir, 'branches.json')),
-    branchHistory: readJsonFile<BranchHistory>(path.join(branchDir, 'history.json')),
-    branchLatest: readJsonFile<BranchLatest>(path.join(branchDir, 'latest.json')),
-    repositoryTests: readJsonFile<RepositoryTestsFile>(path.join(repoDir, 'tests.json')),
-  };
 }
 
 function hasChanges(workDir: string, relativePaths: string[]): boolean {

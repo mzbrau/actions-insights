@@ -35,7 +35,10 @@ Use `--dry-run` to preview the same summary without executing or prompting. Use 
 gh extension install mzbrau/gh-actions-insights
 gh actions-insights init
 gh actions-insights update <owner>/<history-repo>
+gh actions-insights import <owner>/<source-repo> <owner>/<history-repo>
 ```
+
+See [Importing historical test data](import.md) for backfilling runs from workflow artifacts.
 
 Maintainers publish that extension from this monorepo with `npm run publish:extension`.
 
