@@ -42,18 +42,18 @@ export function TestRow({
   return (
     <>
       <tr className="test-table-row" data-name={test.n}>
-        <td>
+        <td className="tests-col-status">
           <span className="test-outcome">{outcomeIcon(test.o)}</span>
         </td>
-        <td>
+        <td className="tests-col-name">
           <span className="test-name" title={test.n}>{getShortName(test)}</span>
         </td>
-        <td className="test-class-cell">
-          {!hideClass && <span className="mono small">{cls}</span>}
+        <td className="tests-col-class test-class-cell">
+          {!hideClass && <span className="test-class mono small" title={cls}>{cls}</span>}
         </td>
-        <td>{formatDuration(test.d)}</td>
-        <td>{pr ? `${pr.rate}%` : '—'}</td>
-        <td className="test-links-cell">
+        <td className="tests-col-duration">{formatDuration(test.d)}</td>
+        <td className="tests-col-passrate">{pr ? `${pr.rate}%` : '—'}</td>
+        <td className="tests-col-links test-links-cell">
           {logUrl && (
             <a href={logUrl} target="_blank" rel="noreferrer" onClick={stopPropagation}>log</a>
           )}
@@ -64,7 +64,7 @@ export function TestRow({
             </>
           )}
         </td>
-        <td className="text-right">
+        <td className="tests-col-history text-right">
           <button
             type="button"
             className={`history-btn${expanded ? ' active' : ''}`}

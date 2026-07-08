@@ -17,13 +17,13 @@ export function TestsTable({ visibleCount, children }: TestsTableProps) {
         <table className="data-table tests-table">
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Test</th>
-              <th>Class</th>
-              <th>Duration</th>
-              <th>Pass rate</th>
-              <th>Links</th>
-              <th className="text-right">History</th>
+              <th className="tests-col-status">Status</th>
+              <th className="tests-col-name">Test</th>
+              <th className="tests-col-class">Class</th>
+              <th className="tests-col-duration">Duration</th>
+              <th className="tests-col-passrate">Pass rate</th>
+              <th className="tests-col-links">Links</th>
+              <th className="tests-col-history text-right">History</th>
             </tr>
           </thead>
           <tbody>{children}</tbody>

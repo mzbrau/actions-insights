@@ -923,6 +923,10 @@ kbd {
 
 .tests-table-wrap { overflow-x: auto; }
 
+.tests-table {
+  table-layout: fixed;
+}
+
 .tests-table th {
   font-size: 10px;
   text-transform: uppercase;
@@ -930,6 +934,25 @@ kbd {
 }
 
 .tests-table .text-right { text-align: right; }
+
+.tests-col-status { width: 56px; }
+.tests-col-duration { width: 96px; }
+.tests-col-passrate { width: 92px; }
+.tests-col-links { width: 84px; }
+.tests-col-history { width: 92px; }
+
+.tests-col-name,
+.tests-col-class {
+  min-width: 0;
+}
+
+.tests-col-name .test-name,
+.tests-col-class .test-class {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .test-table-row { transition: background var(--transition); }
 .test-table-row:hover { background: var(--surface-container-low); }
