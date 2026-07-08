@@ -38,7 +38,8 @@ then open a pull request.
 Flags:
   --source-ref <ref>  actions-insights ref to sync from (default: main)
   --verify            Run npm ci and build while preparing web/
-  --dry-run           Print actions without executing
+  --dry-run           Print planned actions without executing
+  --yes, -y           Proceed without confirmation
   -h, --help          Show help
 
 Install without cloning this repository:
@@ -51,7 +52,9 @@ EOF
 FULL_REPO=""
 DRY_RUN=false
 VERIFY=false
+ASSUME_YES=false
 COMMAND=""
+BRANCH=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -73,6 +76,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --dry-run)
       DRY_RUN=true
+      shift
+      ;;
+    --yes|-y)
+      ASSUME_YES=true
       shift
       ;;
     *)
@@ -112,16 +119,11 @@ fi
 BRANCH="actions-insights/update-dashboard-$(date +%Y%m%d)"
 
 if [[ "${DRY_RUN}" == true ]]; then
-  echo "[dry-run] gh repo view ${FULL_REPO}"
-  echo "[dry-run] git clone https://github.com/${FULL_REPO}.git"
-  echo "[dry-run] validate_history_repo"
-  echo "[dry-run] sync web/ and .github/workflows/pages.yml from ${SOURCE_REPO}@${SOURCE_REF}"
-  echo "[dry-run] ensure .gitignore and untrack web/node_modules if needed"
-  echo "[dry-run] git checkout -b ${BRANCH}"
-  echo "[dry-run] git commit and push"
-  echo "[dry-run] gh pr create"
+  print_update_plan_summary
   exit 0
 fi
+
+history_repo_require_confirmation print_update_plan_summary edit_update_settings "${ASSUME_YES}"
 
 resolve_source_dirs
 

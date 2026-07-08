@@ -17,11 +17,15 @@ curl -fsSL https://raw.githubusercontent.com/mzbrau/actions-insights/main/script
 
 Requires `gh` and `git` on your PATH. The script shallow-clones `mzbrau/actions-insights` into a temporary directory to copy templates, then creates your history repository.
 
+Before making changes, the script shows a summary of the repository name, visibility, and planned steps, then asks you to confirm, cancel, or edit settings. When installed via `curl | bash`, prompts still work when a terminal is available.
+
 From a local checkout you can run the same script directly:
 
 ```bash
 bash scripts/init-history-repo.sh init --dry-run
 ```
+
+Use `--dry-run` to preview the same summary without executing or prompting. Use `--yes` (or `-y`) to skip confirmation in non-interactive or CI environments.
 
 ## Optional: GitHub CLI extension
 
@@ -51,6 +55,8 @@ For project Pages: `https://{owner}.github.io/{repo-name}/`
 
 To pull in dashboard and workflow improvements from `actions-insights`, run the update script. It validates the target repository, syncs `web/` and `.github/workflows/pages.yml`, and opens a pull request. Your `data/` and `config.json` are left unchanged.
 
+Like the init script, update shows a summary and asks you to confirm, cancel, or edit settings (target repository, source ref, verify build) before cloning or opening a pull request.
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mzbrau/actions-insights/main/scripts/update-history-repo.sh | \
   bash -s -- update <owner>/<history-repo>
@@ -68,7 +74,7 @@ Or with the GitHub CLI extension:
 gh actions-insights update <owner>/<history-repo>
 ```
 
-Use `--dry-run` to preview actions, or `--verify` to run `npm ci` and `npm run build` while preparing `web/`.
+Use `--dry-run` to preview the planned actions without executing or prompting. Use `--verify` to run `npm ci` and `npm run build` while preparing `web/`. Use `--yes` (or `-y`) to skip confirmation in non-interactive or CI environments.
 
 You can still modify `web/` directly in the history repository and push. The Pages workflow rebuilds on changes to `web/`, `data/`, or `config.json`.
 

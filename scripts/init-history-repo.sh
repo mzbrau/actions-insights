@@ -39,7 +39,8 @@ Flags:
   --public                     Public repository (default)
   --private                    Private repository
   --default-repository <repo>  Default source repository (owner/repo)
-  --dry-run                    Print actions without executing
+  --dry-run                    Print planned actions without executing
+  --yes, -y                    Proceed without confirmation
   -h, --help                   Show help
 
 Install without cloning this repository:
@@ -53,7 +54,9 @@ ORG_FLAG=""
 VISIBILITY="--public"
 DEFAULT_REPO=""
 DRY_RUN=false
+ASSUME_YES=false
 COMMAND=""
+FULL_REPO=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -85,6 +88,10 @@ while [[ $# -gt 0 ]]; do
       DRY_RUN=true
       shift
       ;;
+    --yes|-y)
+      ASSUME_YES=true
+      shift
+      ;;
     *)
       if [[ -z "${REPO_NAME}" ]]; then
         REPO_NAME="$1"
@@ -103,32 +110,20 @@ if [[ "${COMMAND}" != "init" ]]; then
   exit 1
 fi
 
-if [[ -z "${REPO_NAME}" ]]; then
-  USER="$(gh api user -q .login)"
-  REPO_NAME="${USER}-actions-insights"
+resolve_init_full_repo
+
+if [[ "${DRY_RUN}" == true ]]; then
+  print_init_plan_summary
+  exit 0
 fi
 
-if [[ -n "${ORG_FLAG}" ]]; then
-  FULL_REPO="${ORG_FLAG}/${REPO_NAME}"
-else
-  FULL_REPO="$(gh api user -q .login)/${REPO_NAME}"
-fi
+history_repo_require_confirmation print_init_plan_summary edit_init_settings "${ASSUME_YES}"
 
 resolve_source_dirs
 
 if [[ ! -d "${TEMPLATE_DIR}" ]]; then
   echo "Templates not found at ${TEMPLATE_DIR}." >&2
   exit 1
-fi
-
-echo "Creating history repository: ${FULL_REPO}"
-
-if [[ "${DRY_RUN}" == true ]]; then
-  echo "[dry-run] gh repo create ${FULL_REPO} ${VISIBILITY}"
-  echo "[dry-run] Copy template from ${TEMPLATE_DIR}"
-  echo "[dry-run] Copy web from ${WEB_DIR} and prepare standalone (vendor history-models, lockfile)"
-  echo "[dry-run] Enable GitHub Pages (GitHub Actions source)"
-  exit 0
 fi
 
 if ! gh repo view "${FULL_REPO}" >/dev/null 2>&1; then
