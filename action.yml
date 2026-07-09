@@ -2,37 +2,20 @@ name: Actions Insights Test Report
 description: Test reports for Actions — Show test results in PR comments, workflows, HTML artifacts and test history repos.
 author: mzbrau
 branding:
-  icon: check-circle
-  color: blue
+  icon: activity
+  color: green
 inputs:
+  # Test results
   test-results:
-    description: Glob pattern for test result files
+    description: Glob pattern for test result files (TRX, JUnit, NUnit, xUnit)
     required: false
     default: '**/*.{trx,xml}'
+
+  # Reporting / artifact
   reports-subdirectory:
     description: Subdirectory within the site artifact for test reports
     required: false
     default: test-reports
-  pages-subdirectory:
-    description: 'Deprecated: use reports-subdirectory'
-    required: false
-    default: ''
-  comment-mode:
-    description: 'PR comment mode: update (upsert) or off'
-    required: false
-    default: update
-  comment-pr:
-    description: 'Deprecated: use comment-mode instead'
-    required: false
-    default: 'true'
-  history:
-    description: Maximum number of historical run reports to retain per branch/PR
-    required: false
-    default: '20'
-  retain-days:
-    description: Maximum age in days for historical run reports
-    required: false
-    default: '30'
   report-title:
     description: Title displayed in the report UI
     required: false
@@ -45,22 +28,24 @@ inputs:
     description: Local directory for merged site with report history
     required: false
     default: _site
-  theme:
-    description: 'Default theme: light, dark, or auto'
+  upload-html-report:
+    description: Upload a responsive HTML report with multi-run history as a workflow artifact
     required: false
-    default: auto
-  slow-test-threshold-ms:
-    description: Duration threshold in ms for marking tests as slow
+    default: 'true'
+  artifact-retention-days:
+    description: Retention days for the uploaded HTML report artifact
     required: false
-    default: '1000'
+    default: '30'
+
+  # PR comment
+  comment-mode:
+    description: 'PR comment mode: update (upsert single comment) or off. Only applies in pull-request workflow runs.'
+    required: false
+    default: update
   max-failed-tests-in-comment:
     description: Maximum failed tests to show in the PR comment
     required: false
     default: '10'
-  max-failed-tests-in-summary:
-    description: Maximum failed tests to show in the job summary
-    required: false
-    default: '20'
   max-stack-trace-lines:
     description: Maximum stack trace lines before truncation
     required: false
@@ -77,44 +62,50 @@ inputs:
     description: Number of slowest tests to include (0 to disable)
     required: false
     default: '18'
-  upload-html-report:
-    description: Upload HTML report as a workflow artifact
-    required: false
-    default: 'true'
+
+  # Job summary
   generate-job-summary:
-    description: Write a GitHub Actions job summary
+    description: Write a TeamCity-style summary table to the GitHub Actions job summary
     required: false
     default: 'true'
+  max-failed-tests-in-summary:
+    description: Maximum failed tests to show in the job summary
+    required: false
+    default: '20'
+
+  # Checks
   publish-checks:
-    description: Publish a GitHub check run with test results
+    description: Publish a GitHub check run with test results and file annotations from stack traces
     required: false
     default: 'true'
-  artifact-retention-days:
-    description: Retention days for the uploaded HTML report artifact
-    required: false
-    default: '30'
   check-name:
     description: Name of the published check run
     required: false
     default: Actions Insights
-  publish-pages:
-    description: 'Deprecated: ignored'
+
+  # Display
+  theme:
+    description: 'Default theme: light, dark, or auto'
     required: false
-    default: ''
-  pages-mode:
-    description: 'Deprecated: ignored'
+    default: auto
+  slow-test-threshold-ms:
+    description: Duration threshold in ms for marking tests as slow
     required: false
-    default: ''
-  seed-from-gh-pages:
-    description: 'Deprecated: ignored'
+    default: '1000'
+
+  # History (artifact cache)
+  history:
+    description: Maximum number of historical runs to retain per branch/PR in the HTML artifact (merged via Actions cache)
     required: false
-    default: 'false'
-  github-token:
-    description: GitHub token for API calls
+    default: '20'
+  retain-days:
+    description: Maximum age in days for historical runs in the HTML artifact
     required: false
-    default: ${{ github.token }}
+    default: '30'
+
+  # History repository (optional)
   history-enabled:
-    description: Publish test run JSON to a persistent history repository
+    description: Publish test run JSON to a persistent history repository for the GitHub Pages React dashboard
     required: false
     default: 'false'
   history-repository:
@@ -149,11 +140,39 @@ inputs:
     description: Default repository for the history dashboard config.json
     required: false
     default: ''
+
+  # Deprecated
+  pages-subdirectory:
+    description: 'Deprecated and ignored. Use reports-subdirectory instead.'
+    required: false
+    default: ''
+  comment-pr:
+    description: 'Deprecated and ignored. Use comment-mode instead.'
+    required: false
+    default: 'true'
+  publish-pages:
+    description: 'Deprecated and ignored. GitHub Pages publishing has been removed; use upload-html-report.'
+    required: false
+    default: ''
+  pages-mode:
+    description: 'Deprecated and ignored. GitHub Pages publishing has been removed.'
+    required: false
+    default: ''
+  seed-from-gh-pages:
+    description: 'Deprecated and ignored. GitHub Pages publishing has been removed.'
+    required: false
+    default: 'false'
+
+  # Authentication
+  github-token:
+    description: GitHub token for API calls
+    required: false
+    default: ${{ github.token }}
 outputs:
   workflow-url:
     description: URL to the workflow run
   artifact-url:
-    description: URL to the workflow run artifacts
+    description: URL to the uploaded HTML report artifact (when upload-html-report is enabled)
   status:
     description: Overall test status (passed or failed)
   total:
