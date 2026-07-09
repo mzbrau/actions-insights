@@ -51,8 +51,6 @@ export function AppShell({ children, topBar }: AppShellProps) {
           <span className="sidebar-version" title="Dashboard version">
             {APP_VERSION}
           </span>
-          <span><kbd>/</kbd> search</span>
-          <span><kbd>g</kbd> <kbd>r</kbd> repos</span>
         </div>
       </aside>
 

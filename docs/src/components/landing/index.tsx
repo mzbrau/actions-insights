@@ -60,7 +60,7 @@ export function Hero() {
           <Link to="/docs/setup/quick-start" className={styles.btnPrimary}>
             Get Started →
           </Link>
-          <Link to="/docs/setup/pr-comments" className={styles.btnGhost}>
+          <Link to="https://mzbrau.github.io/mzbrau-actions-insights" className={styles.btnGhost}>
             Live Demo
           </Link>
         </div>

@@ -477,13 +477,6 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 .small { font-size: 12px; }
 .error { color: var(--error); }
 .empty-state { text-align: center; padding: 48px; color: var(--on-surface-variant); }
-kbd {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 1px 4px;
-  border: 1px solid var(--outline-variant);
-  border-radius: 3px;
-}
 
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
