@@ -28,7 +28,6 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/configuration',
         'reference/architecture',
-        'reference/migration',
       ],
     },
     {
