@@ -1,5 +1,5 @@
 name: Actions Insights Test Report
-description: GitHub-native test reports for Actions — parse TRX, JUnit, NUnit, xUnit with rich PR comments, job summaries, checks, and HTML artifacts.
+description: Test reports for Actions — Show test results in PR comments, workflows, HTML artifacts and test history repos.
 author: mzbrau
 branding:
   icon: check-circle
