@@ -42,8 +42,12 @@ html[data-theme='dark'] {
 }
 
 .navbar {
-  backdrop-filter: blur(12px);
   border-bottom: 1px solid #414754;
+}
+
+.navbar__inner {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .navbar__title {

@@ -41,7 +41,7 @@ export function Hero() {
   const logo = useBaseUrl('/logo-white.png');
 
   return (
-    <header className={styles.hero}>
+    <header className={`${styles.hero} ${styles.snapTarget}`}>
       <div className={styles.heroBackground} aria-hidden="true" />
       <div className={styles.heroGrid} aria-hidden="true" />
       <div className={styles.heroFade} aria-hidden="true" />
@@ -107,7 +107,7 @@ export function ProblemSolution() {
   ];
 
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${styles.snapTarget}`}>
       <div className={styles.container}>
         <div className={styles.problemSolutionGrid}>
           <ScrollReveal>
@@ -167,93 +167,104 @@ export function FeatureShowcase() {
   const repoImg = useBaseUrl('/img/web-repo-summary.png');
 
   return (
-    <section className={styles.section}>
-      <div className={styles.container}>
-        <ScrollReveal className={styles.featureRow}>
-          <div className={styles.featureContent}>
-            <span className={styles.eyebrowPrimary}>INTEGRATED FEEDBACK</span>
-            <h2 className={styles.featureTitle}>Actionable PR Comments</h2>
-            <p className={styles.featureBody}>
-              Never leave the PR view. Actions Insights posts detailed comments directly
-              to your pull request, highlighting exactly which tests failed, providing
-              stack traces, and offering historical context.
-            </p>
-            <div className={styles.metrics}>
-              <div>
-                <div className={styles.metricValue}>0</div>
-                <div className={styles.metricLabel}>Context Switching</div>
-              </div>
-              <div className={styles.metricDivider} />
-              <div>
-                <div className={styles.metricValue}>100%</div>
-                <div className={styles.metricLabel}>Traceability</div>
+    <>
+      <section className={`${styles.featureSection} ${styles.snapTarget}`}>
+        <div className={styles.container}>
+          <ScrollReveal className={styles.featureRow}>
+            <div className={styles.featureContent}>
+              <span className={styles.eyebrowPrimary}>INTEGRATED FEEDBACK</span>
+              <h2 className={styles.featureTitle}>Actionable PR Comments</h2>
+              <p className={styles.featureBody}>
+                Never leave the PR view. Actions Insights posts detailed comments directly
+                to your pull request, highlighting exactly which tests failed, providing
+                stack traces, and offering historical context.
+              </p>
+              <div className={styles.metrics}>
+                <div>
+                  <div className={styles.metricValue}>0</div>
+                  <div className={styles.metricLabel}>Context Switching</div>
+                </div>
+                <div className={styles.metricDivider} />
+                <div>
+                  <div className={styles.metricValue}>100%</div>
+                  <div className={styles.metricLabel}>Traceability</div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className={styles.featureImageWrap}>
-            <img
-              src={commentImg}
-              alt="PR comment showing failed test details and stack trace"
-              className={styles.featureImage}
-            />
-          </div>
-        </ScrollReveal>
+            <div className={styles.featureImageWrap}>
+              <img
+                src={commentImg}
+                alt="PR comment showing failed test details and stack trace"
+                className={styles.featureImage}
+              />
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
 
-        <ScrollReveal className={`${styles.featureRow} ${styles.featureRowReverse}`}>
-          <div className={styles.featureContent}>
-            <span className={styles.eyebrowSecondary}>VISUAL ANALYTICS</span>
-            <h2 className={styles.featureTitle}>Deep-Dive Web Reports</h2>
-            <p className={styles.featureBody}>
-              When logs are not enough, jump into full-screen interactive reports.
-              Explore every test case, filter results by suite or outcome, and track
-              trends across runs.
-            </p>
-            <ul className={styles.checkList}>
-              <li className={styles.checkListItem}>
-                <span className={styles.checkIcon}>✓</span> Searchable test database
-              </li>
-              <li className={styles.checkListItem}>
-                <span className={styles.checkIcon}>✓</span> Workflow summary integration
-              </li>
-              <li className={styles.checkListItem}>
-                <span className={styles.checkIcon}>✓</span> Flaky test identification
-              </li>
-            </ul>
-          </div>
-          <div className={`${styles.featureImageWrap} ${styles.featureImageStack}`}>
-            <img
-              src={summaryImg}
-              alt="Dashboard overview with success metrics"
-              className={`${styles.featureImage} ${styles.featureImageStackTop}`}
-            />
-            <img
-              src={allTestsImg}
-              alt="Detailed test results list"
-              className={`${styles.featureImage} ${styles.featureImageStackBottom}`}
-            />
-          </div>
-        </ScrollReveal>
+      <section
+        className={`${styles.featureSection} ${styles.featureSectionAfterStack} ${styles.snapTarget}`}>
+        <div className={styles.container}>
+          <ScrollReveal className={`${styles.featureRow} ${styles.featureRowReverse}`}>
+            <div className={styles.featureContent}>
+              <span className={styles.eyebrowSecondary}>VISUAL ANALYTICS</span>
+              <h2 className={styles.featureTitle}>Deep-Dive Web Reports</h2>
+              <p className={styles.featureBody}>
+                When logs are not enough, jump into full-screen interactive reports.
+                Explore every test case, filter results by suite or outcome, and track
+                trends across runs.
+              </p>
+              <ul className={styles.checkList}>
+                <li className={styles.checkListItem}>
+                  <span className={styles.checkIcon}>✓</span> Searchable test database
+                </li>
+                <li className={styles.checkListItem}>
+                  <span className={styles.checkIcon}>✓</span> Workflow summary integration
+                </li>
+                <li className={styles.checkListItem}>
+                  <span className={styles.checkIcon}>✓</span> Flaky test identification
+                </li>
+              </ul>
+            </div>
+            <div className={`${styles.featureImageWrap} ${styles.featureImageStack}`}>
+              <img
+                src={summaryImg}
+                alt="Dashboard overview with success metrics"
+                className={`${styles.featureImage} ${styles.featureImageStackTop}`}
+              />
+              <img
+                src={allTestsImg}
+                alt="Detailed test results list"
+                className={`${styles.featureImage} ${styles.featureImageStackBottom}`}
+              />
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
 
-        <ScrollReveal className={styles.featureRow}>
-          <div className={styles.featureContent}>
-            <span className={styles.eyebrowTertiary}>ORG-WIDE OVERVIEW</span>
-            <h2 className={styles.featureTitle}>Global Health Dashboard</h2>
-            <p className={styles.featureBody}>
-              Aggregated insights across your entire organization. Track build health
-              trends over weeks, identify the most expensive workflows, and pinpoint
-              which repositories are struggling with stability.
-            </p>
-          </div>
-          <div className={styles.featureImageWrap}>
-            <img
-              src={repoImg}
-              alt="Organization-wide health dashboard with repository trends"
-              className={styles.featureImage}
-            />
-          </div>
-        </ScrollReveal>
-      </div>
-    </section>
+      <section className={`${styles.featureSection} ${styles.snapTarget}`}>
+        <div className={styles.container}>
+          <ScrollReveal className={styles.featureRow}>
+            <div className={styles.featureContent}>
+              <span className={styles.eyebrowTertiary}>ORG-WIDE OVERVIEW</span>
+              <h2 className={styles.featureTitle}>Global Health Dashboard</h2>
+              <p className={styles.featureBody}>
+                Aggregated insights across your entire organization. Track build health
+                trends over weeks, identify the most expensive workflows, and pinpoint
+                which repositories are struggling with stability.
+              </p>
+            </div>
+            <div className={styles.featureImageWrap}>
+              <img
+                src={repoImg}
+                alt="Organization-wide health dashboard with repository trends"
+                className={styles.featureImage}
+              />
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -277,7 +288,7 @@ export function TrustCards() {
   ];
 
   return (
-    <section className={styles.section} style={{background: 'var(--landing-surface-low)'}}>
+    <section className={`${styles.section} ${styles.snapTarget}`} style={{background: 'var(--landing-surface-low)'}}>
       <div className={styles.container}>
         <ScrollReveal>
           <div className={styles.trustGrid}>
@@ -297,7 +308,7 @@ export function TrustCards() {
 
 export function FinalCTA() {
   return (
-    <section className={`${styles.section} ${styles.ctaSection}`}>
+    <section className={`${styles.section} ${styles.ctaSection} ${styles.snapTarget}`}>
       <div className={styles.ctaBackground} aria-hidden="true" />
       <ScrollReveal className={styles.ctaContent}>
         <h2 className={styles.ctaTitle}>Ready to upgrade your CI?</h2>
@@ -319,7 +330,7 @@ export function FinalCTA() {
 
 export function LandingFooter() {
   return (
-    <footer className={styles.landingFooter}>
+    <footer className={`${styles.landingFooter} ${styles.snapTarget}`}>
       <div className={styles.landingFooterGrid}>
         <div>
           <span className={styles.landingFooterBrand}>Actions Insights</span>
