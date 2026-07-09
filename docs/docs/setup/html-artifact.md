@@ -7,7 +7,7 @@ title: HTML Artifact
 
 Actions Insights generates a standalone, responsive, interactive HTML report and uploads it as a workflow artifact. The report includes per-run details and basic test history merged across runs.
 
-![Interactive web report workflow summary](/img/web-workflow-summary.png)
+![Interactive web report workflow summary](/img/html-summary.png)
 
 ## When to Enable
 

@@ -17,7 +17,7 @@ Actions Insights is a GitHub Action you add as a step in your build pipeline. Yo
 | Output | Description |
 |--------|-------------|
 | **PR comment** | A rich comment on the pull request listing failed tests, stack traces, and slow tests |
-| **Workflow summary** | A TeamCity-style table in the workflow run's job summary |
+| **Workflow summary** | A result table in the workflow run's job summary |
 | **HTML artifact** | A standalone responsive, interactive HTML report uploaded as a build artifact with basic test history |
 | **History repository** | Structured JSON pushed to a separate git repository, powering a GitHub Pages dashboard across branches and repos |
 

@@ -107,10 +107,6 @@ See [History Repository Deployment](../history-repository/deployment) for one-ti
     test-results: '**/TEST-*.xml'
 ```
 
-## Migrating from GitHub Pages
-
-If you previously used a separate `deploy-pages` job, see [Migrate from GitHub Pages Publishing](../reference/migration).
-
 ## Full Reference
 
 [Configuration Reference](../reference/configuration) — every input, output, and deprecated option.
