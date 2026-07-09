@@ -7,8 +7,8 @@ const config: Config = {
   tagline: 'GitHub-native test reports for GitHub Actions',
   favicon: 'logo-white.png',
 
-  url: 'https://mzbrau.github.io',
-  baseUrl: '/actions-insights/',
+  url: 'https://www.ghactionsinsights.com',
+  baseUrl: '/',
 
   organizationName: 'mzbrau',
   projectName: 'actions-insights',

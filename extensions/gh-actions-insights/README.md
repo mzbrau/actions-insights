@@ -2,7 +2,7 @@
 
 Optional GitHub CLI wrapper for `scripts/init-history-repo.sh`.
 
-Most users do not need this extension — use the curl installer from the main repository instead (see [History Repository Deployment](https://mzbrau.github.io/actions-insights/docs/history-repository/deployment)).
+Most users do not need this extension — use the curl installer from the main repository instead (see [History Repository Deployment](https://www.ghactionsinsights.com/docs/history-repository/deployment)).
 
 ## Install
 
