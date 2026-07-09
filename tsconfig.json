@@ -4,7 +4,6 @@
     "module": "CommonJS",
     "lib": ["ES2022"],
     "outDir": "lib",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -20,6 +19,6 @@
       "@actions-insights/history-publisher": ["packages/history-publisher/src/index.ts"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "lib", "test", "web", "packages"]
+  "include": ["src/**/*", "packages/history-models/src/**/*"],
+  "exclude": ["node_modules", "dist", "lib", "test", "web", "packages/history-publisher"]
 }

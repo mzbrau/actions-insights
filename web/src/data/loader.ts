@@ -3,11 +3,13 @@ import type {
   BranchLatest,
   BranchesIndex,
   HistoryRepoConfig,
+  NormalizedRunRecord,
   RepositoriesIndex,
   RepositoryMetadata,
   RepositoryTestsFile,
-  RunRecord,
+  TestHistoryEntry,
 } from '@actions-insights/history-models';
+import { normalizeRunRecord, normalizeTestsFile } from '@actions-insights/history-models';
 
 const cache = new Map<string, unknown>();
 
@@ -59,8 +61,10 @@ export function loadRun(
   repoKey: string,
   branchKey: string,
   runFile: string,
-): Promise<RunRecord> {
-  return fetchJson<RunRecord>(`data/repositories/${repoKey}/branches/${branchKey}/runs/${runFile}`);
+): Promise<NormalizedRunRecord> {
+  return fetchJson(`data/repositories/${repoKey}/branches/${branchKey}/runs/${runFile}`).then(
+    (data) => normalizeRunRecord(data as Parameters<typeof normalizeRunRecord>[0]),
+  );
 }
 
 export interface RepositoryData {
@@ -76,9 +80,12 @@ export async function loadRepository(repoKey: string): Promise<RepositoryData> {
   return { metadata, branches };
 }
 
-export async function loadRepositoryTests(repoKey: string): Promise<RepositoryTestsFile | null> {
+export async function loadRepositoryTests(
+  repoKey: string,
+): Promise<Record<string, TestHistoryEntry> | null> {
   try {
-    return await fetchJson<RepositoryTestsFile>(`data/repositories/${repoKey}/tests.json`);
+    const data = await fetchJson<RepositoryTestsFile>(`data/repositories/${repoKey}/tests.json`);
+    return normalizeTestsFile(data);
   } catch {
     return null;
   }

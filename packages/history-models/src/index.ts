@@ -1,4 +1,4 @@
-export const HISTORY_SCHEMA_VERSION = 1 as const;
+export const HISTORY_SCHEMA_VERSION = 2 as const;
 
 export type RunStatus = 'passed' | 'failed';
 export type BranchType = 'branch' | 'pr' | 'tag';
@@ -105,8 +105,9 @@ export interface BranchHistory {
   runs: RunSummary[];
 }
 
+/** Expanded test record used by the web UI after normalization. */
 export interface CompactTestRecord {
-  i: number;
+  i?: number;
   n: string;
   o: number;
   d: number;
@@ -118,6 +119,28 @@ export interface CompactTestRecord {
   nf?: boolean;
 }
 
+/** On-disk compact test record in run files (schema v2). */
+export interface StoredTestRecord {
+  c?: number;
+  m?: string;
+  n?: string;
+  o: number;
+  d: number;
+  a?: string;
+  st?: string;
+  nf?: boolean;
+}
+
+/** On-disk compact failure record in run files (schema v2). */
+export interface CompactFailureRecord {
+  t: number;
+  message?: string;
+  stackTrace?: string;
+  stdout?: string;
+  stderr?: string;
+}
+
+/** Expanded failure record used by the web UI after normalization. */
 export interface FailureRecord {
   testName: string;
   fullName: string;
@@ -176,8 +199,9 @@ export interface RunRecord {
   durationMs: number;
   context: RunContextRecord;
   stats: RunStatsRecord;
-  tests: CompactTestRecord[];
-  failures: FailureRecord[];
+  classes?: string[];
+  tests: StoredTestRecord[];
+  failures: CompactFailureRecord[];
   links: RunLinks;
   extensions?: Record<string, unknown>;
 }
@@ -201,7 +225,8 @@ export interface TestHistoryEntry {
 export interface RepositoryTestsFile {
   version: typeof HISTORY_SCHEMA_VERSION;
   updatedAt: string;
-  tests: Record<string, TestHistoryEntry>;
+  names: string[];
+  entries: Record<string, TestHistoryEntry>;
 }
 
 export interface HistoryPublishConfig {
@@ -227,3 +252,22 @@ export function repositoryNameFromKey(key: string): string {
   if (dot < 0) return key;
   return `${key.slice(0, dot)}/${key.slice(dot + 1)}`;
 }
+
+export {
+  decodeRepositoryTestsFile,
+  deriveQualifiedClassName,
+  encodeRepositoryTestsFile,
+  encodeRunFailures,
+  encodeRunTests,
+  expandRunFailures,
+  expandRunTests,
+  normalizeMethodName,
+  normalizeRunRecord,
+  normalizeTestsFile,
+  resolveTestFullName,
+} from './encoding';
+export type {
+  EncodeFailureInput,
+  EncodeTestInput,
+  NormalizedRunRecord,
+} from './encoding';

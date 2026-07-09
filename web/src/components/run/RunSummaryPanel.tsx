@@ -1,11 +1,11 @@
-import type { RunRecord } from '@actions-insights/history-models';
+import type { NormalizedRunRecord } from '@actions-insights/history-models';
 import { FailureAccordion } from './FailureAccordion';
 import { StatCard } from '../ui/StatCard';
 import { OutcomeDonutStat } from '../ui/OutcomeDonutStat';
 import { formatDuration, shortTestName } from '../../utils/format';
 
 interface RunSummaryPanelProps {
-  run: RunRecord;
+  run: NormalizedRunRecord;
   expanded: Set<string>;
   onToggleFailure: (fullName: string) => void;
   slowTests: Array<{ n: string; d: number }>;

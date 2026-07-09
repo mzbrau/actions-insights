@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import type { RunRecord } from '@actions-insights/history-models';
+import type { NormalizedRunRecord } from '@actions-insights/history-models';
 import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
 import { loadBranchHistory, loadRun } from '../data/loader';
 import { useRepositoryTestTrends } from '../hooks/useRepositoryTestTrends';
@@ -22,7 +22,7 @@ export function RunDetailPage() {
   const branchKey = rawBranchKey ? decodeURIComponent(rawBranchKey) : '';
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [run, setRun] = useState<RunRecord | null>(null);
+  const [run, setRun] = useState<NormalizedRunRecord | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

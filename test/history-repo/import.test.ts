@@ -64,7 +64,7 @@ describe('history import', () => {
     fs.writeFileSync(
       path.join(repoDir, 'history.json'),
       JSON.stringify({
-        version: 1,
+        version: 2,
         branchKey: 'main',
         branchLabel: 'main',
         updatedAt: '2026-07-01T10:00:00Z',

@@ -3,8 +3,6 @@ import type {
   BranchIndexEntry,
   BranchLatest,
   BranchesIndex,
-  CompactTestRecord,
-  FailureRecord,
   HistoryRepoConfig,
   RepositoriesIndex,
   RepositoryIndexEntry,
@@ -15,7 +13,14 @@ import type {
   TestHistoryEntry,
   TestHistoryPoint,
 } from '../models';
-import { HISTORY_SCHEMA_VERSION, OUTCOME_TO_CODE } from '../models';
+import {
+  HISTORY_SCHEMA_VERSION,
+  OUTCOME_TO_CODE,
+  decodeRepositoryTestsFile,
+  encodeRepositoryTestsFile,
+  encodeRunFailures,
+  encodeRunTests,
+} from '../models';
 import {
   formatRunFileName,
   resolveBranchKey,
@@ -164,29 +169,32 @@ function buildRunRecord(
   branchType: 'branch' | 'pr' | 'tag',
   runFileName: string,
 ): RunRecord {
-  const tests: CompactTestRecord[] = run.tests.map((t, i) => ({
-    i,
-    n: t.fullName,
-    o: OUTCOME_TO_CODE[t.outcome],
-    d: t.durationMs,
-    ...(t.assembly ? { a: t.assembly } : {}),
-    ...(t.namespace ? { ns: t.namespace } : {}),
-    ...(t.className ? { c: t.className } : {}),
-    ...(t.method ? { m: t.method } : {}),
-    ...(t.stackTrace ? { st: t.stackTrace } : {}),
-    ...(t.isNewFailure ? { nf: true } : {}),
-  }));
-
-  const failures: FailureRecord[] = run.tests
-    .filter((t) => t.outcome === 'failed')
-    .map((t) => ({
-      testName: t.name,
+  const encodedTests = encodeRunTests(
+    run.tests.map((t) => ({
       fullName: t.fullName,
-      message: t.message,
+      outcomeCode: OUTCOME_TO_CODE[t.outcome],
+      durationMs: t.durationMs,
+      namespace: t.namespace,
+      className: t.className,
+      method: t.method,
+      assembly: t.assembly,
       stackTrace: t.stackTrace,
-      stdout: t.stdout,
-      stderr: t.stderr,
-    }));
+      isNewFailure: t.isNewFailure,
+    })),
+  );
+
+  const failures = encodeRunFailures(
+    run.tests
+      .map((t, index) => ({ test: t, index }))
+      .filter(({ test }) => test.outcome === 'failed')
+      .map(({ test, index }) => ({
+        testIndex: index,
+        message: test.message,
+        stackTrace: test.stackTrace,
+        stdout: test.stdout,
+        stderr: test.stderr,
+      })),
+  );
 
   return {
     version: HISTORY_SCHEMA_VERSION,
@@ -218,7 +226,8 @@ function buildRunRecord(
       completedAt: run.context.completedAt,
     },
     stats: { ...run.stats },
-    tests,
+    ...(encodedTests.classes ? { classes: encodedTests.classes } : {}),
+    tests: encodedTests.tests,
     failures,
     links: {
       workflowUrl: run.context.workflowUrl,
@@ -403,9 +412,10 @@ function updateRepositoryTests(
 ): RepositoryTestsFile {
   const retainedRunIds = new Set(branchHistory.runs.map((r) => r.runId));
   const cutoff = Date.now() - retainDays * 24 * 60 * 60 * 1000;
+  const existingTests = existing ? decodeRepositoryTestsFile(existing) : {};
   const tests: Record<string, TestHistoryEntry> = {};
 
-  for (const [name, entry] of Object.entries(existing?.tests ?? {})) {
+  for (const [name, entry] of Object.entries(existingTests)) {
     const filtered = entry.points.filter((p) => {
       if (new Date(p.date).getTime() < cutoff) return false;
       if (p.branchKey === branchKey && !retainedRunIds.has(p.runId)) return false;
@@ -440,11 +450,7 @@ function updateRepositoryTests(
     tests[test.fullName] = { ...computeTestPassRate(points), points };
   }
 
-  return {
-    version: HISTORY_SCHEMA_VERSION,
-    updatedAt: new Date().toISOString(),
-    tests,
-  };
+  return encodeRepositoryTestsFile(tests, existing, new Date().toISOString());
 }
 
 export function createEmptyRepositoriesIndex(): RepositoriesIndex {

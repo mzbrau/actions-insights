@@ -19,7 +19,7 @@ export function useRepositoryTestTrends(repoKey: string | undefined) {
     (async () => {
       try {
         const data = await loadRepositoryTests(repoKey);
-        if (!cancelled) setTrends(data?.tests ?? null);
+        if (!cancelled) setTrends(data);
       } catch {
         if (!cancelled) setTrends(null);
       } finally {

@@ -144,7 +144,7 @@ if [[ -n "${DEFAULT_REPO}" ]]; then
     const p = '${WORKDIR}/repo/config.json';
     const cfg = JSON.parse(fs.readFileSync(p, 'utf8'));
     cfg.defaultRepository = '${DEFAULT_REPO}';
-    fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
+    fs.writeFileSync(p, JSON.stringify(cfg));
   "
 fi
 

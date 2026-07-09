@@ -44,15 +44,28 @@ describe('history-publisher', () => {
 
     const runFile = update.files.find((f) => f.path.endsWith('.json') && f.path.includes('/runs/'));
     expect(runFile).toBeDefined();
-    const record = runFile!.content as { failures: unknown[]; tests: unknown[] };
+    const record = runFile!.content as {
+      version: number;
+      classes?: string[];
+      failures: Array<{ t: number }>;
+      tests: Array<{ c?: number; m?: string; n?: string }>;
+    };
+    expect(record.version).toBe(2);
+    expect(record.classes).toEqual(['SampleTests']);
     expect(record.failures).toHaveLength(1);
+    expect(record.failures[0].t).toBe(1);
     expect(record.tests).toHaveLength(3);
+    expect(record.tests[0]).toMatchObject({ c: 0, m: 'ShouldPass' });
 
     const testsFile = update.files.find((f) => f.path.endsWith('tests.json'));
     expect(testsFile).toBeDefined();
-    const tests = testsFile!.content as { tests: Record<string, { runCount: number }> };
-    expect(tests.tests['SampleTests.ShouldFail']).toBeDefined();
-    expect(tests.tests['SampleTests.ShouldFail'].runCount).toBe(1);
+    const tests = testsFile!.content as {
+      names: string[];
+      entries: Record<string, { runCount: number }>;
+    };
+    const failId = String(tests.names.indexOf('SampleTests.ShouldFail'));
+    expect(tests.entries[failId]).toBeDefined();
+    expect(tests.entries[failId].runCount).toBe(1);
   });
 
   it('updates repositories index with repo entry', () => {
@@ -73,7 +86,7 @@ describe('history-publisher', () => {
   it('prunes branch history by limit and age', () => {
     const now = Date.now();
     const history: BranchHistory = {
-      version: 1,
+      version: 2,
       branchKey: 'main',
       branchLabel: 'main',
       updatedAt: new Date().toISOString(),
@@ -169,9 +182,11 @@ describe('history-publisher', () => {
     });
 
     const tests2 = second.files.find((f) => f.path.endsWith('tests.json'))!.content as {
-      tests: Record<string, { runCount: number; points: { runId: string }[] }>;
+      names: string[];
+      entries: Record<string, { runCount: number; points: { runId: string }[] }>;
     };
-    const entry = tests2.tests['SampleTests.ShouldFail'];
+    const failId = String(tests2.names.indexOf('SampleTests.ShouldFail'));
+    const entry = tests2.entries[failId];
     expect(entry.runCount).toBe(2);
     expect(entry.points.map((p) => p.runId)).toContain('2');
   });

@@ -85,6 +85,8 @@ For each imported run, the tool writes the same JSON files as a live `history-en
 
 Runs already present in the history repository (matched by `workflowRunId`) are skipped.
 
+Imported JSON uses **schema v2** (minified, class dictionaries, name index). See [Data model](data-model.md).
+
 ## Related
 
 - [Migration guide](migration.md) — moving from cache-only history
