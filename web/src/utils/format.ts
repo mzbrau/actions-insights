@@ -31,6 +31,13 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleString();
 }
 
+export function formatDateCompact(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export function shortTestName(fullName: string): string {
   const lastDot = fullName.lastIndexOf('.');
   return lastDot >= 0 ? fullName.slice(lastDot + 1) : fullName;

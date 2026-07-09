@@ -721,22 +721,28 @@ kbd {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
   animation: slideUp 0.4s ease;
 }
 
 .dashboard-title {
   margin: 0;
-  font-size: 28px;
+  font-size: 21px;
   font-weight: 700;
+}
+
+.dashboard-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .health-card {
   display: flex;
-  gap: 24px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 8px 12px;
   background: var(--surface-container-low);
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius);
@@ -745,7 +751,7 @@ kbd {
 .health-card-stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .health-card-label {
@@ -757,7 +763,7 @@ kbd {
 }
 
 .health-card-value {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -768,9 +774,9 @@ kbd {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  margin-bottom: 24px;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
   background: var(--surface-container-lowest);
   border: 1px solid var(--outline-variant);
   border-radius: var(--radius);
@@ -816,29 +822,114 @@ kbd {
 
 .metrics-bento {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: minmax(120px, 1fr) minmax(200px, 2fr) minmax(120px, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: stretch;
 }
 
 @media (max-width: 900px) {
   .metrics-bento { grid-template-columns: 1fr; }
 }
 
-.quick-stats-stack {
+.metrics-bento .chart-card-compact {
+  padding: 10px 12px;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  min-height: 0;
 }
 
-.quick-stats-stack .stat-card { flex: 1; }
-.quick-stats-stack .stat-value { font-size: 22px; }
+.metrics-bento .chart-card-compact h3 {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.metrics-bento .chart-card-compact .chart-wrap {
+  flex: 1;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.metrics-bento .chart-card-compact:has(.duration-trend-chart) .chart-wrap {
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+.quick-stats-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  animation: slideUp 0.4s ease backwards;
+}
+
+.quick-stats-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.quick-stats-row:not(:last-child) {
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.quick-stats-row:first-child {
+  padding-top: 0;
+}
+
+.quick-stats-row:last-child {
+  padding-bottom: 0;
+}
+
+.quick-stats-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-variant);
+}
+
+.quick-stats-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.quick-stats-value.failed {
+  color: var(--error);
+}
 
 .pass-rate-ring {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.pass-rate-ring-fill {
+  width: min(100%, 130px);
+  height: min(100%, 130px);
+  max-height: 100%;
+}
+
+.pass-rate-ring-fill svg {
+  display: block;
 }
 
 .pass-rate-ring-label {
@@ -852,6 +943,147 @@ kbd {
 .pass-rate-value {
   font-size: 24px;
   font-weight: 700;
+}
+
+.metrics-bento .pass-rate-value {
+  font-size: 20px;
+}
+
+/* Duration trend chart */
+.duration-trend-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.duration-trend-bar-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  overflow: visible;
+}
+
+.duration-trend-bar {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform var(--transition);
+}
+
+.duration-trend-bar-track {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.duration-trend-bar-key,
+.duration-trend-bar-date {
+  flex-shrink: 0;
+}
+
+.duration-trend-bar:hover .duration-trend-bar-fill,
+.duration-trend-bar:focus-visible .duration-trend-bar-fill {
+  opacity: 0.85;
+  filter: brightness(1.1);
+}
+
+.duration-trend-bar:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.duration-trend-bar-fill {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 3px 3px 0 0;
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+.duration-trend-bar-key {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.duration-trend-bar-date {
+  font-size: 8px;
+  color: var(--outline);
+  line-height: 1.2;
+}
+
+.duration-trend-tooltip {
+  position: absolute;
+  z-index: 20;
+  transform: translate(-50%, calc(-100% - 8px));
+  min-width: 180px;
+  max-width: 260px;
+  padding: 10px 12px;
+  background: var(--surface-container-highest, var(--surface-container-high));
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  font-size: 12px;
+  animation: fadeIn 0.15s ease;
+}
+
+.duration-trend-tooltip-status {
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-transform: capitalize;
+}
+
+.duration-trend-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.duration-trend-tooltip-label {
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.duration-trend-tooltip .passed-text { color: var(--success); }
+.duration-trend-tooltip .failed-text { color: var(--error); }
+
+.duration-trend-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--outline-variant);
 }
 
 .unified-runs-section {

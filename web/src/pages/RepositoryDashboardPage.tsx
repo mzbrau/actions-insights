@@ -7,11 +7,11 @@ import { formatDuration, statusIcon } from '../utils/format';
 import { AppShell } from '../components/layout/AppShell';
 import { DashboardTopBar } from '../components/layout/DashboardTopBar';
 import { BranchFilterBar } from '../components/dashboard/BranchFilterBar';
+import { QuickStatsPanel } from '../components/dashboard/QuickStatsPanel';
 import { UnifiedRunsTable } from '../components/dashboard/UnifiedRunsTable';
 import { PassRateRing } from '../components/charts/PassRateRing';
 import { DurationTrendChart } from '../components/charts/DurationTrendChart';
 import { ChartCard } from '../components/ui/ChartCard';
-import { StatCard } from '../components/ui/StatCard';
 
 export function RepositoryDashboardPage() {
   const { repoKey } = useParams<{ repoKey: string }>();
@@ -87,7 +87,7 @@ export function RepositoryDashboardPage() {
       <div className="dashboard-header">
         <div>
           <h1 className="dashboard-title">{metadata.name}</h1>
-          <p className="muted">Actions workflow monitoring and test analytics.</p>
+          <p className="muted dashboard-subtitle">Actions workflow monitoring and test analytics.</p>
         </div>
         <div className="health-card">
           <div className="health-card-stat">
@@ -111,29 +111,27 @@ export function RepositoryDashboardPage() {
       />
 
       <div className="metrics-bento">
-        <ChartCard title="Pass Rate">
-          <PassRateRing passRate={metrics.passRate} />
+        <ChartCard title="Pass Rate" compact>
+          <PassRateRing passRate={metrics.passRate} fill />
         </ChartCard>
 
-        <ChartCard title="Build Performance">
+        <ChartCard title="Build Performance" compact>
           <DurationTrendChart
             runs={chartRuns}
-            width={360}
-            height={140}
-            onBarClick={(runId) => {
-              const run = runs.find((r) => r.runId === runId);
-              if (run && repoKey) {
-                navigate(`/r/${repoKey}/b/${encodeURIComponent(run.branchKey)}/run/${runId}`);
+            singleBranchView={Boolean(branchFilter)}
+            onBarClick={(run) => {
+              if (repoKey) {
+                navigate(`/r/${repoKey}/b/${encodeURIComponent(run.branchKey)}/run/${run.runId}`);
               }
             }}
           />
         </ChartCard>
 
-        <div className="quick-stats-stack">
-          <StatCard label="Total" value={metrics.total} />
-          <StatCard label="Avg" value={formatDuration(metrics.avgDurationMs)} />
-          <StatCard label="Fail" value={`${metrics.failRate}%`} variant="failed" />
-        </div>
+        <QuickStatsPanel
+          total={metrics.total}
+          avgDuration={formatDuration(metrics.avgDurationMs)}
+          failRate={`${metrics.failRate}%`}
+        />
       </div>
 
       <UnifiedRunsTable runs={runs} search={search} />
