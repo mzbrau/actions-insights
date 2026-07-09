@@ -1,9 +1,13 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: Quick Start
 ---
 
 # Quick Start
+
+:::tip Prefer guided setup?
+Ask your AI assistant to set up Actions Insights using the [AI Setup Guide](./ai-setup).
+:::
 
 Get Actions Insights running in your workflow with sensible defaults. All four output channels are enabled except the history repository.
 

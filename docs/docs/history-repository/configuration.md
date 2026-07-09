@@ -33,7 +33,9 @@ title: Configuration
 ## Secret setup
 
 1. Create a fine-grained PAT or classic PAT with `contents: write` on the history repository
-2. Add as `ACTIONS_INSIGHTS_HISTORY_TOKEN` in each source repository's secrets
+2. Add the token as a repository secret in each source repository
+
+We recommend naming the secret `ACTIONS_INSIGHTS_HISTORY_TOKEN`. The name is arbitrary, but it must match the `secrets.*` reference in your workflow's `history-token` input.
 
 ## Dashboard config
 

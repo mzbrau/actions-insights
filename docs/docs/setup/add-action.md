@@ -29,6 +29,44 @@ permissions:
 
 For pull requests from forks, you may need `pull_request_target` or a separate reporting job — see the [Configuration Reference](../reference/configuration#permissions).
 
+### Pull requests from forks
+
+`GITHUB_TOKEN` from a `pull_request` workflow cannot write PR comments on fork PRs. Use one of these patterns:
+
+1. **Separate reporting job** (recommended) — run tests on the fork code, upload result files as artifacts, then run Actions Insights in a trusted job with `pull-requests: write`:
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: dotnet test --logger "trx;LogFileName=results.trx"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/*.trx'
+
+  report:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-results
+      - uses: mzbrau/actions-insights@v1
+        with:
+          test-results: '**/*.trx'
+```
+
+2. **`pull_request_target`** — only when you understand the security implications of running untrusted code with elevated permissions.
+
+See the [Setup Checklist](./checklist) for a full pre-flight review.
+
 ## Step Placement
 
 ```yaml

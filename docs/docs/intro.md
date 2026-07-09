@@ -47,6 +47,7 @@ Actions Insights is **Apache 2.0 licensed** and fully open source. The optional 
 
 ## Next Steps
 
+- **[AI Setup Guide](./setup/ai-setup)** — ask your AI assistant to set this up for you
 - **[Quick Start](./setup/quick-start)** — add Actions Insights to your workflow in minutes
 - **[Choose Your Outputs](./setup/choose-outputs)** — configure only the reporting channels you need
 - **[Configuration Reference](./reference/configuration)** — full input/output reference

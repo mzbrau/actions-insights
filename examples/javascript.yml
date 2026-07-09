@@ -1,0 +1,36 @@
+# Example: JavaScript JUnit test reports (Vitest)
+# Copy relevant sections into your workflow.
+
+name: Example JavaScript Test Reports
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npx vitest run --reporter=junit --outputFile=test-results.xml
+
+      - name: Actions Insights
+        uses: mzbrau/actions-insights@v1
+        with:
+          test-results: 'test-results.xml'

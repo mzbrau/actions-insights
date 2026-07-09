@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Choose Your Outputs
 ---
 
@@ -53,10 +53,12 @@ Add the [history repository](./history-repository) on top of any of the above. T
 
 Follow these steps in order:
 
-1. **[Prepare test output](./prepare-test-output)** — configure your test runner to write result files
-2. **[Add the action](./add-action)** — add the Actions Insights step to your workflow
-3. **Configure outputs** — pick the channels above that match your needs
-4. **[Example workflows](./example-workflows)** — copy a complete workflow for your scenario
+1. **[AI Setup Guide](./ai-setup)** — ask your AI assistant to set this up for you
+2. **[Prepare test output](./prepare-test-output)** — configure your test runner to write result files
+3. **[Add the action](./add-action)** — add the Actions Insights step to your workflow
+4. **Configure outputs** — pick the channels above that match your needs
+5. **[Example workflows](./example-workflows)** — copy a complete workflow for your scenario
+6. **[Setup checklist](./checklist)** — verify everything before merging
 
 ## Architecture Overview
 

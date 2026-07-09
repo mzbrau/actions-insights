@@ -40,6 +40,8 @@ The action auto-detects the format from file content. Use the `test-results` inp
     test-results: '**/TEST-*.xml'
 ```
 
+See the [Java example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/java.yml).
+
 ## Python (JUnit via pytest)
 
 ```yaml
@@ -50,6 +52,62 @@ The action auto-detects the format from file content. Use the `test-results` inp
   with:
     test-results: 'test-results.xml'
 ```
+
+See the [Python example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/python.yml).
+
+## JavaScript / TypeScript (JUnit)
+
+### Jest
+
+```yaml
+- name: Run tests
+  run: npx jest --ci --reporters=default --reporters=jest-junit
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'junit.xml'
+```
+
+Install `jest-junit` and configure it in `jest.config.js` to write `junit.xml`.
+
+### Vitest
+
+```yaml
+- name: Run tests
+  run: npx vitest run --reporter=junit --outputFile=test-results.xml
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+See the [JavaScript example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/javascript.yml).
+
+## Go (JUnit via gotestsum)
+
+```yaml
+- name: Run tests
+  run: gotestsum --junitfile test-results.xml -- ./...
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+Install `gotestsum` before running tests (e.g. `go install gotest.tools/gotestsum@latest`).
+
+## Ruby (JUnit via rspec_junit_formatter)
+
+```yaml
+- name: Run tests
+  run: bundle exec rspec --format RspecJunitFormatter --out test-results.xml
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+Add the `rspec_junit_formatter` gem to your project.
 
 ## Multiple Result Files
 

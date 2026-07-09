@@ -93,7 +93,7 @@ jobs:
           test-results: '**/*.trx'
           history-enabled: true
           history-repository: 'my-org/actions-insights-history'
-          history-token: ${{ secrets.HISTORY_REPO_TOKEN }}
+          history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 ```
 
 See [History Repository Deployment](../history-repository/deployment) for one-time setup.
@@ -106,6 +106,30 @@ See [History Repository Deployment](../history-repository/deployment) for one-ti
   with:
     test-results: '**/TEST-*.xml'
 ```
+
+See the full [Java example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/java.yml).
+
+## Python (JUnit)
+
+```yaml
+- run: pytest --junitxml=test-results.xml
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+See the full [Python example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/python.yml).
+
+## JavaScript (JUnit via Vitest)
+
+```yaml
+- run: npx vitest run --reporter=junit --outputFile=test-results.xml
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+See the full [JavaScript example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/javascript.yml).
 
 ## Full Reference
 

@@ -8,6 +8,8 @@ GitHub-native test reports for GitHub Actions. Parse TRX, JUnit, NUnit, and xUni
 
 ## Quick Start
 
+**Prefer guided setup?** Ask your AI assistant to set up Actions Insights using the [AI Setup Guide](https://www.ghactionsinsights.com/docs/setup/ai-setup).
+
 ```yaml
 permissions:
   contents: read
@@ -58,7 +60,7 @@ jobs:
 | `comment-mode` | `update` | `update` (upsert PR comment) or `off` |
 | `max-failed-tests-in-comment` | `10` | Cap failures shown in PR comment |
 | `max-stack-trace-lines` | `25` | Stack trace truncation |
-| `include-slowest-tests` | `10` | Slow test count (0 to disable) |
+| `include-slowest-tests` | `18` | Slow test count (0 to disable) |
 | `upload-html-report` | `true` | Upload HTML report artifact |
 | `publish-checks` | `true` | Publish GitHub check run |
 | `generate-job-summary` | `true` | Write job summary |
@@ -67,7 +69,7 @@ See the [Configuration Reference](https://www.ghactionsinsights.com/docs/referen
 
 ## Migration from GitHub Pages
 
-If you previously used the Pages-based workflow with a separate `deploy-pages` job, see [Migrate from GitHub Pages](https://www.ghactionsinsights.com/docs/reference/migration).
+If you previously used the Pages-based workflow with a separate `deploy-pages` job, GitHub Pages publishing has been removed. Use `upload-html-report: true` (the default) to upload the HTML report as a workflow artifact instead. See the [Configuration Reference](https://www.ghactionsinsights.com/docs/reference/configuration) for deprecated inputs.
 
 ## Development
 

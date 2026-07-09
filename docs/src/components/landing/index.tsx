@@ -60,6 +60,9 @@ export function Hero() {
           <Link to="/docs/setup/quick-start" className={styles.btnPrimary}>
             Get Started →
           </Link>
+          <Link to="/docs/setup/ai-setup" className={styles.btnGhost}>
+            Set up with AI
+          </Link>
           <Link to="https://mzbrau.github.io/mzbrau-actions-insights" className={styles.btnGhost}>
             Live Demo
           </Link>

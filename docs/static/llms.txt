@@ -1,0 +1,29 @@
+# Actions Insights
+> GitHub Action that parses TRX/JUnit/NUnit/xUnit test output into PR comments, job summaries, checks, and HTML artifacts.
+
+## Setup (start here)
+- AI Setup Guide: /docs/setup/ai-setup
+- Quick Start: /docs/setup/quick-start
+- Setup Checklist: /docs/setup/checklist
+- Choose outputs: /docs/setup/choose-outputs
+
+## Setup guide
+- Prepare test output: /docs/setup/prepare-test-output
+- Add the action: /docs/setup/add-action
+- Example workflows: /docs/setup/example-workflows
+- History repository: /docs/setup/history-repository
+
+## Reference
+- Configuration: /docs/reference/configuration
+- Architecture: /docs/reference/architecture
+
+## History repository
+- Deployment: /docs/history-repository/deployment
+- Configuration: /docs/history-repository/configuration
+- Troubleshooting: /docs/history-repository/troubleshooting
+
+## Examples
+- .NET workflow: https://github.com/mzbrau/actions-insights/blob/main/examples/dotnet.yml
+- Java workflow: https://github.com/mzbrau/actions-insights/blob/main/examples/java.yml
+- Python workflow: https://github.com/mzbrau/actions-insights/blob/main/examples/python.yml
+- JavaScript workflow: https://github.com/mzbrau/actions-insights/blob/main/examples/javascript.yml

@@ -40,7 +40,7 @@ flowchart LR
     test-results: '**/*.trx'
     history-enabled: true
     history-repository: 'my-org/actions-insights-history'
-    history-token: ${{ secrets.HISTORY_REPO_TOKEN }}
+    history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 ```
 
 ## Setup Steps
