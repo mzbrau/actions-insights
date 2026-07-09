@@ -79,7 +79,7 @@ VENDOR_DIR="${WEB_DIR}/vendor/history-models"
 rm -rf "${VENDOR_DIR}"
 mkdir -p "${VENDOR_DIR}/src"
 cp "${MODELS_DIR}/package.json" "${VENDOR_DIR}/"
-cp "${MODELS_DIR}/src/index.ts" "${VENDOR_DIR}/src/"
+cp "${MODELS_DIR}/src/"*.ts "${VENDOR_DIR}/src/"
 
 node -e "
 const fs = require('fs');

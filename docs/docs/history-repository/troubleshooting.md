@@ -11,6 +11,32 @@ If `setup-node` fails with "Some specified paths were not resolved, unable to ca
 
 See [Fixing an already-created history repository](deployment.md#fixing-an-already-created-history-repository) in the deployment guide.
 
+## Pages build fails with TypeScript errors
+
+If the Pages workflow fails during `npm run build` with errors like:
+
+- `Cannot find module './encoding'` in `vendor/history-models/src/index.ts`
+- `Type 'RunSummary[]' is not assignable to type 'EnrichedRun[]'` in `BranchPage.tsx`
+- Implicit `any` types in `RunDetailPage.tsx`
+
+The vendored `@actions-insights/history-models` package is incomplete or the dashboard source is stale. Schema v2 added `encoding.ts` alongside `index.ts`, and older dashboard copies may still include removed pages such as `BranchPage.tsx`.
+
+Re-sync the dashboard from a current `actions-insights` checkout:
+
+```bash
+bash scripts/update-history-repo.sh update <owner>/<history-repo> --verify --yes
+```
+
+Or fix manually:
+
+1. Delete `web/src/pages/BranchPage.tsx` if it still exists
+2. Re-vendor history-models:
+   ```bash
+   bash scripts/prepare-standalone-web.sh /path/to/history-repo/web packages/history-models --verify
+   ```
+3. Commit `web/vendor/history-models/src/encoding.ts`, the updated `web/package-lock.json`, and any removed stale files
+4. Push to `main`
+
 ## node_modules committed to git
 
 If `web/node_modules/` was committed (for example before `.gitignore` was added), remove it from version control:

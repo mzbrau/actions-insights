@@ -30,6 +30,12 @@ jobs:
 
       - run: npm run build
 
+      - name: Verify standalone history-repo web build
+        run: |
+          tmpdir=$(mktemp -d)
+          cp -R web "$tmpdir/web"
+          bash scripts/prepare-standalone-web.sh --verify "$tmpdir/web" packages/history-models
+
       - name: Generate sample report
         run: npm run generate-sample
 

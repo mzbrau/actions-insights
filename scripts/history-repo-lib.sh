@@ -91,7 +91,11 @@ sync_dashboard() {
   fi
 
   mkdir -p "${repo_path}/web"
-  cp -R "${WEB_DIR}/." "${repo_path}/web/"
+  rsync -a --delete \
+    --exclude node_modules \
+    --exclude dist \
+    --exclude vendor \
+    "${WEB_DIR}/" "${repo_path}/web/"
   rm -rf "${repo_path}/web/node_modules" "${repo_path}/web/dist"
 
   printf 'export const APP_VERSION = %s;\n' \
