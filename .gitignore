@@ -8,3 +8,4 @@ _site/
 coverage/
 licenses.txt
 *.tsbuildinfo
+web/src/version.ts

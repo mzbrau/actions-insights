@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useTheme } from '../../theme/ThemeProvider';
+import { APP_VERSION } from '../../version';
 import { SidebarTree } from './SidebarTree';
 
 interface AppShellProps {
@@ -47,6 +48,9 @@ export function AppShell({ children, topBar }: AppShellProps) {
         <SidebarTree onNavigate={() => setSidebarOpen(false)} />
 
         <div className="sidebar-footer">
+          <span className="sidebar-version" title="Dashboard version">
+            {APP_VERSION}
+          </span>
           <span><kbd>/</kbd> search</span>
           <span><kbd>g</kbd> <kbd>r</kbd> repos</span>
         </div>

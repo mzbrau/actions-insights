@@ -665,6 +665,11 @@ kbd {
   color: var(--on-surface-variant);
 }
 
+.sidebar-version {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.02em;
+}
+
 .main-canvas {
   flex: 1;
   min-width: 0;

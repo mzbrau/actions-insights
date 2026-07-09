@@ -1,6 +1,6 @@
 {
   "name": "actions-insights",
-  "version": "1.0.0",
+  "version": "1.10.0",
   "description": "TeamCity-style test reports for GitHub Actions",
   "main": "dist/index.js",
   "workspaces": [
