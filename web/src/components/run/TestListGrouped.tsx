@@ -9,6 +9,7 @@ const COL_SPAN = 7;
 interface TestListGroupedProps {
   grouped: GroupedTests;
   repository: string;
+  repoKey?: string;
   workflowUrl?: string;
   jobUrl?: string;
   trends: Record<string, TestHistoryEntry> | null;
@@ -19,6 +20,7 @@ interface TestListGroupedProps {
 export function TestListGrouped({
   grouped,
   repository,
+  repoKey,
   workflowUrl,
   jobUrl,
   trends,
@@ -48,6 +50,7 @@ export function TestListGrouped({
                     key={test.n}
                     test={test}
                     repository={repository}
+                    repoKey={repoKey}
                     workflowUrl={workflowUrl}
                     jobUrl={jobUrl}
                     trends={trends}

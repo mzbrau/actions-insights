@@ -7,17 +7,22 @@ import { formatDuration, statusIcon } from '../utils/format';
 import { AppShell } from '../components/layout/AppShell';
 import { DashboardTopBar } from '../components/layout/DashboardTopBar';
 import { BranchFilterBar } from '../components/dashboard/BranchFilterBar';
+import { ProblematicTestsPanel } from '../components/dashboard/ProblematicTestsPanel';
 import { QuickStatsPanel } from '../components/dashboard/QuickStatsPanel';
 import { UnifiedRunsTable } from '../components/dashboard/UnifiedRunsTable';
 import { PassRateRing } from '../components/charts/PassRateRing';
 import { DurationTrendChart } from '../components/charts/DurationTrendChart';
 import { ChartCard } from '../components/ui/ChartCard';
+import { TabBar } from '../components/ui/TabBar';
+
+type DashboardTab = 'builds' | 'problematic-tests';
 
 export function RepositoryDashboardPage() {
   const { repoKey } = useParams<{ repoKey: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const branchFilter = searchParams.get('branch') ?? '';
+  const activeTab = (searchParams.get('tab') === 'problematic-tests' ? 'problematic-tests' : 'builds') as DashboardTab;
   const [search, setSearch] = useState('');
   const [metadata, setMetadata] = useState<Awaited<ReturnType<typeof loadRepository>>['metadata'] | null>(null);
   const [branches, setBranches] = useState<BranchIndexEntry[]>([]);
@@ -51,12 +56,30 @@ export function RepositoryDashboardPage() {
   const chartRuns = useMemo(() => runs.slice(0, 20).reverse(), [runs]);
 
   const setBranchFilter = (branchKey: string) => {
-    if (branchKey) setSearchParams({ branch: branchKey });
-    else setSearchParams({});
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (branchKey) next.set('branch', branchKey);
+      else next.delete('branch');
+      return next;
+    });
+  };
+
+  const setActiveTab = (tab: DashboardTab) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === 'builds') next.delete('tab');
+      else next.set('tab', tab);
+      return next;
+    }, { replace: true });
   };
 
   const loading = repoLoading || runsLoading;
   const error = repoError ?? runsError;
+
+  const dashboardTabs = [
+    { id: 'builds', label: 'Builds' },
+    { id: 'problematic-tests', label: 'Problematic Tests' },
+  ];
 
   if (loading) {
     return (
@@ -79,7 +102,7 @@ export function RepositoryDashboardPage() {
       topBar={
         <DashboardTopBar
           repoName={metadata.name}
-          search={search}
+          search={activeTab === 'builds' ? search : ''}
           onSearchChange={setSearch}
         />
       }
@@ -103,38 +126,51 @@ export function RepositoryDashboardPage() {
         </div>
       </div>
 
-      <BranchFilterBar
-        branches={branches}
-        selectedBranch={branchFilter}
-        onBranchChange={setBranchFilter}
-        lastUpdated={metadata.lastRunDate}
+      <TabBar
+        tabs={dashboardTabs}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as DashboardTab)}
+        ariaLabel="Repository sections"
       />
 
-      <div className="metrics-bento">
-        <ChartCard title="Pass Rate" compact>
-          <PassRateRing passRate={metrics.passRate} fill />
-        </ChartCard>
-
-        <ChartCard title="Build Performance" compact>
-          <DurationTrendChart
-            runs={chartRuns}
-            singleBranchView={Boolean(branchFilter)}
-            onBarClick={(run) => {
-              if (repoKey) {
-                navigate(`/r/${repoKey}/b/${encodeURIComponent(run.branchKey)}/run/${run.runId}`);
-              }
-            }}
+      {activeTab === 'builds' ? (
+        <div className="tab-panel" role="tabpanel">
+          <BranchFilterBar
+            branches={branches}
+            selectedBranch={branchFilter}
+            onBranchChange={setBranchFilter}
+            lastUpdated={metadata.lastRunDate}
           />
-        </ChartCard>
 
-        <QuickStatsPanel
-          total={metrics.total}
-          avgDuration={formatDuration(metrics.avgDurationMs)}
-          failRate={`${metrics.failRate}%`}
-        />
-      </div>
+          <div className="metrics-bento">
+            <ChartCard title="Pass Rate" compact>
+              <PassRateRing passRate={metrics.passRate} fill />
+            </ChartCard>
 
-      <UnifiedRunsTable runs={runs} search={search} />
+            <ChartCard title="Build Performance" compact>
+              <DurationTrendChart
+                runs={chartRuns}
+                singleBranchView={Boolean(branchFilter)}
+                onBarClick={(run) => {
+                  if (repoKey) {
+                    navigate(`/r/${repoKey}/b/${encodeURIComponent(run.branchKey)}/run/${run.runId}`);
+                  }
+                }}
+              />
+            </ChartCard>
+
+            <QuickStatsPanel
+              total={metrics.total}
+              avgDuration={formatDuration(metrics.avgDurationMs)}
+              failRate={`${metrics.failRate}%`}
+            />
+          </div>
+
+          <UnifiedRunsTable runs={runs} search={search} />
+        </div>
+      ) : (
+        repoKey && <ProblematicTestsPanel repoKey={repoKey} />
+      )}
     </AppShell>
   );
 }

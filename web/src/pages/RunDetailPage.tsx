@@ -124,6 +124,7 @@ export function RunDetailPage() {
           totalCount={run.stats.total}
           trends={trends}
           repository={run.context.repository}
+          repoKey={repoKey}
           workflowUrl={run.links.workflowUrl}
           jobUrl={run.links.jobUrl}
           slowThreshold={slowThreshold}

@@ -734,8 +734,71 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   animation: slideUp 0.4s ease;
+}
+
+.dashboard-tabs {
+  margin-bottom: 16px;
+}
+
+.problematic-tests-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.threshold-control {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}
+
+.threshold-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.threshold-input {
+  width: 72px;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  background: var(--surface-container);
+  color: var(--on-surface);
+}
+
+.threshold-suffix {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.threshold-count {
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.problematic-tests-table-wrap {
+  overflow-x: auto;
+}
+
+.problematic-tests-table {
+  width: 100%;
+}
+
+.problematic-tests-table th,
+.problematic-tests-table td {
+  padding: 8px 12px;
+}
+
+.history-table tbody tr.clickable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 
 .dashboard-title {

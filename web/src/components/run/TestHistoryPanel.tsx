@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { TestHistoryPoint } from '@actions-insights/history-models';
 import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
 import { formatDuration, outcomeIcon } from '../../utils/format';
@@ -33,14 +34,29 @@ export function TestHistorySparkline({ points, maxBars = 20 }: TestHistorySparkl
 
 interface TestHistoryPanelProps {
   entry: { passRate: number; runCount: number; points: TestHistoryPoint[] } | null;
+  repoKey?: string;
 }
 
-export function TestHistoryPanel({ entry }: TestHistoryPanelProps) {
+export function TestHistoryPanel({ entry, repoKey }: TestHistoryPanelProps) {
+  const navigate = useNavigate();
+
   if (!entry || entry.points.length === 0) {
     return <p className="muted small">No history available yet.</p>;
   }
 
   const recent = entry.points.slice(0, 20);
+
+  const goToRun = (point: TestHistoryPoint) => {
+    if (!repoKey) return;
+    navigate(`/r/${repoKey}/b/${encodeURIComponent(point.branchKey)}/run/${point.runId}`);
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent, point: TestHistoryPoint) => {
+    if (repoKey && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      goToRun(point);
+    }
+  };
 
   return (
     <div className="test-history-content">
@@ -60,13 +76,20 @@ export function TestHistoryPanel({ entry }: TestHistoryPanelProps) {
         </thead>
         <tbody>
           {recent.map((p) => (
-              <tr key={`${p.runId}-${p.branchKey}-${p.date}`}>
-                <td>{new Date(p.date).toLocaleString()}</td>
-                <td>{p.branchLabel}</td>
-                <td>{outcomeIcon(p.o)}</td>
-                <td>{formatDuration(p.d)}</td>
-                <td><code>{p.commitShortSha}</code></td>
-              </tr>
+            <tr
+              key={`${p.runId}-${p.branchKey}-${p.date}`}
+              className={repoKey ? 'clickable' : undefined}
+              role={repoKey ? 'link' : undefined}
+              tabIndex={repoKey ? 0 : undefined}
+              onClick={repoKey ? () => goToRun(p) : undefined}
+              onKeyDown={repoKey ? (e) => handleRowKeyDown(e, p) : undefined}
+            >
+              <td>{new Date(p.date).toLocaleString()}</td>
+              <td>{p.branchLabel}</td>
+              <td>{outcomeIcon(p.o)}</td>
+              <td>{formatDuration(p.d)}</td>
+              <td><code>{p.commitShortSha}</code></td>
+            </tr>
           ))}
         </tbody>
       </table>

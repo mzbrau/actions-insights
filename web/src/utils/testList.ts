@@ -119,3 +119,29 @@ export function getPassRateFromTrends(
   if (!entry) return null;
   return { rate: entry.passRate, count: entry.runCount };
 }
+
+export function getShortNameFromFullName(fullName: string): string {
+  const lastDot = fullName.lastIndexOf('.');
+  return lastDot >= 0 ? fullName.slice(lastDot + 1) : fullName;
+}
+
+export function getClassNameFromFullName(fullName: string): string {
+  const lastDot = fullName.lastIndexOf('.');
+  return lastDot >= 0 ? fullName.slice(0, lastDot) : '—';
+}
+
+export function getProblematicTests(
+  trends: Record<string, TestHistoryEntry> | null,
+  threshold: number,
+): Array<{ name: string; entry: TestHistoryEntry }> {
+  if (!trends) return [];
+
+  return Object.entries(trends)
+    .filter(([, entry]) => entry.runCount > 0 && entry.passRate < threshold)
+    .map(([name, entry]) => ({ name, entry }))
+    .sort((a, b) => {
+      const rateDiff = a.entry.passRate - b.entry.passRate;
+      if (rateDiff !== 0) return rateDiff;
+      return a.name.localeCompare(b.name);
+    });
+}

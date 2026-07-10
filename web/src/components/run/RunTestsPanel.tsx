@@ -16,6 +16,7 @@ interface RunTestsPanelProps {
   totalCount: number;
   trends: Record<string, TestHistoryEntry> | null;
   repository: string;
+  repoKey?: string;
   workflowUrl?: string;
   jobUrl?: string;
   slowThreshold?: number;
@@ -42,6 +43,7 @@ export function RunTestsPanel({
   totalCount,
   trends,
   repository,
+  repoKey,
   workflowUrl,
   jobUrl,
   slowThreshold = 1000,
@@ -133,6 +135,7 @@ export function RunTestsPanel({
             <TestListGrouped
               grouped={grouped}
               repository={repository}
+              repoKey={repoKey}
               workflowUrl={workflowUrl}
               jobUrl={jobUrl}
               trends={trends}
@@ -145,6 +148,7 @@ export function RunTestsPanel({
                 key={test.n}
                 test={test}
                 repository={repository}
+                repoKey={repoKey}
                 workflowUrl={workflowUrl}
                 jobUrl={jobUrl}
                 trends={trends}

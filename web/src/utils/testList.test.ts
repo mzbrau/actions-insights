@@ -4,11 +4,15 @@ import {
   buildCodeSearchUrl,
   filterTests,
   getClassName,
+  getClassNameFromFullName,
   getCodeSearchName,
+  getProblematicTests,
   getShortName,
+  getShortNameFromFullName,
   groupTestsByProjectAndClass,
   sortTests,
 } from './testList';
+import type { TestHistoryEntry } from '@actions-insights/history-models';
 
 function makeTest(overrides: Partial<CompactTestRecord> = {}): CompactTestRecord {
   return {
@@ -109,5 +113,29 @@ describe('testList', () => {
     ];
     const sorted = sortTests(tests, 'duration', () => null);
     expect(sorted[0].d).toBe(500);
+  });
+
+  it('derives short and class names from full test name', () => {
+    expect(getShortNameFromFullName('SampleTests.ShouldPass')).toBe('ShouldPass');
+    expect(getClassNameFromFullName('SampleTests.ShouldPass')).toBe('SampleTests');
+  });
+
+  it('returns problematic tests below threshold sorted worst-first', () => {
+    const trends: Record<string, TestHistoryEntry> = {
+      'A.Pass': { passRate: 100, runCount: 5, points: [] },
+      'B.Fail': { passRate: 0, runCount: 3, points: [] },
+      'C.Flaky': { passRate: 80, runCount: 10, points: [] },
+      'D.SkipOnly': { passRate: 0, runCount: 0, points: [] },
+      'E.Edge': { passRate: 95, runCount: 20, points: [] },
+    };
+
+    const result = getProblematicTests(trends, 95);
+    expect(result.map((t) => t.name)).toEqual(['B.Fail', 'C.Flaky']);
+    expect(result[0].entry.passRate).toBe(0);
+  });
+
+  it('returns empty array for null or empty trends', () => {
+    expect(getProblematicTests(null, 95)).toEqual([]);
+    expect(getProblematicTests({}, 95)).toEqual([]);
   });
 });

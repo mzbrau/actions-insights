@@ -13,6 +13,7 @@ const COL_SPAN = 7;
 interface TestRowProps {
   test: CompactTestRecord;
   repository: string;
+  repoKey?: string;
   workflowUrl?: string;
   jobUrl?: string;
   trends: Record<string, TestHistoryEntry> | null;
@@ -24,6 +25,7 @@ interface TestRowProps {
 export function TestRow({
   test,
   repository,
+  repoKey,
   workflowUrl,
   jobUrl,
   trends,
@@ -83,7 +85,7 @@ export function TestRow({
         <tr className="test-history-row">
           <td colSpan={COL_SPAN}>
             <div className="test-history open" id={historyId}>
-              <TestHistoryPanel entry={trends?.[test.n] ?? null} />
+              <TestHistoryPanel entry={trends?.[test.n] ?? null} repoKey={repoKey} />
             </div>
           </td>
         </tr>
