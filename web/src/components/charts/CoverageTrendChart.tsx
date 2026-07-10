@@ -110,7 +110,9 @@ export function runsToCoveragePoints(
   return runs
     .filter((run) => run.coverage?.line !== undefined)
     .map((run) => {
-      const projectMetrics = projectName && run.coverage?.projects?.[projectName];
+      const projectMetrics = projectName
+        ? run.coverage?.projects?.[projectName]
+        : undefined;
       const metrics = projectMetrics ?? run.coverage;
       return {
         runId: run.runId,

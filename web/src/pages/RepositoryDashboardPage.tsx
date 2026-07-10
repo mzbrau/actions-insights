@@ -14,6 +14,7 @@ import { UnifiedRunsTable } from '../components/dashboard/UnifiedRunsTable';
 import { PassRateRing } from '../components/charts/PassRateRing';
 import { DurationTrendChart } from '../components/charts/DurationTrendChart';
 import { ChartCard } from '../components/ui/ChartCard';
+import { TabBar } from '../components/ui/TabBar';
 import { CoverageTrendsPanel } from '../components/dashboard/CoverageTrendsPanel';
 
 type DashboardTab = 'builds' | 'problematic-tests' | 'trends' | 'coverage';
