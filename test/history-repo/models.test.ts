@@ -79,7 +79,46 @@ describe('encoding', () => {
       tests: encoded.tests,
     });
     expect(expanded[0].n).toBe(`${className}.${methodA}`);
+    expect(expanded[0].ns).toBe('Notey.Tests');
+    expect(expanded[0].c).toBe('DocumentStoreIndexTests');
+    expect(expanded[0].m).toBe(methodA);
     expect(expanded[1].n).toBe(`${className}.${methodB}`);
+    expect(expanded[1].m).toBe(methodB);
+  });
+
+  it('compresses flat full names when namespace, class, and method are available', () => {
+    const method = 'AcquireLockAsync_ShouldHandleHighConcurrency';
+    const qualifiedClass = 'Fig.Unit.Test.DistributedLockTests';
+
+    const encoded = encodeRunTests([
+      {
+        fullName: method,
+        outcomeCode: 0,
+        durationMs: 127,
+        namespace: 'Fig.Unit.Test',
+        className: 'DistributedLockTests',
+        method,
+      },
+      {
+        fullName: method.replace('HighConcurrency', 'MultipleDisposeCalls'),
+        outcomeCode: 0,
+        durationMs: 50,
+        namespace: 'Fig.Unit.Test',
+        className: 'DistributedLockTests',
+        method: method.replace('HighConcurrency', 'MultipleDisposeCalls'),
+      },
+    ]);
+
+    expect(encoded.classes).toEqual([qualifiedClass]);
+    expect(encoded.tests).toEqual([
+      { c: 0, m: method, o: 0, d: 127 },
+      {
+        c: 0,
+        m: method.replace('HighConcurrency', 'MultipleDisposeCalls'),
+        o: 0,
+        d: 50,
+      },
+    ]);
   });
 
   it('falls back to full name when class decomposition is unavailable', () => {
@@ -154,6 +193,8 @@ describe('encoding', () => {
     });
 
     expect(normalized.tests[0].n).toBe('SampleTests.ShouldFail');
+    expect(normalized.tests[0].c).toBe('SampleTests');
+    expect(normalized.tests[0].m).toBe('ShouldFail');
     expect(normalized.failures[0].fullName).toBe('SampleTests.ShouldFail');
   });
 

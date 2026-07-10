@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="1" testcasecount="3" result="Passed" total="3" passed="3" failed="0" skipped="0">
+  <test-suite type="Assembly" name="Fig.Unit.Test.dll" result="Passed">
+    <test-suite type="TestSuite" name="Fig" fullname="Fig" result="Passed">
+      <test-suite type="TestSuite" name="Unit" fullname="Fig.Unit" result="Passed">
+        <test-suite type="TestFixture" name="DistributedLockTests" fullname="Fig.Unit.Test.DistributedLockTests" result="Passed">
+          <test-case id="1" name="AcquireLockAsync_ShouldHandleHighConcurrency" result="Passed" duration="0.127" />
+          <test-case id="2" name="AcquireLockAsync_ShouldReleaseLockOnDispose" result="Passed" duration="0.050" />
+        </test-suite>
+        <test-suite type="TestFixture" name="SessionTests" fullname="Fig.Unit.Test.SessionTests" result="Passed">
+          <test-case id="3" name="Acquire_WithDifferentClientNames_ReturnsDifferentIds" result="Passed" duration="0.003" />
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

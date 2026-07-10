@@ -29,7 +29,7 @@ describe('testList', () => {
     const test = makeTest();
     expect(getShortName(test)).toBe('ShouldPass');
     expect(getCodeSearchName(test)).toBe('ShouldPass');
-    expect(getClassName(test)).toBe('SampleTests.SampleTests');
+    expect(getClassName(test)).toBe('MyProject.SampleTests');
   });
 
   it('builds GitHub code search URL', () => {
@@ -67,6 +67,39 @@ describe('testList', () => {
     ];
     const grouped = groupTestsByProjectAndClass(tests);
     expect(grouped.get('MyProject')?.get('Foo.Bar')).toHaveLength(2);
+  });
+
+  it('groups tests by method-aware class name when m is present', () => {
+    const className = 'Fig.Unit.Test.DistributedLockTests';
+    const tests = [
+      makeTest({
+        a: undefined,
+        n: `${className}.AcquireLockAsync_ShouldHandleHighConcurrency`,
+        m: 'AcquireLockAsync_ShouldHandleHighConcurrency',
+        ns: 'Fig.Unit.Test',
+        c: 'DistributedLockTests',
+      }),
+      makeTest({
+        i: 1,
+        a: undefined,
+        n: `${className}.AcquireLockAsync_ShouldReleaseLockOnDispose`,
+        m: 'AcquireLockAsync_ShouldReleaseLockOnDispose',
+        ns: 'Fig.Unit.Test',
+        c: 'DistributedLockTests',
+      }),
+    ];
+    const grouped = groupTestsByProjectAndClass(tests);
+    expect(grouped.get('—')?.get(className)).toHaveLength(2);
+  });
+
+  it('uses method suffix instead of last dot when method contains dots', () => {
+    const test = makeTest({
+      n: 'Namespace.Class.part1.part2',
+      m: 'part1.part2',
+      ns: 'Namespace',
+      c: 'Class',
+    });
+    expect(getClassName(test)).toBe('Namespace.Class');
   });
 
   it('sorts by duration descending', () => {

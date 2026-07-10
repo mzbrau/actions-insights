@@ -1,5 +1,5 @@
 import type { CompactTestRecord, TestHistoryEntry } from '@actions-insights/history-models';
-import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
+import { CODE_TO_OUTCOME, deriveClassNameFromCompactRecord } from '@actions-insights/history-models';
 
 export type TestSortBy = 'default' | 'name' | 'duration' | 'outcome' | 'passRate';
 export type TestFilterKey = 'failed' | 'passed' | 'skipped' | 'slow' | 'new';
@@ -19,10 +19,7 @@ export function getCodeSearchName(test: CompactTestRecord): string {
 }
 
 export function getClassName(test: CompactTestRecord): string {
-  if (test.ns && test.c) return `${test.ns}.${test.c}`;
-  const n = test.n || '';
-  const lastDot = n.lastIndexOf('.');
-  return lastDot > 0 ? n.slice(0, lastDot) : n;
+  return deriveClassNameFromCompactRecord(test);
 }
 
 export function getProjectName(test: CompactTestRecord): string {

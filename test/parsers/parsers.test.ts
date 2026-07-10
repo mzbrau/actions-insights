@@ -1,10 +1,12 @@
 import * as path from 'path';
 import { describe, expect, it } from 'vitest';
+import { encodeRunTests, expandRunTests } from '@actions-insights/history-models';
 import { junitParser } from '../../src/parsers/junit';
 import { nunitParser } from '../../src/parsers/nunit';
 import { trxParser } from '../../src/parsers/trx';
 import { xunitParser } from '../../src/parsers/xunit';
 import { detectParser, parseTestFiles } from '../../src/parsers/registry';
+import { groupTestsByProjectAndClass } from '../../web/src/utils/testList';
 import * as fs from 'fs';
 
 const fixtures = path.join(__dirname, '..', 'fixtures');
@@ -45,6 +47,46 @@ describe('NUnit parser', () => {
     const cases = nunitParser.parse(content, 'nunit.xml');
     expect(cases).toHaveLength(2);
     expect(cases.find((c) => c.name === 'FailingTest')?.message).toContain('Assert failed');
+  });
+
+  it('builds qualified names from suite hierarchy when fullname is missing', () => {
+    const content = fs.readFileSync(path.join(fixtures, 'nunit-no-fullname.xml'), 'utf8');
+    const cases = nunitParser.parse(content, 'nunit-no-fullname.xml');
+    expect(cases).toHaveLength(3);
+
+    const lockTests = cases.filter((c) => c.className === 'DistributedLockTests');
+    expect(lockTests).toHaveLength(2);
+    expect(lockTests[0].fullName).toBe(
+      'Fig.Unit.Test.DistributedLockTests.AcquireLockAsync_ShouldHandleHighConcurrency',
+    );
+    expect(lockTests[0].namespace).toBe('Fig.Unit.Test');
+    expect(lockTests[0].assembly).toBe('Fig.Unit.Test.dll');
+
+    const sessionTest = cases.find((c) => c.className === 'SessionTests');
+    expect(sessionTest?.fullName).toBe(
+      'Fig.Unit.Test.SessionTests.Acquire_WithDifferentClientNames_ReturnsDifferentIds',
+    );
+  });
+
+  it('groups parsed NUnit tests by fixture class through encode and expand', () => {
+    const content = fs.readFileSync(path.join(fixtures, 'nunit-no-fullname.xml'), 'utf8');
+    const cases = nunitParser.parse(content, 'nunit-no-fullname.xml');
+    const encoded = encodeRunTests(
+      cases.map((testCase) => ({
+        fullName: testCase.fullName,
+        outcomeCode: 0,
+        durationMs: testCase.durationMs,
+        namespace: testCase.namespace,
+        className: testCase.className,
+        method: testCase.method,
+        assembly: testCase.assembly,
+      })),
+    );
+    const expanded = expandRunTests({ classes: encoded.classes, tests: encoded.tests });
+    const grouped = groupTestsByProjectAndClass(expanded);
+
+    expect(grouped.get('Fig.Unit.Test.dll')?.get('Fig.Unit.Test.DistributedLockTests')).toHaveLength(2);
+    expect(grouped.get('Fig.Unit.Test.dll')?.get('Fig.Unit.Test.SessionTests')).toHaveLength(1);
   });
 });
 

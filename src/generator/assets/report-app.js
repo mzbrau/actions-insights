@@ -196,7 +196,16 @@
   }
 
   function getClassName(test) {
-    if (test.ns && test.c) return `${test.ns}.${test.c}`;
+    const method = test.m ?? test.n;
+    if (method && test.n.endsWith(`.${method}`)) {
+      return test.n.slice(0, -(method.length + 1));
+    }
+    if (test.ns && test.c && !test.c.includes('(')) {
+      return `${test.ns}.${test.c}`;
+    }
+    if (test.c && !test.c.includes('(')) {
+      return test.c;
+    }
     const n = test.n || '';
     const lastDot = n.lastIndexOf('.');
     return lastDot > 0 ? n.slice(0, lastDot) : n;

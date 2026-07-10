@@ -48,20 +48,61 @@ function getText(node: unknown): string | undefined {
   return undefined;
 }
 
+interface SuiteContext {
+  assembly?: string;
+  qualifiedPrefix?: string;
+}
+
+function isAssemblySuite(suite: Record<string, unknown>): boolean {
+  const type = ((suite['@_type'] as string) ?? '').toLowerCase();
+  return type === 'assembly';
+}
+
+function extendQualifiedPrefix(prefix: string | undefined, segment: string | undefined): string | undefined {
+  if (!segment) return prefix;
+  return prefix ? `${prefix}.${segment}` : segment;
+}
+
+function resolveSuiteQualifiedPrefix(
+  suite: Record<string, unknown>,
+  parentPrefix: string | undefined,
+): string | undefined {
+  const suiteFullName = suite['@_fullname'] as string | undefined;
+  if (suiteFullName) return suiteFullName;
+
+  const suiteType = ((suite['@_type'] as string) ?? '').toLowerCase();
+  if (suiteType === 'assembly') return parentPrefix;
+
+  const suiteName = suite['@_name'] as string | undefined;
+  if (!suiteName) return parentPrefix;
+
+  if (suiteType === 'testfixture' || suiteType === 'testsuite' || suiteType === 'testfixturesetup') {
+    return extendQualifiedPrefix(parentPrefix, suiteName);
+  }
+
+  return parentPrefix;
+}
+
 function walkSuites(
   suite: Record<string, unknown>,
   filePath: string,
-  parentAssembly?: string,
+  context: SuiteContext = {},
 ): TestCase[] {
   const cases: TestCase[] = [];
-  const assembly = (suite['@_name'] as string) ?? parentAssembly;
+  const assembly = isAssemblySuite(suite)
+    ? ((suite['@_name'] as string) ?? context.assembly)
+    : context.assembly;
+  const qualifiedPrefix = resolveSuiteQualifiedPrefix(suite, context.qualifiedPrefix);
+  const childContext: SuiteContext = { assembly, qualifiedPrefix };
 
   for (const tc of asArray(suite['test-case'] as unknown)) {
     if (!tc || typeof tc !== 'object') continue;
     const t = tc as Record<string, unknown>;
     const name = (t['@_name'] as string) ?? 'unknown';
-    const fullName = (t['@_fullname'] as string) ?? name;
-    const method = name;
+    const fullName =
+      (t['@_fullname'] as string) ??
+      (qualifiedPrefix ? `${qualifiedPrefix}.${name}` : name);
+    const method = (t['@_methodname'] as string) ?? name;
     const qualifiedClass = fullName.endsWith(`.${method}`)
       ? fullName.slice(0, -(method.length + 1))
       : fullName;
@@ -104,7 +145,7 @@ function walkSuites(
 
   for (const child of asArray(suite['test-suite'] as unknown)) {
     if (child && typeof child === 'object') {
-      cases.push(...walkSuites(child as Record<string, unknown>, filePath, assembly));
+      cases.push(...walkSuites(child as Record<string, unknown>, filePath, childContext));
     }
   }
 
@@ -124,6 +165,6 @@ export const nunitParser: TestResultParser = {
     const doc = parser.parse(content);
     const root = doc['test-run'];
     if (!root) return [];
-    return walkSuites(root as Record<string, unknown>, filePath, root['@_test-framework'] as string | undefined);
+    return walkSuites(root as Record<string, unknown>, filePath);
   },
 };

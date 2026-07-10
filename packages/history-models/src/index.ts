@@ -255,6 +255,7 @@ export function repositoryNameFromKey(key: string): string {
 
 export {
   decodeRepositoryTestsFile,
+  deriveClassNameFromCompactRecord,
   deriveQualifiedClassName,
   encodeRepositoryTestsFile,
   encodeRunFailures,

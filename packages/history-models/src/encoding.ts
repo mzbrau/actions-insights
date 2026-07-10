@@ -88,6 +88,33 @@ export function resolveTestFullName(
   return test.m ?? '';
 }
 
+function splitQualifiedClassName(qualifiedClass: string): { ns?: string; c: string } {
+  const lastDot = qualifiedClass.lastIndexOf('.');
+  if (lastDot <= 0) return { c: qualifiedClass };
+  return {
+    ns: qualifiedClass.slice(0, lastDot),
+    c: qualifiedClass.slice(lastDot + 1),
+  };
+}
+
+export function deriveClassNameFromCompactRecord(test: CompactTestRecord): string {
+  const method = test.m ?? test.n;
+  if (method && test.n.endsWith(`.${method}`)) {
+    return test.n.slice(0, -(method.length + 1));
+  }
+
+  if (test.ns && test.c && !test.c.includes('(')) {
+    return `${test.ns}.${test.c}`;
+  }
+
+  if (test.c && !test.c.includes('(')) {
+    return test.c;
+  }
+
+  const lastDot = test.n.lastIndexOf('.');
+  return lastDot > 0 ? test.n.slice(0, lastDot) : test.n;
+}
+
 export function encodeRunTests(inputs: EncodeTestInput[]): {
   classes?: string[];
   tests: StoredTestRecord[];
@@ -113,7 +140,11 @@ export function encodeRunTests(inputs: EncodeTestInput[]): {
       ...(input.isNewFailure ? { nf: true } : {}),
     };
 
-    if (qualifiedClass && `${qualifiedClass}.${method}` === input.fullName) {
+    if (
+      qualifiedClass &&
+      (input.fullName === `${qualifiedClass}.${method}` ||
+        Boolean(input.namespace && input.className && input.method))
+    ) {
       let classIndex = classToIndex.get(qualifiedClass);
       if (classIndex === undefined) {
         classIndex = classes.length;
@@ -140,15 +171,32 @@ export function encodeRunFailures(inputs: EncodeFailureInput[]): CompactFailureR
 }
 
 export function expandRunTests(run: Pick<RunRecord, 'classes' | 'tests'>): CompactTestRecord[] {
-  return run.tests.map((test, index) => ({
-    i: index,
-    n: resolveTestFullName(run.classes, test),
-    o: test.o,
-    d: test.d,
-    ...(test.a ? { a: test.a } : {}),
-    ...(test.st ? { st: test.st } : {}),
-    ...(test.nf ? { nf: true } : {}),
-  }));
+  return run.tests.map((test, index) => {
+    const fullName = resolveTestFullName(run.classes, test);
+    const record: CompactTestRecord = {
+      i: index,
+      n: fullName,
+      o: test.o,
+      d: test.d,
+      ...(test.a ? { a: test.a } : {}),
+      ...(test.st ? { st: test.st } : {}),
+      ...(test.nf ? { nf: true } : {}),
+    };
+
+    if (test.m) {
+      record.m = test.m;
+      if (test.c !== undefined) {
+        const qualifiedClass = run.classes?.[test.c];
+        if (qualifiedClass) {
+          const { ns, c } = splitQualifiedClassName(qualifiedClass);
+          record.c = c;
+          if (ns) record.ns = ns;
+        }
+      }
+    }
+
+    return record;
+  });
 }
 
 export function expandRunFailures(
