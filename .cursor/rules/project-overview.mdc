@@ -1,0 +1,33 @@
+---
+description: Actions Insights monorepo overview and dev workflow
+alwaysApply: true
+---
+
+# Project Overview
+
+npm workspaces monorepo for a GitHub Action that parses test results (TRX/JUnit/NUnit/xUnit) and publishes reports via PR comments, job summaries, checks, and HTML artifacts.
+
+## Repository map
+
+- `src/` + `test/` — GitHub Action source and tests
+- `web/` — React history dashboard (see `web/AGENTS.md`)
+- `docs/` — Docusaurus site (see `docs/AGENTS.md`)
+- `packages/` — Shared models and publisher (see `packages/AGENTS.md`)
+- `dist/` — Bundled action (committed); rebuild after `src/` changes
+
+Full navigation: [`AGENTS.md`](../../AGENTS.md).
+
+## Before finishing a task
+
+```bash
+npm test
+npm run lint
+npm run build    # required when src/ or action.yml changes
+```
+
+## Key rules
+
+- `action.yml` is the source of truth for inputs — not README.
+- Focused diffs only; no unrelated refactors.
+- Parser/history changes need Vitest tests with fixtures.
+- Update `docs/docs/` when changing user-facing behavior.

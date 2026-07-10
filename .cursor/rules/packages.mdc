@@ -1,0 +1,21 @@
+---
+description: Shared workspace package conventions
+globs: packages/**
+alwaysApply: false
+---
+
+# Shared Packages
+
+Pure TypeScript libraries — no I/O, no side effects.
+
+| Package | Role |
+|---------|------|
+| `history-models` | JSON schemas/types for history repo data |
+| `history-publisher` | Pure functions for history repo file updates |
+
+## Rules
+
+- Action I/O (filesystem, GitHub API) stays in `src/`, not here.
+- Export from each package's `src/index.ts`.
+- Import via `@actions-insights/history-models` / `@actions-insights/history-publisher` (path aliases in root `tsconfig.json`).
+- When changing shared models, add or update tests in root `test/`.

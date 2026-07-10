@@ -80,7 +80,7 @@ npm run build
 npm run generate-sample   # creates _report/ and _site/ sample output
 ```
 
-See the [Development Guide](https://www.ghactionsinsights.com/docs/development) and [CONTRIBUTING.md](CONTRIBUTING.md).
+See the [Development Guide](https://www.ghactionsinsights.com/docs/development), [CONTRIBUTING.md](CONTRIBUTING.md), and [AGENTS.md](AGENTS.md) for AI coding agent guidance.
 
 ## License
 

@@ -1,0 +1,29 @@
+---
+description: Docusaurus documentation site conventions
+globs: docs/**
+alwaysApply: false
+---
+
+# Documentation Site
+
+Docusaurus 3 site. Content pages live in `docs/docs/` — not the `docs/` workspace root.
+
+## When to update
+
+Any change to `action.yml` inputs, defaults, or user-facing behavior must update the matching page under `docs/docs/`.
+
+Key pages:
+- `docs/docs/reference/configuration.md` — input reference
+- `docs/docs/reference/architecture.md` — pipeline and modules
+- `docs/docs/development.md` — dev setup
+
+## Distinction
+
+`docs/docs/setup/ai-setup.md` is the consumer setup playbook (for end users' repos). Repo development guidance is in root `AGENTS.md`.
+
+## Commands
+
+```bash
+npm run docs:start
+npm run docs:build
+```
