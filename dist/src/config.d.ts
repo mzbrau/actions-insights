@@ -12,6 +12,11 @@ export interface HistoryConfig {
     mode: HistoryMode;
     defaultRepository?: string;
 }
+export interface CoverageConfig {
+    enabled: boolean;
+    files: string;
+    failIfMissing: boolean;
+}
 export interface ActionConfig {
     testResults: string;
     reportsSubdirectory: string;
@@ -37,6 +42,7 @@ export interface ActionConfig {
     includeRawTestResults: boolean;
     checkName: string;
     history: HistoryConfig;
+    coverage: CoverageConfig;
 }
 export declare function loadConfig(): ActionConfig;
 //# sourceMappingURL=config.d.ts.map

@@ -1,0 +1,262 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`coverage parsers > parses Cobertura XML 1`] = `
+{
+  "projects": [
+    {
+      "files": [
+        {
+          "metrics": {
+            "branch": 50,
+            "coveredBranches": 1,
+            "coveredLines": 3,
+            "line": 75,
+            "totalBranches": 2,
+            "totalLines": 4,
+          },
+          "path": "src/Calculator.cs",
+        },
+      ],
+      "metrics": {
+        "branch": 50,
+        "coveredBranches": 1,
+        "coveredLines": 3,
+        "line": 75,
+        "totalBranches": 2,
+        "totalLines": 4,
+      },
+      "name": "tmp",
+      "packages": [
+        {
+          "classes": [
+            {
+              "file": "src/Calculator.cs",
+              "metrics": {
+                "branch": 50,
+                "coveredBranches": 1,
+                "coveredLines": 3,
+                "line": 75,
+                "totalBranches": 2,
+                "totalLines": 4,
+              },
+              "name": "MyApp.Calculator",
+            },
+          ],
+          "metrics": {
+            "branch": 50,
+            "class": 100,
+            "coveredBranches": 1,
+            "coveredClasses": 1,
+            "coveredLines": 3,
+            "line": 75,
+            "totalBranches": 2,
+            "totalClasses": 1,
+            "totalLines": 4,
+          },
+          "name": "MyApp",
+        },
+      ],
+    },
+  ],
+  "sourceFiles": [
+    "/tmp/coverage.cobertura.xml",
+  ],
+  "summary": {
+    "branch": 50,
+    "coveredBranches": 1,
+    "coveredLines": 3,
+    "line": 75,
+    "totalBranches": 2,
+    "totalLines": 4,
+  },
+}
+`;
+
+exports[`coverage parsers > parses JaCoCo XML 1`] = `
+{
+  "projects": [
+    {
+      "files": [
+        {
+          "metrics": {
+            "branch": 50,
+            "coveredBranches": 1,
+            "coveredLines": 3,
+            "line": 75,
+            "totalBranches": 2,
+            "totalLines": 4,
+          },
+          "path": "Calculator.java",
+        },
+      ],
+      "metrics": {
+        "branch": 50,
+        "coveredBranches": 1,
+        "coveredLines": 3,
+        "line": 75,
+        "totalBranches": 2,
+        "totalLines": 4,
+      },
+      "name": "JaCoCo Coverage Report",
+      "packages": [
+        {
+          "classes": [
+            {
+              "file": "Calculator.java",
+              "metrics": {
+                "branch": 50,
+                "coveredBranches": 1,
+                "coveredLines": 3,
+                "coveredMethods": 2,
+                "line": 75,
+                "method": 100,
+                "totalBranches": 2,
+                "totalLines": 4,
+                "totalMethods": 2,
+              },
+              "name": "com/example/app/Calculator",
+            },
+          ],
+          "metrics": {},
+          "name": "com/example/app",
+        },
+      ],
+    },
+  ],
+  "sourceFiles": [
+    "/tmp/jacoco.xml",
+  ],
+  "summary": {
+    "branch": 50,
+    "coveredBranches": 1,
+    "coveredLines": 3,
+    "line": 75,
+    "totalBranches": 2,
+    "totalLines": 4,
+  },
+}
+`;
+
+exports[`coverage parsers > parses LCOV 1`] = `
+{
+  "projects": [
+    {
+      "files": [
+        {
+          "metrics": {
+            "branch": 50,
+            "coveredBranches": 1,
+            "coveredLines": 2,
+            "line": 66.7,
+            "totalBranches": 2,
+            "totalLines": 3,
+          },
+          "path": "src/index.ts",
+        },
+        {
+          "metrics": {
+            "coveredBranches": 0,
+            "coveredLines": 2,
+            "line": 100,
+            "totalBranches": 0,
+            "totalLines": 2,
+          },
+          "path": "src/util.ts",
+        },
+      ],
+      "metrics": {
+        "branch": 50,
+        "coveredBranches": 1,
+        "coveredFiles": 2,
+        "coveredLines": 4,
+        "file": 100,
+        "line": 80,
+        "totalBranches": 2,
+        "totalFiles": 2,
+        "totalLines": 5,
+      },
+      "name": "tmp",
+    },
+  ],
+  "sourceFiles": [
+    "/tmp/lcov.info",
+  ],
+  "summary": {
+    "branch": 50,
+    "coveredBranches": 1,
+    "coveredFiles": 2,
+    "coveredLines": 4,
+    "file": 100,
+    "line": 80,
+    "totalBranches": 2,
+    "totalFiles": 2,
+    "totalLines": 5,
+  },
+}
+`;
+
+exports[`coverage parsers > parses OpenCover XML 1`] = `
+{
+  "projects": [
+    {
+      "files": [
+        {
+          "metrics": {
+            "branch": NaN,
+            "coveredBranches": 0,
+            "coveredLines": 2,
+            "line": 66.7,
+            "totalBranches": 0,
+            "totalLines": 3,
+          },
+          "path": "/src/Calculator.cs",
+        },
+      ],
+      "metrics": {
+        "coveredBranches": 0,
+        "coveredLines": 2,
+        "line": 66.7,
+        "totalBranches": 0,
+        "totalLines": 3,
+      },
+      "name": "default",
+      "packages": [
+        {
+          "classes": [
+            {
+              "file": "/src/Calculator.cs",
+              "metrics": {
+                "coveredLines": 2,
+                "coveredMethods": 1,
+                "line": 66.7,
+                "method": 100,
+                "totalLines": 3,
+                "totalMethods": 1,
+              },
+              "name": "MyApp.Calculator",
+            },
+          ],
+          "metrics": {
+            "coveredBranches": 0,
+            "coveredLines": 2,
+            "line": 66.7,
+            "totalBranches": 0,
+            "totalLines": 3,
+          },
+          "name": "default",
+        },
+      ],
+    },
+  ],
+  "sourceFiles": [
+    "/tmp/opencover.xml",
+  ],
+  "summary": {
+    "coveredBranches": 0,
+    "coveredLines": 2,
+    "line": 66.7,
+    "totalBranches": 0,
+    "totalLines": 3,
+  },
+}
+`;

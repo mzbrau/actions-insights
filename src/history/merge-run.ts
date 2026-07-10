@@ -9,6 +9,7 @@ interface PartialRunFile {
   tests: TestCase[];
   sourceFiles?: string[];
   matchedFiles?: string[];
+  coverage?: import('../model/coverage').CoverageReport;
 }
 
 function unionPaths(...lists: Array<string[] | undefined>): string[] {
@@ -39,23 +40,28 @@ export function readPartialRun(partialPath: string): TestCase[] | undefined {
   return readPartialRunFile(partialPath)?.tests;
 }
 
+import type { CoverageReport } from '../model/coverage';
+import { mergeCoverageReports } from '../coverage-parsers/merge';
+
 export function writePartialRun(
   partialPath: string,
   tests: TestCase[],
   sourceFiles?: string[],
   matchedFiles?: string[],
+  coverage?: CoverageReport,
 ): void {
   fs.mkdirSync(path.dirname(partialPath), { recursive: true });
   const payload: PartialRunFile = { tests };
   if (sourceFiles && sourceFiles.length > 0) payload.sourceFiles = sourceFiles;
   if (matchedFiles && matchedFiles.length > 0) payload.matchedFiles = matchedFiles;
+  if (coverage) payload.coverage = coverage;
   fs.writeFileSync(partialPath, JSON.stringify(payload, null, 2));
 }
 
 export function mergePartialRun(run: TestRun, partialPath: string): TestRun {
   const existing = readPartialRunFile(partialPath);
-  if (!existing || existing.tests.length === 0) {
-    writePartialRun(partialPath, run.tests, run.sourceFiles, run.matchedFiles);
+  if (!existing || (existing.tests.length === 0 && !existing.coverage)) {
+    writePartialRun(partialPath, run.tests, run.sourceFiles, run.matchedFiles, run.coverage);
     return run;
   }
 
@@ -72,13 +78,21 @@ export function mergePartialRun(run: TestRun, partialPath: string): TestRun {
   const sourceFiles = unionPaths(existing.sourceFiles, run.sourceFiles);
   const matchedFiles = unionPaths(existing.matchedFiles, run.matchedFiles, run.sourceFiles, existing.sourceFiles);
 
-  writePartialRun(partialPath, tests, sourceFiles, matchedFiles);
+  let coverage = run.coverage;
+  if (existing.coverage && run.coverage) {
+    coverage = mergeCoverageReports([existing.coverage, run.coverage]);
+  } else if (existing.coverage) {
+    coverage = existing.coverage;
+  }
+
+  writePartialRun(partialPath, tests, sourceFiles, matchedFiles, coverage);
 
   return {
     ...run,
     tests,
     sourceFiles,
     matchedFiles,
+    coverage,
     stats: computeStats(tests),
     status: deriveStatus(tests),
   };

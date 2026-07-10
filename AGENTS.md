@@ -101,6 +101,14 @@ Put your own result files in `.local-results/` (gitignored) and run `npm run gen
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
+## Adding a coverage parser
+
+1. Create `src/coverage-parsers/myformat.ts` implementing `CoverageParser` from `src/coverage-parsers/types.ts`.
+2. Map results to the normalized `CoverageReport` model in `packages/history-models/src/coverage.ts`.
+3. Register in `src/coverage-parsers/registry.ts` (detection order matters).
+4. Add a fixture in `test/fixtures/coverage/` and tests in `test/coverage-parsers/`.
+5. Run `npm test` and `npm run build`.
+
 ## CI expectations
 
 On every PR, CI runs: `npm run lint` → `npm test` → `npm run build` → `npm run generate-sample` → verify output files.

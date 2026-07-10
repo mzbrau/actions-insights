@@ -1,0 +1,3 @@
+export type { CoverageClass, CoverageFile, CoverageMetrics, CoveragePackage, CoverageParseError, CoverageProject, CoverageReport, CoverageRunRecord, CoverageSummary, CoverageSummaryCompact, } from '@actions-insights/history-models';
+export { aggregateMetricsFromProjects, decodeCoverageRunRecord, encodeCoverageRunRecord, mergeMetrics, normalizeCoverageRunRecord, percentFromCounts, toCoverageSummaryCompact, } from '@actions-insights/history-models';
+//# sourceMappingURL=coverage.d.ts.map

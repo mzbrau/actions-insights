@@ -36,6 +36,7 @@ export interface PublishTestCase {
     stderr?: string;
     isNewFailure?: boolean;
 }
+import type { CoverageReport } from '../models';
 export interface PublishTestRun {
     id: string;
     status: 'passed' | 'failed';
@@ -50,6 +51,7 @@ export interface PublishTestRun {
     };
     tests: PublishTestCase[];
     context: PublishRunContext;
+    coverage?: CoverageReport;
 }
 export declare function sanitizeBranchKey(branch: string): string;
 export declare function resolveBranchKey(context: PublishRunContext): {
@@ -72,6 +74,8 @@ export interface HistoryPaths {
     branchRunsDir: string;
     runFile: string;
     runFileName: string;
+    coverageFile?: string;
+    coverageFileName?: string;
     testsFile: string;
     prDir?: string;
 }

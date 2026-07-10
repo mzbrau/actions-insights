@@ -1,4 +1,5 @@
 import type { ActionConfig } from '../config';
+import type { PreviousCoverageRun } from '../history/previous-coverage';
 import type { PreviousRun } from '../history/previous-run';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
@@ -15,6 +16,8 @@ export interface ReportingContext {
   extendedStats: ReturnType<typeof computeExtendedStats>;
   previousRun?: PreviousRun;
   baseBranchRun?: PreviousRun;
+  previousCoverageRun?: PreviousCoverageRun;
+  baseBranchCoverageRun?: PreviousCoverageRun;
 }
 
 export function buildReportingContext(
@@ -22,6 +25,8 @@ export function buildReportingContext(
   config: ActionConfig,
   previousRun?: PreviousRun,
   baseBranchRun?: PreviousRun,
+  previousCoverageRun?: PreviousCoverageRun,
+  baseBranchCoverageRun?: PreviousCoverageRun,
 ): ReportingContext {
   const failedCount = countFailedTests(run.tests);
   const failedTests: TestCase[] = [];
@@ -45,5 +50,7 @@ export function buildReportingContext(
     extendedStats: computeExtendedStats(run.stats, run.tests),
     previousRun,
     baseBranchRun,
+    previousCoverageRun,
+    baseBranchCoverageRun,
   };
 }

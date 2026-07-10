@@ -29,6 +29,7 @@ export declare function deriveQualifiedClassName(test: {
     method: string;
 }): string | undefined;
 export declare function resolveTestFullName(classes: string[] | undefined, test: StoredTestRecord): string;
+export declare function deriveClassNameFromCompactRecord(test: CompactTestRecord): string;
 export declare function encodeRunTests(inputs: EncodeTestInput[]): {
     classes?: string[];
     tests: StoredTestRecord[];

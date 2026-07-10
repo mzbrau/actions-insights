@@ -79,6 +79,16 @@ The web dashboard expands stored tests to full names at load time using `normali
 
 `history.json` contains summary rows only — the UI loads full run data on demand from `runs/`.
 
+When coverage is enabled, each run may also reference a sidecar file:
+
+`runs/{timestamp}-{runId}.coverage.json`
+
+| Field | Meaning |
+|-------|---------|
+| `RunSummary.coverage` | Compact summary + per-project percentages for trend charts |
+| `RunSummary.coverageFile` | Sidecar filename (lazy-loaded in the dashboard) |
+| `.coverage.json` | Full project/package/class hierarchy and compact file entries |
+
 ## Schema version 1
 
 Version 1 data is not supported. Delete existing history data and re-import or publish fresh runs with schema v2.

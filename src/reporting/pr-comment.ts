@@ -6,6 +6,9 @@ import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSlowTestsSection, SLOW_TOTAL } from './slow-tests';
+import { resolveCoverageComparison } from './coverage-delta';
+import { formatCoverageCompactLine, formatCoverageStatsTable } from './coverage-stats';
+import { toCoverageSummaryCompact } from '../model/coverage';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
 
@@ -16,7 +19,7 @@ export function renderPrComment(
   config: ActionConfig,
   links: ReportLinks,
 ): string {
-  const { run, failedTests, failedCount, slowTests, extendedStats, previousRun, baseBranchRun } = ctx;
+  const { run, failedTests, failedCount, slowTests, extendedStats, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun } = ctx;
   const { context, status } = run;
   const emoji = status === 'passed' ? '✅' : '❌';
   const statusLabel = status === 'passed' ? 'Passed' : 'Failed';
@@ -39,6 +42,25 @@ export function renderPrComment(
     formatCompactSummary(extendedStats),
     '',
   ];
+
+  if (run.coverage) {
+    const comparison = resolveCoverageComparison({
+      current: run.coverage.summary,
+      previous: previousCoverageRun,
+      baseBranch: baseBranchCoverageRun,
+      isPullRequest: Boolean(context.prNumber),
+      baseBranchLabel: context.baseBranch ?? 'main',
+    });
+    const coverageLine = formatCoverageCompactLine(
+      run.coverage.summary,
+      comparison?.delta,
+      comparison?.vsLabel,
+    );
+    if (coverageLine) {
+      lines.push(coverageLine);
+      lines.push('');
+    }
+  }
 
   const deltaOptions = {
     slowdownRatio: 1.5,
@@ -113,6 +135,13 @@ export function renderPrComment(
   lines.push('## Statistics');
   lines.push('');
   lines.push(formatCommentStatsTable(extendedStats));
+  if (run.coverage) {
+    lines.push('');
+    lines.push('## Coverage');
+    lines.push('');
+    const compact = toCoverageSummaryCompact(run.coverage);
+    lines.push(formatCoverageStatsTable(run.coverage.summary, compact.projects));
+  }
   lines.push('');
   lines.push('---');
   lines.push(formatFooterLinks(links));

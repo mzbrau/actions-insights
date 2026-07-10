@@ -16,6 +16,12 @@ export interface HistoryConfig {
   defaultRepository?: string;
 }
 
+export interface CoverageConfig {
+  enabled: boolean;
+  files: string;
+  failIfMissing: boolean;
+}
+
 export interface ActionConfig {
   testResults: string;
   reportsSubdirectory: string;
@@ -41,6 +47,7 @@ export interface ActionConfig {
   includeRawTestResults: boolean;
   checkName: string;
   history: HistoryConfig;
+  coverage: CoverageConfig;
 }
 
 export function loadConfig(): ActionConfig {
@@ -75,6 +82,15 @@ export function loadConfig(): ActionConfig {
     includeRawTestResults: getBooleanOr('include-raw-test-results', true),
     checkName: core.getInput('check-name') || 'Actions Insights',
     history: loadHistoryConfig(),
+    coverage: loadCoverageConfig(),
+  };
+}
+
+function loadCoverageConfig(): CoverageConfig {
+  return {
+    enabled: getBooleanOr('coverage-enabled', false),
+    files: core.getInput('coverage-files') || '**/coverage.cobertura.xml',
+    failIfMissing: getBooleanOr('coverage-fail-if-missing', false),
   };
 }
 

@@ -5,6 +5,9 @@ import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
 import { formatFooterLinks, formatTestNameWithCodeLink, formatTestNameWithCodeLinkForTable, type ReportLinks } from './links';
 import { formatSkippedTestLine, formatSlowTestsSection } from './slow-tests';
+import { resolveCoverageComparison } from './coverage-delta';
+import { formatCoverageCompactLine, formatCoverageStatsTable } from './coverage-stats';
+import { toCoverageSummaryCompact } from '../model/coverage';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
 
@@ -48,9 +51,29 @@ export function renderJobSummary(
     '',
     formatCompactSummary(ctx.extendedStats),
     '',
-    `[Report](${links.artifacts})`,
-    '',
   ];
+
+  if (run.coverage) {
+    const comparison = resolveCoverageComparison({
+      current: run.coverage.summary,
+      previous: ctx.previousCoverageRun,
+      baseBranch: ctx.baseBranchCoverageRun,
+      isPullRequest: Boolean(run.context.prNumber),
+      baseBranchLabel: run.context.baseBranch ?? 'main',
+    });
+    const coverageLine = formatCoverageCompactLine(
+      run.coverage.summary,
+      comparison?.delta,
+      comparison?.vsLabel,
+    );
+    if (coverageLine) {
+      lines.push(coverageLine);
+      lines.push('');
+    }
+  }
+
+  lines.push(`[Report](${links.artifacts})`);
+  lines.push('');
 
   const formatTestName = (t: Parameters<typeof formatTestNameWithCodeLink>[2]) =>
     formatTestNameWithCodeLink(run.context, getShortTestName(t), t);
@@ -114,6 +137,13 @@ export function renderJobSummary(
   lines.push('## Statistics');
   lines.push('');
   lines.push(formatCommentStatsTable(ctx.extendedStats));
+  if (run.coverage) {
+    lines.push('');
+    lines.push('## Coverage');
+    lines.push('');
+    const compact = toCoverageSummaryCompact(run.coverage);
+    lines.push(formatCoverageStatsTable(run.coverage.summary, compact.projects));
+  }
   lines.push('');
   lines.push('---');
   lines.push(formatFooterLinks(links));

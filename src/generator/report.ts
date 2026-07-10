@@ -6,6 +6,7 @@ import { OUTCOME_TO_CODE } from '../model/manifest';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
 import { formatDuration } from '../model/test-run';
+import { formatCoveragePercent } from '../reporting/coverage-stats';
 import { getCodeSearchName, getShortTestName, groupTestsByClass } from '../reporting/grouping';
 import { escapeHtml } from './escape';
 
@@ -107,6 +108,30 @@ export function writeRunReport(
   fs.writeFileSync(path.join(outputDir, 'trends.json'), JSON.stringify(trends, null, 2));
 }
 
+function renderCoverageSection(run: TestRun): string {
+  const cov = run.coverage;
+  if (!cov || cov.summary.line === undefined) return '';
+
+  const projectRows = cov.projects.map((p) => `
+    <tr>
+      <td>${escapeHtml(p.name)}</td>
+      <td>${formatCoveragePercent(p.metrics.line)}</td>
+      <td>${formatCoveragePercent(p.metrics.branch)}</td>
+    </tr>`).join('');
+
+  return `
+    <h2 class="section-title">Code Coverage</h2>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Line Coverage</div><div class="value">${formatCoveragePercent(cov.summary.line)}</div></div>
+      <div class="stat-card"><div class="label">Branch Coverage</div><div class="value">${formatCoveragePercent(cov.summary.branch)}</div></div>
+    </div>
+    ${cov.projects.length > 0 ? `
+    <table class="data-table coverage-table">
+      <thead><tr><th>Project</th><th>Line</th><th>Branch</th></tr></thead>
+      <tbody>${projectRows}</tbody>
+    </table>` : ''}`;
+}
+
 export function renderReportHtml(
   run: TestRun,
   reportTitle: string,
@@ -200,6 +225,8 @@ export function renderReportHtml(
       <div class="stat-card"><div class="label">Duration</div><div class="value">${formatDuration(stats.durationMs)}</div></div>
       <div class="stat-card"><div class="label">Success</div><div class="value">${stats.successRate}%</div></div>
     </div>
+
+    ${renderCoverageSection(run)}
 
     <div class="charts-row">
       <div class="chart-card">

@@ -13,6 +13,7 @@ import type {
 import { OUTCOME_TO_CODE } from '../model/manifest';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
+import { toCoverageSummaryCompact } from '../model/coverage';
 import { pruneRuns, type RetentionOptions } from './retention';
 import { buildTrendData } from './trends';
 import type { PreviousRun } from './previous-run';
@@ -98,6 +99,7 @@ export function createRunEntry(
       o: OUTCOME_TO_CODE[t.outcome] ?? 3,
       d: t.durationMs,
     })),
+    ...(run.coverage ? { coverage: toCoverageSummaryCompact(run.coverage) } : {}),
   };
 }
 

@@ -11,6 +11,20 @@ inputs:
     required: false
     default: '**/*.{trx,xml}'
 
+  # Code coverage
+  coverage-enabled:
+    description: Enable code coverage collection and reporting
+    required: false
+    default: 'false'
+  coverage-files:
+    description: Glob pattern(s) for coverage files (comma-separated for multiple patterns)
+    required: false
+    default: '**/coverage.cobertura.xml'
+  coverage-fail-if-missing:
+    description: Fail the step when coverage is enabled but no coverage files are found or parsed
+    required: false
+    default: 'false'
+
   # Reporting / artifact
   reports-subdirectory:
     description: Subdirectory within the site artifact for test reports
@@ -165,6 +179,12 @@ outputs:
     description: Number of failed tests
   skipped:
     description: Number of skipped tests
+  coverage-line:
+    description: Line coverage percentage (when coverage is enabled and available)
+  coverage-branch:
+    description: Branch coverage percentage (when coverage is enabled and available)
+  coverage-status:
+    description: Coverage status (present or missing)
 runs:
   using: node20
   main: dist/index.js

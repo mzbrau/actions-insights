@@ -25,6 +25,36 @@ Glob pattern for test result files.
 
 - **Default:** `**/*.{trx,xml}`
 
+### Code coverage
+
+Conceptually grouped as:
+
+```yaml
+coverage:
+  enabled: true
+  files:
+    - "**/coverage.cobertura.xml"
+  fail-if-missing: false
+```
+
+GitHub Actions inputs are flat strings:
+
+#### `coverage-enabled`
+Enable code coverage collection and reporting (PR comment, job summary, HTML report, history repository sidecar, dashboard).
+
+- **Default:** `false`
+
+#### `coverage-files`
+Glob pattern(s) for coverage files. Use comma-separated patterns for multiple globs.
+
+- **Default:** `**/coverage.cobertura.xml`
+- Supported formats: Cobertura (including Coverlet output), OpenCover, LCOV, JaCoCo
+
+#### `coverage-fail-if-missing`
+Fail the step when coverage is enabled but no files match or all parses fail.
+
+- **Default:** `false`
+
 ### Reporting
 
 #### `reports-subdirectory`

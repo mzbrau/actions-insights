@@ -1,4 +1,5 @@
 import type { RunStatus } from './test-run';
+import type { CoverageSummaryCompact } from './coverage';
 
 export interface RunManifestEntry {
   runId: string;
@@ -86,6 +87,7 @@ export interface CanonicalRunEntry extends RunManifestEntry {
   branchType: 'branch' | 'pr' | 'tag';
   failedTests: string[];
   testOutcomes: Array<{ n: string; o: number; d: number }>;
+  coverage?: CoverageSummaryCompact;
 }
 
 export interface CanonicalRunsFile {

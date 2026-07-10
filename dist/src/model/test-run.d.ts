@@ -32,6 +32,7 @@ export interface RunContext {
     startedAt: string;
     completedAt: string;
 }
+import type { CoverageReport } from './coverage';
 export interface TestRun {
     id: string;
     title: string;
@@ -42,6 +43,7 @@ export interface TestRun {
     sourceFiles: string[];
     matchedFiles?: string[];
     reportPath: string;
+    coverage?: CoverageReport;
 }
 export declare function computeStats(tests: TestCase[]): RunStats;
 export declare function deriveStatus(tests: TestCase[]): RunStatus;

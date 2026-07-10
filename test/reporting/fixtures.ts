@@ -121,4 +121,9 @@ export const sampleConfig: ActionConfig = {
     repositoryName: 'owner/repo',
     mode: 'multi',
   },
+  coverage: {
+    enabled: false,
+    files: '**/coverage.cobertura.xml',
+    failIfMissing: false,
+  },
 };

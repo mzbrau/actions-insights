@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import type { ActionConfig } from '../config';
+import type { PreviousCoverageRun } from '../history/previous-coverage';
 import type { PreviousRun } from '../history/previous-run';
 import type { TestRun } from '../model/test-run';
 import { buildReportingContext } from '../reporting/context';
@@ -14,13 +15,15 @@ export async function upsertPrComment(
   previousRun?: PreviousRun,
   baseBranchRun?: PreviousRun,
   historyRunUrl?: string,
+  previousCoverageRun?: PreviousCoverageRun,
+  baseBranchCoverageRun?: PreviousCoverageRun,
 ): Promise<void> {
   const prNumber = run.context.prNumber;
   if (!prNumber || config.commentMode === 'off') return;
 
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
-  const ctx = buildReportingContext(run, config, previousRun, baseBranchRun);
+  const ctx = buildReportingContext(run, config, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun);
   const links = { ...buildReportLinks(run.context), historyRun: historyRunUrl };
   const body = renderPrComment(ctx, config, links);
 

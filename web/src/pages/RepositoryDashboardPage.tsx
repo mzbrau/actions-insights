@@ -14,9 +14,9 @@ import { UnifiedRunsTable } from '../components/dashboard/UnifiedRunsTable';
 import { PassRateRing } from '../components/charts/PassRateRing';
 import { DurationTrendChart } from '../components/charts/DurationTrendChart';
 import { ChartCard } from '../components/ui/ChartCard';
-import { TabBar } from '../components/ui/TabBar';
+import { CoverageTrendsPanel } from '../components/dashboard/CoverageTrendsPanel';
 
-type DashboardTab = 'builds' | 'problematic-tests' | 'trends';
+type DashboardTab = 'builds' | 'problematic-tests' | 'trends' | 'coverage';
 
 export function RepositoryDashboardPage() {
   const { repoKey } = useParams<{ repoKey: string }>();
@@ -25,7 +25,7 @@ export function RepositoryDashboardPage() {
   const branchFilter = searchParams.get('branch') ?? '';
   const activeTab = useMemo((): DashboardTab => {
     const tab = searchParams.get('tab');
-    if (tab === 'problematic-tests' || tab === 'trends') return tab;
+    if (tab === 'problematic-tests' || tab === 'trends' || tab === 'coverage') return tab;
     return 'builds';
   }, [searchParams]);
   const [search, setSearch] = useState('');
@@ -86,6 +86,7 @@ export function RepositoryDashboardPage() {
     { id: 'builds', label: 'Builds' },
     { id: 'problematic-tests', label: 'Problematic Tests' },
     { id: 'trends', label: 'Trends' },
+    { id: 'coverage', label: 'Test Coverage' },
   ];
 
   if (loading) {
@@ -191,6 +192,10 @@ export function RepositoryDashboardPage() {
           onBranchChange={setBranchFilter}
           lastUpdated={metadata.lastRunDate}
         />
+      )}
+
+      {activeTab === 'coverage' && repoKey && (
+        <CoverageTrendsPanel repoKey={repoKey} runs={trendRuns} />
       )}
     </AppShell>
   );

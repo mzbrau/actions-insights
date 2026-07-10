@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import type { NormalizedRunRecord } from '@actions-insights/history-models';
+import type { CoverageRunRecord, NormalizedRunRecord, RunSummary } from '@actions-insights/history-models';
 import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
-import { loadBranchHistory, loadRun } from '../data/loader';
+import { loadBranchHistory, loadRun, loadRunCoverage } from '../data/loader';
 import { useRepositoryTestTrends } from '../hooks/useRepositoryTestTrends';
 import { formatDate, formatDuration, statusIcon } from '../utils/format';
 import { AppShell } from '../components/layout/AppShell';
@@ -10,8 +10,9 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { TabBar } from '../components/ui/TabBar';
 import { RunSummaryPanel } from '../components/run/RunSummaryPanel';
 import { RunTestsPanel } from '../components/run/RunTestsPanel';
+import { RunCoveragePanel } from '../components/run/RunCoveragePanel';
 
-type RunTab = 'summary' | 'tests';
+type RunTab = 'summary' | 'tests' | 'coverage';
 
 export function RunDetailPage() {
   const { repoKey, branchKey: rawBranchKey, runId } = useParams<{
@@ -23,13 +24,21 @@ export function RunDetailPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [run, setRun] = useState<NormalizedRunRecord | null>(null);
+  const [runSummary, setRunSummary] = useState<RunSummary | null>(null);
+  const [branchHistory, setBranchHistory] = useState<RunSummary[]>([]);
+  const [coverage, setCoverage] = useState<CoverageRunRecord | null>(null);
+  const [coverageLoading, setCoverageLoading] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { trends } = useRepositoryTestTrends(repoKey);
 
-  const activeTab = (searchParams.get('tab') === 'tests' ? 'tests' : 'summary') as RunTab;
+  const activeTab = useMemo((): RunTab => {
+    const tab = searchParams.get('tab');
+    if (tab === 'tests' || tab === 'coverage') return tab;
+    return 'summary';
+  }, [searchParams]);
 
   const setActiveTab = (tab: RunTab) => {
     setSearchParams(tab === 'summary' ? {} : { tab }, { replace: true });
@@ -40,12 +49,14 @@ export function RunDetailPage() {
     let cancelled = false;
     (async () => {
       try {
-        const branchHistory = await loadBranchHistory(repoKey, branchKey);
-        const summary = branchHistory.runs.find((r) => r.runId === runId);
+        const history = await loadBranchHistory(repoKey, branchKey);
+        const summary = history.runs.find((r) => r.runId === runId);
         if (!summary) throw new Error(`Run ${runId} not found`);
         const record = await loadRun(repoKey, branchKey, summary.runFile);
         if (!cancelled) {
           setRun(record);
+          setRunSummary(summary);
+          setBranchHistory(history.runs);
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -55,6 +66,26 @@ export function RunDetailPage() {
     })();
     return () => { cancelled = true; };
   }, [repoKey, branchKey, runId]);
+
+  useEffect(() => {
+    if (activeTab !== 'coverage' || !repoKey || !branchKey || !runSummary?.coverageFile) {
+      return;
+    }
+    if (coverage) return;
+    let cancelled = false;
+    setCoverageLoading(true);
+    loadRunCoverage(repoKey, branchKey, runSummary.coverageFile)
+      .then((data) => {
+        if (!cancelled) setCoverage(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        if (!cancelled) setCoverageLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [activeTab, repoKey, branchKey, runSummary, coverage]);
 
   const slowThreshold = 1000;
 
@@ -76,13 +107,15 @@ export function RunDetailPage() {
   };
 
   const dashboardUrl = `/r/${repoKey}?branch=${encodeURIComponent(branchKey)}`;
+  const hasCoverage = Boolean(runSummary?.coverage?.line !== undefined);
 
   if (loading) return <AppShell><p className="muted">Loading run…</p></AppShell>;
-  if (error || !run) return <AppShell><p className="error">{error ?? 'Run not found'}</p></AppShell>;
+  if (error || !run || !runSummary) return <AppShell><p className="error">{error ?? 'Run not found'}</p></AppShell>;
 
   const tabs = [
     { id: 'summary', label: 'Summary' },
     { id: 'tests', label: `All Tests (${run.stats.total})` },
+    ...(hasCoverage ? [{ id: 'coverage', label: 'Test Coverage' }] : []),
   ];
 
   return (
@@ -114,10 +147,20 @@ export function RunDetailPage() {
       {activeTab === 'summary' ? (
         <RunSummaryPanel
           run={run}
+          runSummary={runSummary}
+          branchHistory={branchHistory}
           expanded={expanded}
           onToggleFailure={toggleExpanded}
           slowTests={slowTests}
         />
+      ) : activeTab === 'coverage' ? (
+        coverageLoading ? (
+          <p className="muted">Loading coverage…</p>
+        ) : coverage ? (
+          <RunCoveragePanel coverage={coverage} />
+        ) : (
+          <p className="chart-empty">Coverage data unavailable.</p>
+        )
       ) : (
         <RunTestsPanel
           tests={run.tests}

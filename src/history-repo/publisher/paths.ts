@@ -40,6 +40,8 @@ export interface PublishTestCase {
   isNewFailure?: boolean;
 }
 
+import type { CoverageReport } from '../models';
+
 export interface PublishTestRun {
   id: string;
   status: 'passed' | 'failed';
@@ -54,6 +56,7 @@ export interface PublishTestRun {
   };
   tests: PublishTestCase[];
   context: PublishRunContext;
+  coverage?: CoverageReport;
 }
 
 export function sanitizeBranchKey(branch: string): string {
@@ -110,6 +113,8 @@ export interface HistoryPaths {
   branchRunsDir: string;
   runFile: string;
   runFileName: string;
+  coverageFile?: string;
+  coverageFileName?: string;
   testsFile: string;
   prDir?: string;
 }
@@ -124,6 +129,8 @@ export function resolveHistoryPaths(
   const dataRoot = dataPath.replace(/\/+$/, '');
   const repoDir = `${dataRoot}/repositories/${repositoryKey}`;
   const branchDir = `${repoDir}/branches/${branchKey}`;
+  const runFile = `${branchDir}/runs/${runFileName}`;
+  const coverageFileName = runFileName.replace(/\.json$/, '.coverage.json');
   const paths: HistoryPaths = {
     dataRoot,
     repositoriesIndex: `${dataRoot}/repositories.json`,
@@ -135,8 +142,10 @@ export function resolveHistoryPaths(
     branchLatest: `${branchDir}/latest.json`,
     branchHistory: `${branchDir}/history.json`,
     branchRunsDir: `${branchDir}/runs`,
-    runFile: `${branchDir}/runs/${runFileName}`,
+    runFile,
     runFileName,
+    coverageFile: `${branchDir}/runs/${coverageFileName}`,
+    coverageFileName,
     testsFile: `${repoDir}/tests.json`,
   };
   if (prNumber) {

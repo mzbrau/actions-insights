@@ -1,4 +1,5 @@
 import type { RunStatus } from './test-run';
+import type { CoverageSummaryCompact } from './coverage';
 export interface RunManifestEntry {
     runId: string;
     workflowRunId: number;
@@ -81,6 +82,7 @@ export interface CanonicalRunEntry extends RunManifestEntry {
         o: number;
         d: number;
     }>;
+    coverage?: CoverageSummaryCompact;
 }
 export interface CanonicalRunsFile {
     version: 1;

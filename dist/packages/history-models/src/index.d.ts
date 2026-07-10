@@ -1,4 +1,5 @@
 export declare const HISTORY_SCHEMA_VERSION: 2;
+import type { CoverageSummaryCompact } from './coverage';
 export type RunStatus = 'passed' | 'failed';
 export type BranchType = 'branch' | 'pr' | 'tag';
 export type TestOutcome = 'passed' | 'failed' | 'skipped' | 'inconclusive';
@@ -63,6 +64,8 @@ export interface RunSummary {
     commitMessage: string;
     author: string;
     runFile: string;
+    coverage?: CoverageSummaryCompact;
+    coverageFile?: string;
 }
 export interface BranchLatest {
     version: typeof HISTORY_SCHEMA_VERSION;
@@ -79,6 +82,8 @@ export interface BranchLatest {
     passed: number;
     failed: number;
     skipped: number;
+    coverage?: CoverageSummaryCompact;
+    coverageFile?: string;
 }
 export interface BranchHistory {
     version: typeof HISTORY_SCHEMA_VERSION;
@@ -215,6 +220,8 @@ export interface HistoryPublishConfig {
 }
 export declare function repositoryKeyFromName(name: string): string;
 export declare function repositoryNameFromKey(key: string): string;
-export { decodeRepositoryTestsFile, deriveQualifiedClassName, encodeRepositoryTestsFile, encodeRunFailures, encodeRunTests, expandRunFailures, expandRunTests, normalizeMethodName, normalizeRunRecord, normalizeTestsFile, resolveTestFullName, } from './encoding';
+export { decodeRepositoryTestsFile, deriveClassNameFromCompactRecord, deriveQualifiedClassName, encodeRepositoryTestsFile, encodeRunFailures, encodeRunTests, expandRunFailures, expandRunTests, normalizeMethodName, normalizeRunRecord, normalizeTestsFile, resolveTestFullName, } from './encoding';
 export type { EncodeFailureInput, EncodeTestInput, NormalizedRunRecord, } from './encoding';
+export type { CoverageClass, CoverageFile, CoverageMetrics, CoveragePackage, CoverageParseError, CoverageProject, CoverageReport, CoverageRunRecord, CoverageSummary, CoverageSummaryCompact, CompactCoverageFile, CompactCoverageProject, } from './coverage';
+export { aggregateMetricsFromProjects, decodeCoverageRunRecord, encodeCoverageRunRecord, mergeMetrics, normalizeCoverageRunRecord, percentFromCounts, toCoverageSummaryCompact, } from './coverage';
 //# sourceMappingURL=index.d.ts.map

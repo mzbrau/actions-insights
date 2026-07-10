@@ -11,13 +11,15 @@ Actions Insights is a GitHub Action that parses test result files and publishes 
 
 ```
 1. Parse test results (TRX, NUnit, xUnit, JUnit)
-2. Restore site cache (Actions cache)
-3. Generate HTML report + merge into site history
-4. Save site cache
-5. Upload site as workflow artifact
-6. Update PR comment (if PR context)
-7. Write job summary
-8. Publish check run with annotations
+2. Parse coverage files (optional: Cobertura/Coverlet, OpenCover, LCOV, JaCoCo)
+3. Restore site cache (Actions cache)
+4. Generate HTML report + merge into site history
+5. Save site cache
+6. Publish to history repository (optional)
+7. Upload site as workflow artifact
+8. Update PR comment (if PR context)
+9. Write job summary
+10. Publish check run with annotations
 ```
 
 ## Module Layout
@@ -26,8 +28,9 @@ Actions Insights is a GitHub Action that parses test result files and publishes 
 src/
 ├── main.ts              Entry point
 ├── config.ts            Action inputs
-├── parsers/             Format detection and parsing
-├── model/               TestCase, TestRun, manifests
+├── parsers/             Test result format detection and parsing
+├── coverage-parsers/    Coverage format detection and parsing
+├── model/               TestCase, TestRun, CoverageReport, manifests
 ├── generator/           HTML report pages + assets
 ├── history/             Site integration, retention, trends
 ├── reporting/           Shared markdown formatters (PR, summary, checks)

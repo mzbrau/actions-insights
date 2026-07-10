@@ -1,5 +1,7 @@
 export const HISTORY_SCHEMA_VERSION = 2 as const;
 
+import type { CoverageSummaryCompact } from './coverage';
+
 export type RunStatus = 'passed' | 'failed';
 export type BranchType = 'branch' | 'pr' | 'tag';
 export type TestOutcome = 'passed' | 'failed' | 'skipped' | 'inconclusive';
@@ -78,6 +80,8 @@ export interface RunSummary {
   commitMessage: string;
   author: string;
   runFile: string;
+  coverage?: CoverageSummaryCompact;
+  coverageFile?: string;
 }
 
 export interface BranchLatest {
@@ -95,6 +99,8 @@ export interface BranchLatest {
   passed: number;
   failed: number;
   skipped: number;
+  coverage?: CoverageSummaryCompact;
+  coverageFile?: string;
 }
 
 export interface BranchHistory {
@@ -272,3 +278,28 @@ export type {
   EncodeTestInput,
   NormalizedRunRecord,
 } from './encoding';
+
+export type {
+  CoverageClass,
+  CoverageFile,
+  CoverageMetrics,
+  CoveragePackage,
+  CoverageParseError,
+  CoverageProject,
+  CoverageReport,
+  CoverageRunRecord,
+  CoverageSummary,
+  CoverageSummaryCompact,
+  CompactCoverageFile,
+  CompactCoverageProject,
+} from './coverage';
+
+export {
+  aggregateMetricsFromProjects,
+  decodeCoverageRunRecord,
+  encodeCoverageRunRecord,
+  mergeMetrics,
+  normalizeCoverageRunRecord,
+  percentFromCounts,
+  toCoverageSummaryCompact,
+} from './coverage';

@@ -17,9 +17,11 @@ import {
   HISTORY_SCHEMA_VERSION,
   OUTCOME_TO_CODE,
   decodeRepositoryTestsFile,
+  encodeCoverageRunRecord,
   encodeRepositoryTestsFile,
   encodeRunFailures,
   encodeRunTests,
+  toCoverageSummaryCompact,
 } from '../models';
 import {
   formatRunFileName,
@@ -82,7 +84,7 @@ export function buildHistoryUpdate(
   );
 
   const runRecord = buildRunRecord(run, branchKey, branchLabel, branchType, runFileName);
-  const runSummary = buildRunSummary(run, runFileName);
+  const runSummary = buildRunSummary(run, runFileName, paths.coverageFileName);
 
   const branchHistory = updateBranchHistory(
     options.existing.branchHistory,
@@ -92,7 +94,7 @@ export function buildHistoryUpdate(
     { historyLimit: options.historyLimit, retainDays: options.retainDays },
   );
 
-  const branchLatest = buildBranchLatest(run, runFileName);
+  const branchLatest = buildBranchLatest(run, runFileName, paths.coverageFileName);
   const branchesIndex = updateBranchesIndex(
     options.existing.branchesIndex,
     branchKey,
@@ -134,6 +136,11 @@ export function buildHistoryUpdate(
     { path: paths.testsFile, content: repositoryTests },
   ];
 
+  if (run.coverage && paths.coverageFile) {
+    const coverageRecord = encodeCoverageRunRecord(run.id, run.coverage);
+    files.push({ path: paths.coverageFile, content: coverageRecord });
+  }
+
   if (repoConfig) {
     files.push({ path: paths.configFile, content: repoConfig });
   }
@@ -147,6 +154,9 @@ export function buildHistoryUpdate(
     paths.runFile,
     paths.testsFile,
   ];
+  if (run.coverage && paths.coverageFile) {
+    commitPaths.push(paths.coverageFile);
+  }
   if (repoConfig) {
     commitPaths.push(paths.configFile);
   }
@@ -238,8 +248,8 @@ function buildRunRecord(
   };
 }
 
-function buildRunSummary(run: PublishTestRun, runFileName: string): RunSummary {
-  return {
+function buildRunSummary(run: PublishTestRun, runFileName: string, coverageFileName?: string): RunSummary {
+  const summary: RunSummary = {
     runId: run.id,
     workflowRunId: run.context.runId,
     status: run.status,
@@ -255,10 +265,15 @@ function buildRunSummary(run: PublishTestRun, runFileName: string): RunSummary {
     author: run.context.author,
     runFile: runFileName,
   };
+  if (run.coverage) {
+    summary.coverage = toCoverageSummaryCompact(run.coverage);
+    if (coverageFileName) summary.coverageFile = coverageFileName;
+  }
+  return summary;
 }
 
-function buildBranchLatest(run: PublishTestRun, runFileName: string): BranchLatest {
-  return {
+function buildBranchLatest(run: PublishTestRun, runFileName: string, coverageFileName?: string): BranchLatest {
+  const latest: BranchLatest = {
     version: HISTORY_SCHEMA_VERSION,
     runId: run.id,
     runFile: runFileName,
@@ -274,6 +289,11 @@ function buildBranchLatest(run: PublishTestRun, runFileName: string): BranchLate
     failed: run.stats.failed,
     skipped: run.stats.skipped,
   };
+  if (run.coverage) {
+    latest.coverage = toCoverageSummaryCompact(run.coverage);
+    if (coverageFileName) latest.coverageFile = coverageFileName;
+  }
+  return latest;
 }
 
 function updateBranchHistory(
