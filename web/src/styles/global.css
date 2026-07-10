@@ -577,12 +577,25 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   padding: 8px 12px 4px;
 }
 
-.sidebar-repo { margin-bottom: 4px; }
+.sidebar-repo:not(:last-child) {
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
 
 .sidebar-repo-row {
   display: flex;
   align-items: center;
   gap: 4px;
+  border-radius: var(--radius);
+  background: var(--surface-container);
+}
+
+.sidebar-repo-row .sidebar-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+  padding: 10px 12px;
 }
 
 .sidebar-expand-btn {
