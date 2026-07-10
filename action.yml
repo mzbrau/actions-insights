@@ -141,28 +141,6 @@ inputs:
     required: false
     default: ''
 
-  # Deprecated
-  pages-subdirectory:
-    description: 'Deprecated and ignored. Use reports-subdirectory instead.'
-    required: false
-    default: ''
-  comment-pr:
-    description: 'Deprecated and ignored. Use comment-mode instead.'
-    required: false
-    default: 'true'
-  publish-pages:
-    description: 'Deprecated and ignored. GitHub Pages publishing has been removed; use upload-html-report.'
-    required: false
-    default: ''
-  pages-mode:
-    description: 'Deprecated and ignored. GitHub Pages publishing has been removed.'
-    required: false
-    default: ''
-  seed-from-gh-pages:
-    description: 'Deprecated and ignored. GitHub Pages publishing has been removed.'
-    required: false
-    default: 'false'
-
   # Authentication
   github-token:
     description: GitHub token for API calls

@@ -172,18 +172,6 @@ Publish structured JSON to a persistent history repository for the GitHub Pages 
 
 On `pull_request` workflows, guard `history-enabled` so fork PRs do not attempt to publish — fork PRs cannot access repository secrets. See [History Repository Configuration](../history-repository/configuration#workflow-example).
 
-## Deprecated Inputs
-
-These inputs are ignored with a deprecation warning:
-
-| Deprecated | Replacement |
-|------------|-------------|
-| `pages-subdirectory` | `reports-subdirectory` |
-| `publish-pages` | Removed — use `upload-html-report` |
-| `pages-mode` | Removed |
-| `seed-from-gh-pages` | Removed |
-| `comment-pr` | `comment-mode` |
-
 ## Example
 
 ```yaml

@@ -43,18 +43,11 @@ export interface ActionConfig {
 }
 
 export function loadConfig(): ActionConfig {
-  warnDeprecatedInputs();
-
   const reportsSubdirectory = normalizeSubdirectory(
-    core.getInput('reports-subdirectory')
-      || core.getInput('pages-subdirectory')
-      || 'test-reports',
+    core.getInput('reports-subdirectory') || 'test-reports',
   );
 
-  let commentMode = (core.getInput('comment-mode') || 'update') as CommentMode;
-  if (core.getInput('comment-pr') === 'false') {
-    commentMode = 'off';
-  }
+  const commentMode = (core.getInput('comment-mode') || 'update') as CommentMode;
 
   return {
     testResults: core.getInput('test-results') || '**/*.{trx,xml}',
@@ -105,19 +98,6 @@ function loadHistoryConfig(): HistoryConfig {
     mode: 'multi',
     defaultRepository,
   };
-}
-
-function warnDeprecatedInputs(): void {
-  const deprecated = ['publish-pages', 'pages-mode', 'seed-from-gh-pages'];
-  for (const name of deprecated) {
-    const value = core.getInput(name);
-    if (value) {
-      core.warning(`Input '${name}' is deprecated and ignored. GitHub Pages publishing has been removed.`);
-    }
-  }
-  if (core.getInput('pages-subdirectory') && !core.getInput('reports-subdirectory')) {
-    core.warning("Input 'pages-subdirectory' is deprecated. Use 'reports-subdirectory' instead.");
-  }
 }
 
 function normalizeSubdirectory(value: string): string {

@@ -210,4 +210,4 @@ See the full [JavaScript example workflow](https://github.com/mzbrau/actions-ins
 
 ## Full Reference
 
-[Configuration Reference](../reference/configuration) — every input, output, and deprecated option.
+[Configuration Reference](../reference/configuration) — every input and output.

@@ -69,7 +69,7 @@ See the [Configuration Reference](https://www.ghactionsinsights.com/docs/referen
 
 ## Migration from GitHub Pages
 
-If you previously used the Pages-based workflow with a separate `deploy-pages` job, GitHub Pages publishing has been removed. Use `upload-html-report: true` (the default) to upload the HTML report as a workflow artifact instead. See the [Configuration Reference](https://www.ghactionsinsights.com/docs/reference/configuration) for deprecated inputs.
+If you previously used the Pages-based workflow with a separate `deploy-pages` job, GitHub Pages publishing has been removed. Use `upload-html-report: true` (the default) to upload the HTML report as a workflow artifact instead.
 
 ## Development
 
