@@ -801,6 +801,126 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   outline-offset: -2px;
 }
 
+.trends-panel .branch-filter-bar {
+  margin-bottom: 16px;
+}
+
+.trends-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.run-trends-chart {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+}
+
+.run-trends-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.run-trends-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.run-trends-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.run-trends-swatch.passed {
+  background: var(--success, #0a6e31);
+}
+
+.run-trends-swatch.failed {
+  background: var(--error, #ba1a1a);
+}
+
+.run-trends-swatch.line {
+  background: none;
+  border: 2px solid #1a56db;
+  border-radius: 0;
+  width: 16px;
+  height: 0;
+}
+
+.run-trends-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.run-trends-grid-line {
+  stroke: var(--outline-variant);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+
+.run-trends-axis-line {
+  stroke: var(--outline);
+  stroke-width: 1;
+}
+
+.run-trends-axis-label {
+  fill: var(--on-surface-variant);
+  font-size: 11px;
+}
+
+.run-trends-axis-title {
+  fill: var(--on-surface-variant);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.run-trends-date-label {
+  fill: var(--outline);
+  font-size: 10px;
+}
+
+.run-trends-bar {
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.run-trends-bar.clickable {
+  cursor: pointer;
+}
+
+.run-trends-bar.hovered,
+.run-trends-bar.clickable:hover,
+.run-trends-bar.clickable:focus-visible {
+  opacity: 0.85;
+  filter: brightness(1.1);
+}
+
+.run-trends-bar.clickable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.run-trends-duration-line {
+  pointer-events: none;
+}
+
+.run-trends-point {
+  pointer-events: all;
+}
+
+.run-trends-point.hovered {
+  r: 4;
+}
+
 .dashboard-title {
   margin: 0;
   font-size: 21px;

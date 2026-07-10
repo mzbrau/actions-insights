@@ -8,6 +8,7 @@ import { AppShell } from '../components/layout/AppShell';
 import { DashboardTopBar } from '../components/layout/DashboardTopBar';
 import { BranchFilterBar } from '../components/dashboard/BranchFilterBar';
 import { ProblematicTestsPanel } from '../components/dashboard/ProblematicTestsPanel';
+import { TrendsPanel } from '../components/dashboard/TrendsPanel';
 import { QuickStatsPanel } from '../components/dashboard/QuickStatsPanel';
 import { UnifiedRunsTable } from '../components/dashboard/UnifiedRunsTable';
 import { PassRateRing } from '../components/charts/PassRateRing';
@@ -15,14 +16,18 @@ import { DurationTrendChart } from '../components/charts/DurationTrendChart';
 import { ChartCard } from '../components/ui/ChartCard';
 import { TabBar } from '../components/ui/TabBar';
 
-type DashboardTab = 'builds' | 'problematic-tests';
+type DashboardTab = 'builds' | 'problematic-tests' | 'trends';
 
 export function RepositoryDashboardPage() {
   const { repoKey } = useParams<{ repoKey: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const branchFilter = searchParams.get('branch') ?? '';
-  const activeTab = (searchParams.get('tab') === 'problematic-tests' ? 'problematic-tests' : 'builds') as DashboardTab;
+  const activeTab = useMemo((): DashboardTab => {
+    const tab = searchParams.get('tab');
+    if (tab === 'problematic-tests' || tab === 'trends') return tab;
+    return 'builds';
+  }, [searchParams]);
   const [search, setSearch] = useState('');
   const [metadata, setMetadata] = useState<Awaited<ReturnType<typeof loadRepository>>['metadata'] | null>(null);
   const [branches, setBranches] = useState<BranchIndexEntry[]>([]);
@@ -54,6 +59,7 @@ export function RepositoryDashboardPage() {
   }, [repoKey]);
 
   const chartRuns = useMemo(() => runs.slice(0, 20).reverse(), [runs]);
+  const trendRuns = useMemo(() => [...runs].reverse().slice(-30), [runs]);
 
   const setBranchFilter = (branchKey: string) => {
     setSearchParams((prev) => {
@@ -79,6 +85,7 @@ export function RepositoryDashboardPage() {
   const dashboardTabs = [
     { id: 'builds', label: 'Builds' },
     { id: 'problematic-tests', label: 'Problematic Tests' },
+    { id: 'trends', label: 'Trends' },
   ];
 
   if (loading) {
@@ -133,7 +140,7 @@ export function RepositoryDashboardPage() {
         ariaLabel="Repository sections"
       />
 
-      {activeTab === 'builds' ? (
+      {activeTab === 'builds' && (
         <div className="tab-panel" role="tabpanel">
           <BranchFilterBar
             branches={branches}
@@ -168,8 +175,22 @@ export function RepositoryDashboardPage() {
 
           <UnifiedRunsTable runs={runs} search={search} />
         </div>
-      ) : (
-        repoKey && <ProblematicTestsPanel repoKey={repoKey} />
+      )}
+
+      {activeTab === 'problematic-tests' && repoKey && (
+        <ProblematicTestsPanel repoKey={repoKey} />
+      )}
+
+      {activeTab === 'trends' && repoKey && (
+        <TrendsPanel
+          repoKey={repoKey}
+          runs={trendRuns}
+          singleBranchView={Boolean(branchFilter)}
+          branches={branches}
+          selectedBranch={branchFilter}
+          onBranchChange={setBranchFilter}
+          lastUpdated={metadata.lastRunDate}
+        />
       )}
     </AppShell>
   );

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DonutChart } from './DonutChart';
 import { DurationTrendChart } from './DurationTrendChart';
+import { RunTrendsChart } from './RunTrendsChart';
 import { StackedBarChart } from './StackedBarChart';
 import type { EnrichedRun } from '../../utils/repositoryRuns';
 
@@ -94,5 +95,60 @@ describe('DurationTrendChart', () => {
     render(<DurationTrendChart runs={[run]} onBarClick={onBarClick} />);
     fireEvent.click(screen.getByRole('button', { name: /click-me/i }));
     expect(onBarClick).toHaveBeenCalledWith(run);
+  });
+});
+
+describe('RunTrendsChart', () => {
+  it('renders empty state when no runs', () => {
+    const { container } = render(<RunTrendsChart runs={[]} />);
+    expect(container.querySelector('.chart-empty')?.textContent).toBe('No run history yet');
+  });
+
+  it('renders bars and duration line for run history', () => {
+    const { container } = render(
+      <RunTrendsChart
+        runs={[
+          sampleRun({ runId: 'a', total: 10, durationMs: 5000 }),
+          sampleRun({ runId: 'b', total: 8, durationMs: 8000, status: 'failed' }),
+        ]}
+      />,
+    );
+    expect(container.querySelectorAll('.run-trends-bar').length).toBe(2);
+    expect(container.querySelector('.run-trends-duration-line')).toBeTruthy();
+    expect(container.querySelectorAll('.run-trends-point').length).toBe(2);
+  });
+
+  it('applies passed and failed bar colors', () => {
+    const { container } = render(
+      <RunTrendsChart
+        runs={[
+          sampleRun({ runId: 'pass', status: 'passed' }),
+          sampleRun({ runId: 'fail', status: 'failed' }),
+        ]}
+      />,
+    );
+    const bars = container.querySelectorAll('.run-trends-bar');
+    expect(bars[0]?.getAttribute('fill')).toBe('#0a6e31');
+    expect(bars[1]?.getAttribute('fill')).toBe('#ba1a1a');
+  });
+
+  it('shows date labels on the x-axis', () => {
+    const { container } = render(
+      <RunTrendsChart
+        runs={[sampleRun({ date: '2026-07-09T12:00:00.000Z' })]}
+      />,
+    );
+    expect(container.querySelectorAll('.run-trends-date-label').length).toBeGreaterThan(0);
+    expect(container.querySelector('.run-trends-date-label')?.textContent).toBe('Jul 9');
+  });
+
+  it('calls onRunClick when a bar is clicked', () => {
+    const onRunClick = vi.fn();
+    const run = sampleRun({ runId: 'trend-click', date: '2026-07-09T12:00:00.000Z' });
+    const { container } = render(<RunTrendsChart runs={[run]} onRunClick={onRunClick} />);
+    const bar = container.querySelector('.run-trends-bar.clickable');
+    expect(bar).toBeTruthy();
+    fireEvent.click(bar!);
+    expect(onRunClick).toHaveBeenCalledWith(run);
   });
 });

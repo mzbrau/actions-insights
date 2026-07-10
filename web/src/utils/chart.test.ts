@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDonutSegments, donutPaths, maxValue } from './chart';
+import { buildDonutSegments, buildLinearTicks, donutPaths, maxValue } from './chart';
 
 describe('chart utils', () => {
   it('maxValue returns fallback when all values are zero', () => {
@@ -8,6 +8,15 @@ describe('chart utils', () => {
 
   it('maxValue returns highest value', () => {
     expect(maxValue([3, 10, 5])).toBe(10);
+  });
+
+  it('buildLinearTicks returns ascending ticks from zero', () => {
+    expect(buildLinearTicks(0)).toEqual([0]);
+    expect(buildLinearTicks(100, 4)).toEqual([0, 25, 50, 75, 100]);
+  });
+
+  it('buildLinearTicks deduplicates rounded ticks', () => {
+    expect(buildLinearTicks(3, 3)).toEqual([0, 1, 2, 3]);
   });
 
   it('buildDonutSegments filters zero segments', () => {

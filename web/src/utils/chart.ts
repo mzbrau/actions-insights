@@ -21,6 +21,15 @@ export function maxValue(values: number[], fallback = 1): number {
   return max > 0 ? max : fallback;
 }
 
+export function buildLinearTicks(max: number, count = 4): number[] {
+  if (max <= 0) return [0];
+  const ticks: number[] = [];
+  for (let i = 0; i <= count; i++) {
+    ticks.push(Math.round((max / count) * i));
+  }
+  return [...new Set(ticks)];
+}
+
 export function buildDonutSegments(stats: {
   passed: number;
   failed: number;
