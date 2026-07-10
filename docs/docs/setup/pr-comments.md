@@ -5,7 +5,7 @@ title: PR Comments
 
 # PR Comments
 
-When a workflow runs on a pull request, Actions Insights posts a rich comment with test results — failure counts, stack traces, and slow tests — optimised for mobile review.
+When a workflow runs on a pull request, Actions Insights posts a rich comment with test results — failure counts, stack traces, and slow tests — optimised for mobile review. When [code coverage](./prepare-test-output#code-coverage) is enabled, the comment also includes a compact coverage line and per-project breakdown.
 
 ![PR comment with failure details and stack trace](/img/comment.png)
 

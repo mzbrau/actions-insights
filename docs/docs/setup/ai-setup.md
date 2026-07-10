@@ -5,7 +5,7 @@ title: AI Setup Guide
 
 # AI Setup Guide
 
-You can ask your AI coding assistant to set up Actions Insights in your repository. Share this page URL and the prompt below — the assistant will inspect your project, configure test output, add the GitHub Action, and ask which reporting outputs you want.
+You can ask your AI coding assistant to set up Actions Insights in your repository. Share this page URL and the prompt below — the assistant will inspect your project, configure test output, add the GitHub Action, and ask which reporting outputs and code coverage options you want.
 
 ## Copy this prompt
 
@@ -17,7 +17,8 @@ https://www.ghactionsinsights.com/docs/setup/ai-setup
 
 Inspect our test runner and GitHub Actions workflows, ensure we output a
 supported format (TRX, JUnit, NUnit, or xUnit XML), add the action step,
-then ask me which reporting outputs I want before making changes.
+then ask me which reporting outputs I want and whether I want code coverage
+before making changes.
 ```
 
 ---
@@ -118,7 +119,101 @@ Test reporting is ancillary — a reporting outage should not block releases or 
 
 `if: always()` only controls whether the step **runs** after a prior failure. If the step itself fails, the job still fails and subsequent steps are skipped unless `continue-on-error: true` is set.
 
-### Phase 4 — Configure outputs (ask the user)
+### Phase 4 — Code coverage (optional, ask the user)
+
+**Stop and ask the user**: "Would you like to include code coverage in your test reports?"
+
+If the user says **no**, skip this phase and leave `coverage-enabled` at its default (`false`).
+
+If the user says **yes**, make changes in **two places**:
+
+| Step | What to change |
+|------|----------------|
+| Test runner | Generate a supported coverage file before the Actions Insights step |
+| Action inputs | `coverage-enabled: true` and a `coverage-files` glob matching the output |
+
+Coverage uses the **same Actions Insights step** — no separate action or extra GitHub permissions are required. When enabled, coverage appears in the PR comment, job summary, HTML artifact, and (if history is enabled) the dashboard **Test Coverage** tab.
+
+#### Supported formats
+
+| Format | Typical output | Languages / tools |
+|--------|---------------|-------------------|
+| Cobertura XML | `coverage.cobertura.xml` | .NET Coverlet (default), Python `coverage xml` |
+| OpenCover XML | `*.opencover.xml` | .NET OpenCover |
+| JaCoCo XML | `jacoco.xml`, `jacocoTestReport.xml` | Java Maven/Gradle |
+| LCOV | `lcov.info`, `coverage/lcov.info` | JS/TS (Vitest, Jest/nyc), Python `coverage lcov` |
+
+The action auto-detects format from file content. See [Configuration Reference — Code coverage](../reference/configuration#code-coverage) for canonical defaults.
+
+#### Per-language examples
+
+**.NET (Coverlet / Cobertura)** — see [.NET example with coverage](https://github.com/mzbrau/actions-insights/blob/main/examples/dotnet.yml):
+
+```yaml
+- name: Run tests
+  run: dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage --logger "trx;LogFileName=results.trx"
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: '**/*.trx'
+    coverage-enabled: true
+    coverage-files: '**/coverage.cobertura.xml'
+```
+
+**Java (JaCoCo)**:
+
+```yaml
+- name: Run tests
+  run: mvn test jacoco:report
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: '**/TEST-*.xml'
+    coverage-enabled: true
+    coverage-files: '**/jacoco*.xml'
+```
+
+**JavaScript / TypeScript (LCOV via Vitest)**:
+
+```yaml
+- name: Run tests
+  run: npx vitest run --coverage
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+    coverage-enabled: true
+    coverage-files: '**/lcov.info'
+```
+
+**Python (LCOV via pytest-cov)**:
+
+```yaml
+- name: Run tests
+  run: pytest --junitxml=test-results.xml --cov --cov-report=lcov:coverage/lcov.info
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+    coverage-enabled: true
+    coverage-files: 'coverage/lcov.info'
+```
+
+See [Prepare Test Output — Code Coverage](./prepare-test-output#code-coverage) for additional per-language snippets.
+
+#### Optional strictness
+
+Only set `coverage-fail-if-missing: true` if the user wants the step to fail when coverage is enabled but no files match or all parses fail. Default is `false`.
+
+#### Multiple coverage files
+
+When a workflow produces coverage from multiple jobs or formats, use comma-separated globs:
+
+```yaml
+coverage-files: '**/coverage.cobertura.xml,**/lcov.info'
+```
+
+### Phase 5 — Configure outputs (ask the user)
 
 **Stop and ask the user** which reporting channels they want before applying non-default settings. Present these options:
 
@@ -162,7 +257,7 @@ Test reporting is ancillary — a reporting outage should not block releases or 
 
 See [Choose Your Outputs](./choose-outputs) for the full decision guide.
 
-### Phase 5 — History repository (optional)
+### Phase 6 — History repository (optional)
 
 Only proceed if the user explicitly wants org-wide, persistent dashboards across repositories.
 
@@ -195,7 +290,7 @@ history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 
 See [History Repository Configuration](../history-repository/configuration) and [Adding Repositories](../history-repository/adding-repositories) for multi-repo setup.
 
-### Phase 6 — Validate
+### Phase 7 — Validate
 
 Before committing, verify every item on the [Setup Checklist](./checklist). At minimum:
 
@@ -204,15 +299,19 @@ Before committing, verify every item on the [Setup Checklist](./checklist). At m
 - [ ] Actions Insights step runs **after** the test step
 - [ ] Workflow permissions match enabled outputs **and every other step in the job** (e.g. `contents: write` for release jobs)
 - [ ] `continue-on-error: true` on reporting steps that must not block releases or builds
+- [ ] If coverage enabled: test runner writes a supported format (Cobertura, OpenCover, LCOV, or JaCoCo) before the action step
+- [ ] `coverage-files` glob matches the actual coverage output path (or all coverage inputs omitted/default)
+- [ ] `coverage-enabled`, `coverage-files`, and `coverage-fail-if-missing` set together (or all omitted/default)
 - [ ] `history-enabled`, `history-repository`, and `history-token` are set together (or all omitted)
 - [ ] `history-enabled` is guarded on `pull_request` workflows (fork PRs cannot access secrets)
 - [ ] Fork PR workflows use a separate reporting job if PR comments are needed
 
 Summarize changes to the user and explain how to verify:
 
-1. Open a pull request to see the test summary comment
-2. Open the workflow run to see the job summary table
+1. Open a pull request to see the test summary comment (and coverage line, if enabled)
+2. Open the workflow run to see the job summary table (and Coverage section, if enabled)
 3. Download the `actions-insights-report` artifact for the full HTML report
+4. If history repository is enabled, confirm coverage appears on the dashboard **Test Coverage** tab
 
 ---
 
@@ -239,6 +338,9 @@ See [Example Workflows](./example-workflows) for release and fork-PR patterns.
 - Copy default values from the README — use [`action.yml`](https://github.com/mzbrau/actions-insights/blob/main/action.yml) as the source of truth
 - Set `contents: read` on jobs that also create GitHub Releases or upload release assets
 - Rely on `if: always()` alone to make reporting non-blocking — add `continue-on-error: true`
+- Enable `coverage-enabled` without updating the test command to produce coverage files
+- Enable `coverage-enabled: true` unconditionally — always ask the user first
+- Use unsupported coverage formats (only Cobertura, OpenCover, LCOV, and JaCoCo are supported)
 - Enable `history-enabled` without `history-token` and `history-repository`
 - Enable `history-enabled: true` unconditionally on `pull_request` workflows (fork PRs cannot access secrets)
 - Use `pull_request_target` without explaining the security trade-offs

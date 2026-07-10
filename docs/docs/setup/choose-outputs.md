@@ -18,6 +18,8 @@ Actions Insights publishes test results through up to four channels. Each is opt
 
 Additionally, **GitHub Checks** are published by default (`publish-checks: true`) with file annotations parsed from stack traces.
 
+**Code coverage** is not a separate output channel — when `coverage-enabled: true`, coverage metrics appear automatically in PR comments, workflow summaries, HTML artifacts, and the history dashboard. See [Prepare Test Output — Code Coverage](./prepare-test-output#code-coverage) and the [AI Setup Guide — Phase 4](./ai-setup#phase-4--code-coverage-optional-ask-the-user).
+
 ## Recommended Paths
 
 ### Pull Request Workflows
