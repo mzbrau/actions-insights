@@ -5,7 +5,7 @@ _site/
 .local-results/
 *.log
 .DS_Store
-coverage/
+/coverage/
 licenses.txt
 *.tsbuildinfo
 web/src/version.ts
