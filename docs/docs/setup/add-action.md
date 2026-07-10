@@ -22,10 +22,12 @@ Add these permissions at the workflow or job level:
 
 ```yaml
 permissions:
-  contents: read          # Required
+  contents: read          # Required for test-only jobs
   pull-requests: write    # PR comments
   checks: write           # Check runs and annotations
 ```
+
+Job-level permissions apply to **every step** in that job. If the same job also runs `gh release create` or uploads release assets, use `contents: write` instead of `contents: read`.
 
 For pull requests from forks, you may need `pull_request_target` or a separate reporting job — see the [Configuration Reference](../reference/configuration#permissions).
 
@@ -64,6 +66,33 @@ jobs:
 ```
 
 2. **`pull_request_target`** — only when you understand the security implications of running untrusted code with elevated permissions.
+
+### History on fork pull requests
+
+`history-enabled: true` requires a non-empty `history-token`. Fork PRs triggered by `pull_request` cannot access repository secrets, so an unconditional `history-enabled: true` will fail. Guard with the same pattern used for PR comments:
+
+```yaml
+history-enabled: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+history-repository: 'my-org/actions-insights-history'
+history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
+```
+
+## Non-blocking reporting
+
+Test reporting should not block releases, deployments, or the overall build. Add `continue-on-error: true` when the Actions Insights step is ancillary to the job's primary purpose:
+
+```yaml
+- name: Publish test report
+  uses: mzbrau/actions-insights@v1
+  if: always()
+  continue-on-error: true
+  with:
+    test-results: '**/*.trx'
+```
+
+`if: always()` only ensures the step runs after a prior failure — it does **not** prevent the step's own failure from failing the job. Use both attributes when reporting shares a job with release or publish steps.
+
+When migrating from `dorny/test-reporter` or similar tools that used `fail-on-error: false`, add `continue-on-error: true` to preserve the same behavior.
 
 See the [Setup Checklist](./checklist) for a full pre-flight review.
 

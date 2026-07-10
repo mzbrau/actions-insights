@@ -63,7 +63,7 @@ Add at the workflow or job level based on which outputs will be enabled:
 
 ```yaml
 permissions:
-  contents: read          # Required
+  contents: read          # Required for test-only jobs
   pull-requests: write    # PR comments
   checks: write           # Check runs and annotations
 ```
@@ -74,6 +74,15 @@ permissions:
 | GitHub Checks | `checks: write` |
 | Job summary | `contents: read` (no extra permission) |
 | HTML artifact | `contents: read` (no extra permission) |
+
+**Job-level permissions apply to every step in that job.** If the same job also runs `gh release create`, uploads release assets, or commits to the repository, you must grant `contents: write` — not `contents: read`. A common mistake is copying the minimal quick-start permissions into a release workflow:
+
+```yaml
+# Release workflow — same job as gh release create
+permissions:
+  contents: write   # required for release upload, not read
+  checks: write
+```
 
 For **pull requests from forks**, `GITHUB_TOKEN` cannot write PR comments in a standard `pull_request` workflow. Use a separate reporting job — see [Add the Action](./add-action#pull-requests-from-forks).
 
@@ -89,6 +98,25 @@ Insert the Actions Insights step **after** tests run and result files are writte
 ```
 
 Set `test-results` to a glob that matches the files produced in Phase 1. Default: `**/*.{trx,xml}`.
+
+#### Non-blocking reporting
+
+Test reporting is ancillary — a reporting outage should not block releases or deployments. Add `continue-on-error: true` when:
+
+- The report step shares a job with release, publish, or deploy steps
+- The workflow previously used `fail-on-error: false` on another reporter (e.g. `dorny/test-reporter`)
+- Reporting runs in a separate `test-report` job that should not fail the overall workflow
+
+```yaml
+- name: Publish test report
+  uses: mzbrau/actions-insights@v1
+  if: always()              # run after test failures
+  continue-on-error: true     # do not fail the job if reporting fails
+  with:
+    test-results: '**/*.trx'
+```
+
+`if: always()` only controls whether the step **runs** after a prior failure. If the step itself fails, the job still fails and subsequent steps are skipped unless `continue-on-error: true` is set.
 
 ### Phase 4 — Configure outputs (ask the user)
 
@@ -157,6 +185,14 @@ Only proceed if the user explicitly wants org-wide, persistent dashboards across
 
 The secret name is arbitrary but must match the `secrets.*` reference in the workflow.
 
+**Do not enable history unconditionally on `pull_request` workflows.** Fork PRs cannot access repository secrets, so `history-token` will be empty and the step can fail. Guard with the same pattern used for PR comments:
+
+```yaml
+history-enabled: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+history-repository: 'my-org/actions-insights-history'
+history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
+```
+
 See [History Repository Configuration](../history-repository/configuration) and [Adding Repositories](../history-repository/adding-repositories) for multi-repo setup.
 
 ### Phase 6 — Validate
@@ -166,8 +202,10 @@ Before committing, verify every item on the [Setup Checklist](./checklist). At m
 - [ ] Test runner emits TRX, JUnit, NUnit, or xUnit XML
 - [ ] `test-results` glob matches the actual output path
 - [ ] Actions Insights step runs **after** the test step
-- [ ] Workflow permissions match enabled outputs
+- [ ] Workflow permissions match enabled outputs **and every other step in the job** (e.g. `contents: write` for release jobs)
+- [ ] `continue-on-error: true` on reporting steps that must not block releases or builds
 - [ ] `history-enabled`, `history-repository`, and `history-token` are set together (or all omitted)
+- [ ] `history-enabled` is guarded on `pull_request` workflows (fork PRs cannot access secrets)
 - [ ] Fork PR workflows use a separate reporting job if PR comments are needed
 
 Summarize changes to the user and explain how to verify:
@@ -178,12 +216,31 @@ Summarize changes to the user and explain how to verify:
 
 ---
 
+## Workflow integration rules
+
+When adding or modifying Actions Insights across multiple workflows, apply these rules to avoid common regressions:
+
+| Workflow type | Report step placement | `continue-on-error` | `contents` permission |
+|---------------|----------------------|---------------------|-------------------------|
+| CI / build | Separate `test-report` job or after tests | Recommended (parity with `fail-on-error: false`) | `read` is fine |
+| Release / pre-release | Same job as `gh release create` | **Required** | **`write`** (release upload) |
+
+1. **Job-level permissions must satisfy every step** — `contents: read` breaks `gh release create` and release asset uploads in the same job.
+2. **`if: always()` is not non-blocking** — add `continue-on-error: true` so reporting failures do not skip release or deploy steps.
+3. **History requires a token** — guard `history-enabled` on fork PRs; secrets are unavailable to workflows triggered by external forks.
+4. **Preserve non-blocking reporting** — when migrating from `dorny/test-reporter` or similar, keep reporting failures from failing CI.
+
+See [Example Workflows](./example-workflows) for release and fork-PR patterns.
+
 ## Do not
 
 - Use TAP, JSON, or other unsupported test reporter formats
 - Place the Actions Insights step before tests run
 - Copy default values from the README — use [`action.yml`](https://github.com/mzbrau/actions-insights/blob/main/action.yml) as the source of truth
+- Set `contents: read` on jobs that also create GitHub Releases or upload release assets
+- Rely on `if: always()` alone to make reporting non-blocking — add `continue-on-error: true`
 - Enable `history-enabled` without `history-token` and `history-repository`
+- Enable `history-enabled: true` unconditionally on `pull_request` workflows (fork PRs cannot access secrets)
 - Use `pull_request_target` without explaining the security trade-offs
 
 ## Further reading

@@ -22,15 +22,22 @@ Use this checklist to verify your Actions Insights setup before merging. AI assi
 
 | Output enabled | Permission required |
 |----------------|---------------------|
-| Any | `contents: read` |
+| Any | `contents: read` (or `write` if the job also creates releases) |
 | PR comments | `pull-requests: write` |
 | GitHub Checks | `checks: write` |
 
 - [ ] Workflow permissions match the outputs you enabled
+- [ ] Job-level permissions satisfy **every step** in that job (e.g. `contents: write` when the job runs `gh release create`)
 
 ### Fork pull requests
 
 - [ ] If PRs come from forks and PR comments are needed, a **separate reporting job** uploads/downloads test result artifacts (see [Add the Action](./add-action#pull-requests-from-forks))
+- [ ] `history-enabled` is **not** unconditional on `pull_request` workflows — guard with a same-repo check (fork PRs cannot access secrets)
+
+## Non-blocking reporting
+
+- [ ] Reporting steps that must not block releases or builds use `continue-on-error: true`
+- [ ] Steps that run after test failures use `if: always()` **and** `continue-on-error: true` when in the same job as release/deploy steps
 
 ## Output configuration
 
@@ -56,6 +63,7 @@ Skip this section if `history-enabled` is not set.
 - [ ] Secret added to source repository (recommended: `ACTIONS_INSIGHTS_HISTORY_TOKEN`)
 - [ ] `history-repository` set to `owner/repo`
 - [ ] `history-token` references the correct `secrets.*` name
+- [ ] On `pull_request` workflows, `history-enabled` is guarded so fork PRs do not attempt to publish (secrets unavailable)
 
 ## Post-setup verification
 
@@ -72,6 +80,9 @@ After the workflow runs:
 - **No results found** — verify the `test-results` glob and that tests ran successfully
 - **Wrong format detected** — ensure XML files use a supported schema; see [Prepare Test Output](./prepare-test-output)
 - **No PR comment** — confirm the workflow ran on a pull request and `comment-mode` is not `off`; check fork PR permissions
+- **Release step fails with 403** — job likely has `contents: read` but needs `contents: write` for `gh release create`
+- **Reporting failure blocks release** — add `continue-on-error: true` to the Actions Insights step; `if: always()` alone is not enough
 - **History not updating** — verify `history-token` has write access to the history repository
+- **History fails on fork PR** — guard `history-enabled` with a same-repo check; fork PRs cannot access repository secrets
 
 See [History Repository Troubleshooting](../history-repository/troubleshooting) for dashboard-specific issues.

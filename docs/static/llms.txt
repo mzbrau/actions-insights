@@ -13,6 +13,12 @@
 - Example workflows: /docs/setup/example-workflows
 - History repository: /docs/setup/history-repository
 
+## Integration rules (read before editing workflows)
+- Job-level permissions must satisfy every step in the job (contents: write for release jobs)
+- Use continue-on-error: true on ancillary reporting steps (if: always() alone is not enough)
+- Guard history-enabled on pull_request workflows (fork PRs cannot access secrets)
+- AI Setup Guide workflow integration rules: /docs/setup/ai-setup#workflow-integration-rules
+
 ## Reference
 - Configuration: /docs/reference/configuration
 - Architecture: /docs/reference/architecture

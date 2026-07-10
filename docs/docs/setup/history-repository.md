@@ -43,6 +43,14 @@ flowchart LR
     history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 ```
 
+On `pull_request` workflows, do not enable history unconditionally — fork PRs cannot access repository secrets. Guard with a same-repo check:
+
+```yaml
+history-enabled: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+history-repository: 'my-org/actions-insights-history'
+history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
+```
+
 ## Setup Steps
 
 The history repository requires a one-time setup:

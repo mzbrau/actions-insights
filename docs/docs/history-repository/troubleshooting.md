@@ -56,6 +56,18 @@ Or run `bash scripts/update-history-repo.sh update <owner>/<history-repo>` from 
 - Ensure `history-repository` is set
 - Ensure `history-token` secret is configured and has `contents: write`
 
+## History publish fails on fork PR
+
+Fork PRs triggered by `pull_request` cannot access repository secrets. If `history-enabled: true` is set unconditionally, `history-token` will be empty and the step can fail.
+
+Guard with a same-repo check:
+
+```yaml
+history-enabled: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+```
+
+See [Add the Action](../setup/add-action#history-on-fork-pull-requests).
+
 ## Push conflicts
 
 Multiple workflows pushing simultaneously may conflict on index files. The action retries up to 3 times with rebase. If failures persist:

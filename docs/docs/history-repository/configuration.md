@@ -30,6 +30,14 @@ title: Configuration
     history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 ```
 
+On `pull_request` workflows, guard `history-enabled` so fork PRs do not attempt to publish (secrets are unavailable):
+
+```yaml
+history-enabled: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+history-repository: my-org/test-history
+history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
+```
+
 ## Secret setup
 
 1. Create a fine-grained PAT or classic PAT with `contents: write` on the history repository

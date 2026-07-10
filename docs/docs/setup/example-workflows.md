@@ -96,7 +96,84 @@ jobs:
           history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 ```
 
+On `pull_request` workflows, guard `history-enabled` so fork PRs (which cannot access secrets) do not attempt to publish:
+
+```yaml
+history-enabled: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+history-repository: 'my-org/actions-insights-history'
+history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
+```
+
 See [History Repository Deployment](../history-repository/deployment) for one-time setup.
+
+## Release Workflow — Non-blocking Report
+
+When the report step shares a job with `gh release create`, use `contents: write` and `continue-on-error: true`:
+
+```yaml
+permissions:
+  contents: write   # required for gh release create, not read
+  checks: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: dotnet test --logger "trx;LogFileName=results.trx"
+
+      - name: Publish test report
+        uses: mzbrau/actions-insights@v1
+        if: always()
+        continue-on-error: true
+        with:
+          test-results: '**/*.trx'
+          comment-mode: off
+
+      - name: Create Release
+        run: gh release create v1.0.0 ./artifacts/*
+        env:
+          GH_TOKEN: ${{ github.token }}
+```
+
+`if: always()` runs the step after test failures, but `continue-on-error: true` prevents a reporting outage from skipping the release step.
+
+## Separate Test Report Job
+
+For build workflows where reporting should not fail CI (parity with `fail-on-error: false`):
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: dotnet test --logger "trx;LogFileName=results.trx"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/*.trx'
+
+  test-report:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-results
+      - name: Publish test report
+        uses: mzbrau/actions-insights@v1
+        continue-on-error: true
+        with:
+          test-results: '**/*.trx'
+```
 
 ## Java (JUnit)
 

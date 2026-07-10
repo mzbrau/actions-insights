@@ -9,10 +9,12 @@ title: Configuration
 
 ```yaml
 permissions:
-  contents: read          # Required
-  pull-requests: write    # PR comments (fork PRs may need pull_request_target)
+  contents: read          # Required for test-only jobs
+  pull-requests: write    # PR comments (fork PRs may need a separate reporting job)
   checks: write           # Check runs and annotations
 ```
+
+Job-level permissions apply to every step in that job. Use `contents: write` when the same job creates GitHub Releases or uploads release assets. See [Workflow integration rules](../setup/ai-setup#workflow-integration-rules) for release workflows, non-blocking reporting, and fork PR patterns.
 
 ## Inputs
 
@@ -167,6 +169,8 @@ Publish structured JSON to a persistent history repository for the GitHub Pages 
 | `history-mode` | `multi` | Reserved |
 | `history-default-repository` | `''` | Default dashboard repository |
 | `history-pages-url` | `''` | Base URL for the history dashboard (GitHub Pages). If unset, Actions Insights will try to discover it or fall back to `https://{owner}.github.io/{repo}/`. |
+
+On `pull_request` workflows, guard `history-enabled` so fork PRs do not attempt to publish — fork PRs cannot access repository secrets. See [History Repository Configuration](../history-repository/configuration#workflow-example).
 
 ## Deprecated Inputs
 
