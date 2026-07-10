@@ -19,6 +19,14 @@ describe('TRX parser', () => {
     expect(cases.find((c) => c.name === 'ShouldFail')?.stackTrace).toContain('line 42');
     expect(cases.find((c) => c.name === 'ShouldSkip')?.outcome).toBe('skipped');
   });
+
+  it('parses TRX files with more than 1000 XML entity expansions', () => {
+    const content = fs.readFileSync(path.join(fixtures, 'large-entities.trx'), 'utf8');
+    const cases = trxParser.parse(content, 'large-entities.trx');
+    expect(cases).toHaveLength(1);
+    expect(cases[0].name).toBe('LargeOutput');
+    expect(cases[0].stdout).toBe('&'.repeat(1200));
+  });
 });
 
 describe('JUnit parser', () => {

@@ -1,9 +1,9 @@
-import { XMLParser } from 'fast-xml-parser';
 import type { TestCase, TestOutcome } from '../model/test-case';
 import { testCaseId } from '../model/test-case';
 import type { TestResultParser } from './types';
+import { createXmlParser } from './xml-parser';
 
-const parser = new XMLParser({
+const parser = createXmlParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
   textNodeName: '#text',
