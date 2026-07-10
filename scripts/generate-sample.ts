@@ -8,7 +8,7 @@ import { defaultLocalConfig } from './default-config';
 
 async function main(): Promise<void> {
   const fixtures = path.join(__dirname, '..', 'test', 'fixtures');
-  const { tests, sourceFiles } = await parseTestFiles('*.trx', fixtures);
+  const { tests, sourceFiles, matchedFiles } = await parseTestFiles('*.trx', fixtures);
   const stats = computeStats(tests);
   const status = deriveStatus(tests);
 
@@ -41,6 +41,7 @@ async function main(): Promise<void> {
     tests,
     context,
     sourceFiles,
+    matchedFiles,
     reportPath: '_report',
   };
 

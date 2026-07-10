@@ -24,16 +24,20 @@ export function detectParser(filePath: string, content: string): TestResultParse
 export async function parseTestFiles(pattern: string, cwd = process.cwd()): Promise<{
   tests: TestCase[];
   sourceFiles: string[];
+  matchedFiles: string[];
 }> {
   const fullPattern = path.isAbsolute(pattern) ? pattern : path.join(cwd, pattern);
   const globber = await createGlob(fullPattern, { followSymbolicLinks: false });
   const files = await globber.glob();
   const merged = new Map<string, TestCase>();
   const sourceFiles: string[] = [];
+  const matchedFiles: string[] = [];
 
   for (const file of files) {
     const absolute = path.isAbsolute(file) ? file : path.join(cwd, file);
     if (!fs.existsSync(absolute)) continue;
+    matchedFiles.push(absolute);
+
     const content = fs.readFileSync(absolute, 'utf8');
     const parser = detectParser(absolute, content);
     if (!parser) continue;
@@ -53,6 +57,7 @@ export async function parseTestFiles(pattern: string, cwd = process.cwd()): Prom
   return {
     tests: [...merged.values()].sort((a, b) => a.fullName.localeCompare(b.fullName)),
     sourceFiles,
+    matchedFiles,
   };
 }
 

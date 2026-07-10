@@ -38,6 +38,7 @@ export interface ActionConfig {
   generateJobSummary: boolean;
   publishChecks: boolean;
   artifactRetentionDays: number;
+  includeRawTestResults: boolean;
   checkName: string;
   history: HistoryConfig;
 }
@@ -71,6 +72,7 @@ export function loadConfig(): ActionConfig {
     generateJobSummary: getBooleanOr('generate-job-summary', true),
     publishChecks: getBooleanOr('publish-checks', true),
     artifactRetentionDays: parsePositiveInt(core.getInput('artifact-retention-days'), 30),
+    includeRawTestResults: getBooleanOr('include-raw-test-results', true),
     checkName: core.getInput('check-name') || 'Actions Insights',
     history: loadHistoryConfig(),
   };

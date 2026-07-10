@@ -23,6 +23,7 @@ export function defaultLocalConfig(overrides: Partial<ActionConfig> = {}): Actio
     generateJobSummary: false,
     publishChecks: false,
     artifactRetentionDays: 30,
+    includeRawTestResults: true,
     checkName: 'Actions Insights',
     history: {
       enabled: false,

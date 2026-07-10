@@ -7,5 +7,6 @@ export declare function integrateReportIntoSite(run: TestRun, config: ActionConf
     previousRun?: PreviousRun;
     baseBranchRun?: PreviousRun;
     artifactDir: string;
+    mergedRun: TestRun;
 };
 //# sourceMappingURL=integrate.d.ts.map

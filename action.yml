@@ -36,6 +36,10 @@ inputs:
     description: Retention days for the uploaded HTML report artifact
     required: false
     default: '30'
+  include-raw-test-results:
+    description: Include original test result files in the workflow artifact under raw/
+    required: false
+    default: 'true'
 
   # PR comment
   comment-mode:

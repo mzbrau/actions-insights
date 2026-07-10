@@ -94,4 +94,31 @@ describe('merge-run', () => {
     expect(merged.tests[0].outcome).toBe('failed');
     fs.rmSync(dir, { recursive: true, force: true });
   });
+
+  it('unions sourceFiles and matchedFiles across partial runs', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'merge-'));
+    const partialPath = path.join(dir, 'partial.json');
+
+    const step1 = makeRun([makeTest('TestA', 'passed')], 99);
+    step1.sourceFiles = [path.join(dir, 'shard-1.trx')];
+    step1.matchedFiles = [path.join(dir, 'shard-1.trx'), path.join(dir, 'shard-1.json')];
+    mergePartialRun(step1, partialPath);
+
+    const step2 = makeRun([makeTest('TestB', 'passed')], 99);
+    step2.sourceFiles = [path.join(dir, 'shard-2.trx')];
+    step2.matchedFiles = [path.join(dir, 'shard-2.trx')];
+    const merged = mergePartialRun(step2, partialPath);
+
+    expect(merged.sourceFiles).toEqual([
+      path.join(dir, 'shard-1.trx'),
+      path.join(dir, 'shard-2.trx'),
+    ]);
+    expect(merged.matchedFiles).toEqual([
+      path.join(dir, 'shard-1.trx'),
+      path.join(dir, 'shard-1.json'),
+      path.join(dir, 'shard-2.trx'),
+    ]);
+
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
 });

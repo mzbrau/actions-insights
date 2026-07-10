@@ -107,4 +107,14 @@ describe('report generator', () => {
     expect(html).toMatch(/failure-name[^<]*ShouldFail/);
     expect(html).toMatch(/failure-group-title[^<]*SampleTests/);
   });
+
+  it('shows raw results note when enabled', () => {
+    const run = {
+      ...sampleRun,
+      matchedFiles: ['sample.trx'],
+    };
+    const html = renderReportHtml(run, 'Actions Insights', 'auto', 1000, undefined, true);
+    expect(html).toContain('raw/');
+    expect(html).toContain('downloaded workflow artifact');
+  });
 });

@@ -91,11 +91,18 @@ function renderFailuresSection(run: TestRun): string {
 export function writeRunReport(
   run: TestRun,
   outputDir: string,
-  config: { reportTitle: string; theme: ThemeMode; slowTestThresholdMs: number },
+  config: { reportTitle: string; theme: ThemeMode; slowTestThresholdMs: number; includeRawTestResults?: boolean },
   trends: TrendsFile,
 ): void {
   fs.mkdirSync(outputDir, { recursive: true });
-  const html = renderReportHtml(run, config.reportTitle, config.theme, config.slowTestThresholdMs, trends);
+  const html = renderReportHtml(
+    run,
+    config.reportTitle,
+    config.theme,
+    config.slowTestThresholdMs,
+    trends,
+    config.includeRawTestResults ?? false,
+  );
   fs.writeFileSync(path.join(outputDir, 'report.html'), html);
   fs.writeFileSync(path.join(outputDir, 'trends.json'), JSON.stringify(trends, null, 2));
 }
@@ -106,6 +113,7 @@ export function renderReportHtml(
   theme: ThemeMode,
   slowThresholdMs: number,
   trends?: TrendsFile,
+  includeRawTestResults = false,
 ): string {
   const { stats, context: ctx, status } = run;
   const runTimestamp = ctx.completedAt || ctx.startedAt;
@@ -140,6 +148,9 @@ export function renderReportHtml(
   const bannerDetail = status === 'passed'
     ? `All ${stats.total.toLocaleString()} tests passed`
     : `${stats.failed.toLocaleString()} of ${stats.total.toLocaleString()} tests failed`;
+  const rawResultsNote = includeRawTestResults && (run.matchedFiles?.length ?? 0) > 0
+    ? '<p class="raw-results-note">Original test result files are included in the <code>raw/</code> folder of the downloaded workflow artifact.</p>'
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en" data-default-theme="${escapeHtml(theme)}">
@@ -178,6 +189,7 @@ export function renderReportHtml(
     <div class="status-banner ${bannerClass}">
       <h1>${bannerIcon} ${bannerLabel}</h1>
       <p>${escapeHtml(bannerDetail)} · ${formatDuration(stats.durationMs)} total</p>
+      ${rawResultsNote}
     </div>
 
     <div class="stats-grid">

@@ -64,9 +64,19 @@ describe('parser registry', () => {
   });
 
   it('parses files via glob', async () => {
-    const { tests, sourceFiles } = await parseTestFiles('sample.trx', fixtures);
+    const { tests, sourceFiles, matchedFiles } = await parseTestFiles('sample.trx', fixtures);
     expect(sourceFiles).toHaveLength(1);
     expect(sourceFiles[0]).toContain('sample.trx');
+    expect(matchedFiles).toHaveLength(1);
+    expect(matchedFiles[0]).toContain('sample.trx');
     expect(tests).toHaveLength(3);
+  });
+
+  it('returns unparsed JSON files in matchedFiles', async () => {
+    const { tests, sourceFiles, matchedFiles } = await parseTestFiles('jest-results.json', fixtures);
+    expect(tests).toHaveLength(0);
+    expect(sourceFiles).toHaveLength(0);
+    expect(matchedFiles).toHaveLength(1);
+    expect(matchedFiles[0]).toContain('jest-results.json');
   });
 });

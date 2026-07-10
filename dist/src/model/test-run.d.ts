@@ -40,6 +40,7 @@ export interface TestRun {
     tests: TestCase[];
     context: RunContext;
     sourceFiles: string[];
+    matchedFiles?: string[];
     reportPath: string;
 }
 export declare function computeStats(tests: TestCase[]): RunStats;

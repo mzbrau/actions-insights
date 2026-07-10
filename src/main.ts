@@ -25,7 +25,7 @@ async function run(): Promise<void> {
   const links = buildReportLinks(context);
 
   core.info(`Parsing test results: ${config.testResults}`);
-  const { tests, sourceFiles } = await parseTestFiles(config.testResults);
+  const { tests, sourceFiles, matchedFiles } = await parseTestFiles(config.testResults);
 
   if (tests.length === 0) {
     core.warning('No test results found. Ensure test-results glob matches your output files.');
@@ -43,6 +43,7 @@ async function run(): Promise<void> {
     tests,
     context,
     sourceFiles,
+    matchedFiles,
     reportPath: config.reportOutput,
   };
 
@@ -50,12 +51,12 @@ async function run(): Promise<void> {
   const { owner, repo } = github.context.repo;
 
   await prepareSiteWorkspace(config.siteOutput, owner, repo);
-  const { previousRun, baseBranchRun, artifactDir } = integrateReportIntoSite(testRun, config, config.siteOutput);
+  const { previousRun, baseBranchRun, artifactDir, mergedRun } = integrateReportIntoSite(testRun, config, config.siteOutput);
   await saveSiteCache(config.siteOutput, owner, repo);
 
   if (config.history.enabled) {
     try {
-      await publishToHistoryRepository(testRun, config);
+      await publishToHistoryRepository(mergedRun, config);
     } catch (error) {
       core.warning(`History repository publish failed: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -63,7 +64,11 @@ async function run(): Promise<void> {
 
   if (config.uploadHtmlReport) {
     try {
-      await uploadReportArtifact(artifactDir, config.artifactRetentionDays, context.commitShortSha);
+      await uploadReportArtifact(artifactDir, config.artifactRetentionDays, context.commitShortSha, {
+        includeRawTestResults: config.includeRawTestResults,
+        matchedFiles: mergedRun.matchedFiles ?? matchedFiles,
+        sourceFiles: mergedRun.sourceFiles,
+      });
     } catch (error) {
       core.warning(`Artifact upload failed: ${error instanceof Error ? error.message : String(error)}`);
       core.info(`Report files are available locally at ${config.siteOutput}`);
@@ -78,13 +83,13 @@ async function run(): Promise<void> {
         historyRunUrl = buildHistoryRunUrl(base, config.history.repositoryName, testRun.context, testRun.id);
       }
     }
-    await upsertPrComment(config.githubToken, testRun, config, previousRun, baseBranchRun, historyRunUrl);
+    await upsertPrComment(config.githubToken, mergedRun, config, previousRun, baseBranchRun, historyRunUrl);
   }
 
-  await writeJobSummary(testRun, config, previousRun);
+  await writeJobSummary(mergedRun, config, previousRun);
 
   if (config.publishChecks) {
-    await publishCheckRun(config.githubToken, testRun, config);
+    await publishCheckRun(config.githubToken, mergedRun, config);
   }
 
   core.setOutput('workflow-url', links.workflowRun);

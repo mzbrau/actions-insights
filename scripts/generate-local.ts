@@ -25,9 +25,9 @@ async function main(): Promise<void> {
   const resolvedPattern = path.isAbsolute(pattern) ? pattern : pattern;
 
   console.log(`Parsing: ${resolvedPattern} (cwd: ${searchDir})`);
-  const { tests, sourceFiles } = await parseTestFiles(resolvedPattern, searchDir);
+  const { tests, sourceFiles, matchedFiles } = await parseTestFiles(resolvedPattern, searchDir);
 
-  if (sourceFiles.length === 0) {
+  if (sourceFiles.length === 0 && matchedFiles.length === 0) {
     console.error('No matching test result files found.');
     process.exit(1);
   }
@@ -68,6 +68,7 @@ async function main(): Promise<void> {
     tests,
     context,
     sourceFiles,
+    matchedFiles,
     reportPath: '_report',
   };
 

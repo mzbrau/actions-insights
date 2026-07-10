@@ -25,12 +25,20 @@ HTML artifact upload is **enabled by default** (`upload-html-report: true`).
 ```yaml
 - uses: mzbrau/actions-insights@v1
   with:
-    test-results: '**/*.trx'
+    test-results: '**/*.{trx,xml,json}'
     upload-html-report: true
+    include-raw-test-results: true
     artifact-retention-days: 30
     history: 20
     retain-days: 30
     theme: auto
+```
+
+To disable raw file bundling:
+
+```yaml
+with:
+  include-raw-test-results: false
 ```
 
 To disable:
@@ -44,8 +52,19 @@ with:
 
 1. Open the workflow run on GitHub
 2. Scroll to **Artifacts**
-3. Download `actions-insights-report`
-4. Open `test-reports/{branch}/latest/index.html` locally
+3. Download `actions-insights-report-{commit-sha}`
+4. Open `report.html` locally
+
+The artifact also includes a `raw/` folder with the original test result files (TRX, XML, JSON, etc.) that matched your `test-results` glob, plus `raw/manifest.json` mapping artifact paths back to the workspace paths. Use these when you need the unprocessed output.
+
+## Artifact Contents
+
+| Path | Description |
+|------|-------------|
+| `report.html` | Interactive HTML report |
+| `trends.json` | Branch history and per-test trends |
+| `raw/` | Original test result files from the workflow |
+| `raw/manifest.json` | Index of raw files with source paths and parse status |
 
 ## History Across Runs
 
@@ -58,6 +77,7 @@ For **persistent, org-wide history** across repositories, see [History Repositor
 | Input | Default | Description |
 |-------|---------|-------------|
 | `upload-html-report` | `true` | Upload HTML report artifact |
+| `include-raw-test-results` | `true` | Include original test result files under `raw/` in the artifact |
 | `artifact-retention-days` | `30` | Artifact retention on GitHub |
 | `history` | `20` | Max historical runs per branch/PR |
 | `retain-days` | `30` | Max age for historical runs |

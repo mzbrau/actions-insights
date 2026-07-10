@@ -106,6 +106,13 @@ Retention days for the uploaded artifact.
 
 - **Default:** `30`
 
+#### `include-raw-test-results`
+Copy original test result files into the workflow artifact under `raw/`.
+
+- **Default:** `true`
+- Includes all files matching `test-results`, even if Actions Insights cannot parse them (for example JSON reporters).
+- Disable to upload only `report.html` and `trends.json`.
+
 ### History
 
 #### `history`

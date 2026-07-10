@@ -5,6 +5,7 @@ export declare function detectParser(filePath: string, content: string): TestRes
 export declare function parseTestFiles(pattern: string, cwd?: string): Promise<{
     tests: TestCase[];
     sourceFiles: string[];
+    matchedFiles: string[];
 }>;
 export { PARSERS };
 //# sourceMappingURL=registry.d.ts.map

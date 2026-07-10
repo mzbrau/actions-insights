@@ -110,6 +110,7 @@ export const sampleConfig: ActionConfig = {
   generateJobSummary: true,
   publishChecks: true,
   artifactRetentionDays: 30,
+  includeRawTestResults: true,
   checkName: 'Actions Insights',
   history: {
     enabled: false,

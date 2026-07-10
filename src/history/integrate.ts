@@ -37,7 +37,7 @@ export function integrateReportIntoSite(
   run: TestRun,
   config: ActionConfig,
   siteDir: string,
-): { relativeReportPath: string; previousRun?: PreviousRun; baseBranchRun?: PreviousRun; artifactDir: string } {
+): { relativeReportPath: string; previousRun?: PreviousRun; baseBranchRun?: PreviousRun; artifactDir: string; mergedRun: TestRun } {
   const paths = resolveReportPaths(run.context, config.reportsSubdirectory);
   const partialPath = path.join(siteDir, paths.partialRunPath);
   const artifactDir = path.join(siteDir, paths.artifactDir);
@@ -88,5 +88,5 @@ export function integrateReportIntoSite(
   fs.copyFileSync(path.join(config.reportOutput, 'trends.json'), path.join(artifactDir, 'trends.json'));
   fs.copyFileSync(path.join(config.reportOutput, 'report.html'), path.join(branchCacheDir, 'report.html'));
 
-  return { relativeReportPath: paths.relativeReportUrl, previousRun, baseBranchRun, artifactDir };
+  return { relativeReportPath: paths.relativeReportUrl, previousRun, baseBranchRun, artifactDir, mergedRun };
 }

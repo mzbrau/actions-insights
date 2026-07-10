@@ -34,6 +34,7 @@ export interface ActionConfig {
     generateJobSummary: boolean;
     publishChecks: boolean;
     artifactRetentionDays: number;
+    includeRawTestResults: boolean;
     checkName: string;
     history: HistoryConfig;
 }
