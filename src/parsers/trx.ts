@@ -2,6 +2,7 @@ import type { TestCase, TestOutcome } from '../model/test-case';
 import { testCaseId } from '../model/test-case';
 import type { TestResultParser } from './types';
 import { createXmlParser } from './xml-parser';
+import { asArray, flattenXmlBlocks } from './xml-utils';
 
 const parser = createXmlParser({
   ignoreAttributes: false,
@@ -14,11 +15,6 @@ const parser = createXmlParser({
     name === 'testcase' ||
     name === 'testsuite',
 });
-
-function asArray<T>(value: T | T[] | undefined): T[] {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
-}
 
 function mapTrxOutcome(outcome: string | undefined): TestOutcome {
   const value = (outcome ?? '').toLowerCase();
@@ -58,13 +54,14 @@ export const trxParser: TestResultParser = {
     if (!testRun) return [];
 
     const definitions = new Map<string, { className?: string; name?: string; storage?: string }>();
-    for (const def of asArray(testRun.TestDefinitions?.UnitTest)) {
-      const id = def['@_id'];
+    for (const def of flattenXmlBlocks(testRun.TestDefinitions, 'UnitTest')) {
+      const id = def['@_id'] as string | undefined;
       if (!id) continue;
+      const testMethod = def.TestMethod as Record<string, unknown> | undefined;
       definitions.set(id, {
-        className: def.TestMethod?.['@_className'],
-        name: def.TestMethod?.['@_name'],
-        storage: def['@_storage'],
+        className: testMethod?.['@_className'] as string | undefined,
+        name: testMethod?.['@_name'] as string | undefined,
+        storage: def['@_storage'] as string | undefined,
       });
     }
 

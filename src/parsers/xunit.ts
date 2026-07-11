@@ -2,6 +2,7 @@ import type { TestCase, TestOutcome } from '../model/test-case';
 import { testCaseId } from '../model/test-case';
 import type { TestResultParser } from './types';
 import { createXmlParser } from './xml-parser';
+import { asArray, looksQualifiedTypeName } from './xml-utils';
 
 const parser = createXmlParser({
   ignoreAttributes: false,
@@ -9,11 +10,6 @@ const parser = createXmlParser({
   textNodeName: '#text',
   isArray: (name) => name === 'assembly' || name === 'collection' || name === 'test' || name === 'trait',
 });
-
-function asArray<T>(value: T | T[] | undefined): T[] {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
-}
 
 function mapXUnitOutcome(result: string | undefined): TestOutcome {
   const value = (result ?? '').toLowerCase();
@@ -54,6 +50,28 @@ function parseType(typeName: string | undefined): { namespace?: string; classNam
   };
 }
 
+function resolveTypeName(
+  test: Record<string, unknown>,
+  collection: Record<string, unknown>,
+): string | undefined {
+  const typeName = test['@_type'] as string | undefined;
+  if (typeName) return typeName;
+
+  const name = (test['@_name'] as string) ?? '';
+  const method = test['@_method'] as string | undefined;
+  if (method?.includes('.')) {
+    if (name && method.endsWith(`.${name}`)) {
+      return method.slice(0, -(name.length + 1));
+    }
+    return method;
+  }
+
+  const collectionName = collection['@_name'] as string | undefined;
+  if (looksQualifiedTypeName(collectionName)) return collectionName;
+
+  return undefined;
+}
+
 export const xunitParser: TestResultParser = {
   format: 'xunit',
   canParse(_filePath, peek) {
@@ -71,11 +89,12 @@ export const xunitParser: TestResultParser = {
 
       for (const collection of collections) {
         if (!collection || typeof collection !== 'object') continue;
-        for (const test of asArray((collection as Record<string, unknown>).test as unknown)) {
+        const collectionRecord = collection as Record<string, unknown>;
+        for (const test of asArray(collectionRecord.test as unknown)) {
           if (!test || typeof test !== 'object') continue;
           const t = test as Record<string, unknown>;
           const name = (t['@_name'] as string) ?? 'unknown';
-          const typeName = t['@_type'] as string | undefined;
+          const typeName = resolveTypeName(t, collectionRecord);
           const parsed = parseType(typeName);
           const fullName = typeName ? `${typeName}.${name}` : name;
           const failure = t.failure as Record<string, unknown> | undefined;

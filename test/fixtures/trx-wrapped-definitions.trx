@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Results>
+    <UnitTestResult executionId="a1" testId="t1" testName="ShouldPass" outcome="Passed" duration="00:00:00.1234567">
+      <Output></Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a2" testId="t2" testName="ShouldFail" outcome="Failed" duration="00:00:01.5000000">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected true but was false</Message>
+          <StackTrace>at SampleTests.ShouldFail() in SampleTests.cs:line 42</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a3" testId="t3" testName="ShouldSkip" outcome="NotExecuted" duration="00:00:00.0100000">
+      <Output><StdOut>Skipped by attribute</StdOut></Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ShouldPass" storage="SampleTests.dll" id="t1">
+      <TestMethod className="SampleTests.SampleTests" name="ShouldPass" />
+    </UnitTest>
+    <UnitTest name="ShouldFail" storage="SampleTests.dll" id="t2">
+      <TestMethod className="SampleTests.SampleTests" name="ShouldFail" />
+    </UnitTest>
+    <UnitTest name="ShouldSkip" storage="SampleTests.dll" id="t3">
+      <TestMethod className="SampleTests.SampleTests" name="ShouldSkip" />
+    </UnitTest>
+  </TestDefinitions>
+</TestRun>

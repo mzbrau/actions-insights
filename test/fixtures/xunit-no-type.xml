@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assemblies>
+  <assembly name="XUnitTests.dll" run-date="2026-01-01" run-time="12:00:00" time="0.5" total="2" passed="2" failed="0" skipped="0">
+    <collection name="XUnitTests.SampleTests" time="0.5" total="2" passed="2" failed="0" skipped="0">
+      <test name="PassingTest" method="PassingTest" time="100000" result="Pass" />
+      <test name="AnotherPassingTest" method="AnotherPassingTest" time="100000" result="Pass" />
+    </collection>
+  </assembly>
+</assemblies>

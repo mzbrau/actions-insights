@@ -102,10 +102,22 @@ function walkSuites(
     const fullName =
       (t['@_fullname'] as string) ??
       (qualifiedPrefix ? `${qualifiedPrefix}.${name}` : name);
-    const method = (t['@_methodname'] as string) ?? name;
-    const qualifiedClass = fullName.endsWith(`.${method}`)
-      ? fullName.slice(0, -(method.length + 1))
-      : fullName;
+    const methodNameAttr = t['@_methodname'] as string | undefined;
+    const method = methodNameAttr ?? name;
+    let qualifiedClass: string;
+    if (methodNameAttr && name !== methodNameAttr) {
+      if (qualifiedPrefix) {
+        qualifiedClass = qualifiedPrefix;
+      } else if (fullName.endsWith(`.${name}`)) {
+        qualifiedClass = fullName.slice(0, -(name.length + 1));
+      } else {
+        qualifiedClass = fullName;
+      }
+    } else if (fullName.endsWith(`.${method}`)) {
+      qualifiedClass = fullName.slice(0, -(method.length + 1));
+    } else {
+      qualifiedClass = fullName;
+    }
     const namespace = qualifiedClass.includes('.')
       ? qualifiedClass.slice(0, qualifiedClass.lastIndexOf('.'))
       : undefined;

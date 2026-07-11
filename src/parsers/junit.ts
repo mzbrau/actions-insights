@@ -2,6 +2,7 @@ import type { TestCase, TestOutcome } from '../model/test-case';
 import { testCaseId } from '../model/test-case';
 import type { TestResultParser } from './types';
 import { createXmlParser } from './xml-parser';
+import { asArray, looksQualifiedTypeName } from './xml-utils';
 
 const parser = createXmlParser({
   ignoreAttributes: false,
@@ -9,11 +10,6 @@ const parser = createXmlParser({
   textNodeName: '#text',
   isArray: (name) => name === 'testcase' || name === 'testsuite' || name === 'failure' || name === 'skipped',
 });
-
-function asArray<T>(value: T | T[] | undefined): T[] {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
-}
 
 function mapOutcome(status: string | undefined): TestOutcome {
   const value = (status ?? '').toLowerCase();
@@ -53,19 +49,22 @@ function collectTestCases(
   suites: unknown[],
   filePath: string,
   parentAssembly?: string,
+  suiteClassName?: string,
 ): TestCase[] {
   const cases: TestCase[] = [];
 
   for (const suite of suites) {
     if (!suite || typeof suite !== 'object') continue;
     const s = suite as Record<string, unknown>;
-    const assembly = (s['@_package'] as string) ?? (s['@_name'] as string) ?? parentAssembly;
+    const suiteName = s['@_name'] as string | undefined;
+    const currentSuiteClass = looksQualifiedTypeName(suiteName) ? suiteName : suiteClassName;
+    const assembly = (s['@_package'] as string) ?? suiteName ?? parentAssembly;
 
     for (const tc of asArray(s.testcase as unknown)) {
       if (!tc || typeof tc !== 'object') continue;
       const t = tc as Record<string, unknown>;
       const name = (t['@_name'] as string) ?? 'unknown';
-      const classname = t['@_classname'] as string | undefined;
+      const classname = (t['@_classname'] as string | undefined) ?? currentSuiteClass;
       const { namespace, className } = parseClassName(classname);
       const fullName = classname ? `${classname}.${name}` : name;
       const failure = asArray(t.failure as unknown)[0] as Record<string, unknown> | undefined;
@@ -99,7 +98,7 @@ function collectTestCases(
       });
     }
 
-    cases.push(...collectTestCases(asArray(s.testsuite as unknown), filePath, assembly));
+    cases.push(...collectTestCases(asArray(s.testsuite as unknown), filePath, assembly, currentSuiteClass));
   }
 
   return cases;

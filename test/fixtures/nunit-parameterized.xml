@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="1" testcasecount="2" result="Passed" total="2" passed="2" failed="0" skipped="0">
+  <test-suite type="Assembly" name="MyTests.dll" result="Passed">
+    <test-suite type="TestFixture" name="TheoryTests" fullname="MyApp.Tests.TheoryTests" result="Passed">
+      <test-case id="1" name="IsValid_Various(5,True)" methodname="IsValid_Various" result="Passed" duration="0.010" />
+      <test-case id="2" name="IsValid_Various(10,False)" methodname="IsValid_Various" result="Passed" duration="0.012" />
+    </test-suite>
+  </test-suite>
+</test-run>
