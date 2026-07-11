@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "runId": "2",
+  "summary": {
+    "line": 82.5,
+    "branch": 71.4,
+    "coveredLines": 33,
+    "totalLines": 40,
+    "coveredBranches": 10,
+    "totalBranches": 14,
+    "projects": {
+      "MyApp": {
+        "line": 82.5,
+        "branch": 71.4,
+        "coveredLines": 33,
+        "totalLines": 40,
+        "coveredBranches": 10,
+        "totalBranches": 14
+      }
+    }
+  },
+  "projects": [
+    {
+      "name": "MyApp",
+      "metrics": {
+        "line": 82.5,
+        "branch": 71.4,
+        "coveredLines": 33,
+        "totalLines": 40,
+        "coveredBranches": 10,
+        "totalBranches": 14,
+        "coveredClasses": 3,
+        "totalClasses": 3
+      },
+      "packages": [
+        {
+          "name": "MyApp",
+          "metrics": {
+            "line": 82.5,
+            "branch": 71.4,
+            "coveredLines": 33,
+            "totalLines": 40,
+            "coveredBranches": 10,
+            "totalBranches": 14,
+            "coveredClasses": 3,
+            "totalClasses": 3
+          },
+          "classes": [
+            {
+              "name": "MyApp.AuthService",
+              "file": "src/AuthService.cs",
+              "metrics": { "line": 90.0, "branch": 80.0, "coveredLines": 18, "totalLines": 20, "coveredBranches": 4, "totalBranches": 5 }
+            },
+            {
+              "name": "MyApp.Calculator",
+              "file": "src/Calculator.cs",
+              "metrics": { "line": 75.0, "branch": 50.0, "coveredLines": 3, "totalLines": 4, "coveredBranches": 1, "totalBranches": 2 }
+            },
+            {
+              "name": "MyApp.Models.User",
+              "file": "src/Models/User.cs",
+              "metrics": { "line": 75.0, "branch": 71.4, "coveredLines": 12, "totalLines": 16, "coveredBranches": 5, "totalBranches": 7 }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "paths": ["src/AuthService.cs", "src/Calculator.cs", "src/Models/User.cs"],
+  "files": [
+    { "p": 0, "metrics": { "line": 90.0, "branch": 80.0, "coveredLines": 18, "totalLines": 20, "coveredBranches": 4, "totalBranches": 5 } },
+    { "p": 1, "metrics": { "line": 75.0, "branch": 50.0, "coveredLines": 3, "totalLines": 4, "coveredBranches": 1, "totalBranches": 2 } },
+    { "p": 2, "metrics": { "line": 75.0, "branch": 71.4, "coveredLines": 12, "totalLines": 16, "coveredBranches": 5, "totalBranches": 7 } }
+  ]
+}

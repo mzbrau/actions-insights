@@ -58,6 +58,7 @@ function FileCountBadges({ counts }: { counts: FileCounts }) {
 }
 
 export function RunBuildPanel({
+  runSummary,
   diagnosticsSummary,
   timingSummary,
   diagnosticsDetail,
@@ -135,7 +136,13 @@ export function RunBuildPanel({
         {timingSummary?.workflowDurationMs !== undefined && (
           <div className="build-summary-card">
             <span className="build-summary-card-value">{formatDuration(timingSummary.workflowDurationMs)}</span>
-            <span className="build-summary-card-label">Workflow</span>
+            <span className="build-summary-card-label">Workflow run</span>
+          </div>
+        )}
+        {runSummary.durationMs > 0 && (
+          <div className="build-summary-card">
+            <span className="build-summary-card-value">{formatDuration(runSummary.durationMs)}</span>
+            <span className="build-summary-card-label">Test execution</span>
           </div>
         )}
         {timingSummary?.slowestStep && (
@@ -147,41 +154,50 @@ export function RunBuildPanel({
       </div>
 
       {steps.length > 0 && (
-        <ChartCard title="Workflow steps">
-          <div className="workflow-step-timeline">
-            {sortedSteps.map((step) => (
-              <div key={`${step.jobName}-${step.stepNumber}`} className="workflow-step-row">
-                <div className="workflow-step-label">
-                  <span className="workflow-step-job">{step.jobName}</span>
-                  <span className="workflow-step-name">{step.stepName}</span>
+        <>
+          <p className="build-timing-note">
+            Step durations are wall-clock times per step. Parallel jobs overlap — they do not add up to workflow run time.
+          </p>
+          <ChartCard title="Workflow steps">
+            <div className="workflow-step-timeline">
+              {sortedSteps.map((step) => (
+                <div key={`${step.jobName}-${step.stepNumber}`} className="workflow-step-row">
+                  <div className="workflow-step-label">
+                    <span className="workflow-step-job">{step.jobName}</span>
+                    <span className="workflow-step-name">{step.stepName}</span>
+                  </div>
+                  <div className="workflow-step-bar-track">
+                    <span
+                      className="workflow-step-bar-fill"
+                      style={{ width: `${Math.max(4, (step.durationMs / maxStepMs) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="workflow-step-duration">{formatDuration(step.durationMs)}</span>
                 </div>
-                <div className="workflow-step-bar-track">
-                  <span
-                    className="workflow-step-bar-fill"
-                    style={{ width: `${Math.max(4, (step.durationMs / maxStepMs) * 100)}%` }}
-                  />
-                </div>
-                <span className="workflow-step-duration">{formatDuration(step.durationMs)}</span>
-              </div>
-            ))}
-          </div>
-          {timingDetail?.runner && (
-            <p className="workflow-runner-meta">
-              Runner: {timingDetail.runner.os ?? 'unknown'}
-              {timingDetail.runner.labels?.length ? ` (${timingDetail.runner.labels.join(', ')})` : ''}
-            </p>
+              ))}
+            </div>
+          </ChartCard>
+          {(timingDetail?.runner || (timingDetail?.summary.actionPhases && Object.keys(timingDetail.summary.actionPhases).length > 0)) && (
+            <section className="build-run-metadata">
+              {timingDetail?.runner && (
+                <p className="workflow-runner-meta">
+                  Runner: {timingDetail.runner.os ?? 'unknown'}
+                  {timingDetail.runner.labels?.length ? ` (${timingDetail.runner.labels.join(', ')})` : ''}
+                </p>
+              )}
+              {timingDetail?.summary.actionPhases && Object.keys(timingDetail.summary.actionPhases).length > 0 && (
+                <details className="action-phases-details">
+                  <summary>Actions Insights phases</summary>
+                  <ul>
+                    {Object.entries(timingDetail.summary.actionPhases).map(([name, ms]) => (
+                      <li key={name}>{name}: {formatDuration(ms)}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </section>
           )}
-          {timingDetail?.summary.actionPhases && Object.keys(timingDetail.summary.actionPhases).length > 0 && (
-            <details className="action-phases-details">
-              <summary>Actions Insights phases</summary>
-              <ul>
-                {Object.entries(timingDetail.summary.actionPhases).map(([name, ms]) => (
-                  <li key={name}>{name}: {formatDuration(ms)}</li>
-                ))}
-              </ul>
-            </details>
-          )}
-        </ChartCard>
+        </>
       )}
 
       {diagnosticsSummary && (

@@ -163,7 +163,14 @@ export function RunDetailPage() {
           <>
             <span>{statusIcon(run.status)} {run.context.branchLabel}</span>
             <span>{formatDate(run.date)}</span>
-            <span>{formatDuration(run.durationMs)}</span>
+            {runSummary.timing?.workflowDurationMs !== undefined && (
+              <span className="meta-metric">
+                Workflow run: {formatDuration(runSummary.timing.workflowDurationMs)}
+              </span>
+            )}
+            <span className="meta-metric">
+              Test time: {formatDuration(run.durationMs)}
+            </span>
           </>
         }
         actions={

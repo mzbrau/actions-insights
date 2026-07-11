@@ -61,10 +61,14 @@ export async function fetchWorkflowTiming(
     const jobs = data.jobs ?? [];
     if (jobs.length === 0) return undefined;
 
+    const { data: workflowRun } = await octokit.rest.actions.getWorkflowRun({
+      owner,
+      repo,
+      run_id: context.runId,
+    });
+
     const jobTimings: WorkflowJobTiming[] = [];
     const steps: WorkflowStepTiming[] = [];
-    let workflowStart: number | undefined;
-    let workflowEnd: number | undefined;
     let runner: WorkflowRunnerInfo | undefined;
 
     for (const job of jobs) {
@@ -75,19 +79,6 @@ export async function fetchWorkflowTiming(
         startedAt: job.started_at ?? undefined,
         completedAt: job.completed_at ?? undefined,
       });
-
-      if (job.started_at) {
-        const start = Date.parse(job.started_at);
-        if (!Number.isNaN(start) && (workflowStart === undefined || start < workflowStart)) {
-          workflowStart = start;
-        }
-      }
-      if (job.completed_at) {
-        const end = Date.parse(job.completed_at);
-        if (!Number.isNaN(end) && (workflowEnd === undefined || end > workflowEnd)) {
-          workflowEnd = end;
-        }
-      }
 
       if (desiredJob && job.name === desiredJob) {
         const jobMeta = job as { runner_os?: string | null; labels?: string[] | null };
@@ -119,10 +110,9 @@ export async function fetchWorkflowTiming(
       };
     }
 
-    const workflowDurationMs =
-      workflowStart !== undefined && workflowEnd !== undefined
-        ? workflowEnd - workflowStart
-        : undefined;
+    const runStartedAt = workflowRun.run_started_at ?? workflowRun.created_at;
+    const runCompletedAt = workflowRun.status === 'completed' ? workflowRun.updated_at : undefined;
+    const workflowDurationMs = durationBetweenMs(runStartedAt, runCompletedAt) || undefined;
 
     const slowestStep = findSlowestStep(steps);
 

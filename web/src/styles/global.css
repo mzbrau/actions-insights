@@ -108,6 +108,9 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   font-size: 13px;
   color: var(--on-surface-variant);
 }
+.meta-metric {
+  font-variant-numeric: tabular-nums;
+}
 .link-btn {
   border: none;
   background: none;
@@ -1513,9 +1516,9 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 .coverage-progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--primary);
 }
-.coverage-progress-line .coverage-progress-fill { background: var(--color-primary); }
+.coverage-progress-line .coverage-progress-fill { background: var(--primary); }
 .coverage-progress-branch .coverage-progress-fill {
   background: repeating-linear-gradient(
     90deg,
@@ -1570,7 +1573,7 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 }
 
 .coverage-trend-chart .duration-trend-bar-fill {
-  background: var(--color-primary) !important;
+  background: var(--primary) !important;
 }
 
 .coverage-package-item {
@@ -1678,10 +1681,17 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   margin-top: 4px;
 }
 
+.build-timing-note {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
 .workflow-step-timeline {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .workflow-step-row {
@@ -1721,7 +1731,7 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 .workflow-step-bar-fill {
   display: block;
   height: 100%;
-  background: var(--color-primary);
+  background: var(--primary);
   border-radius: 4px;
 }
 
@@ -1730,7 +1740,12 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   color: var(--on-surface-variant);
 }
 
-.workflow-runner-meta,
+.workflow-runner-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
 .diagnostic-truncated-note {
   margin-top: 12px;
   font-size: 13px;
@@ -1738,8 +1753,23 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 }
 
 .action-phases-details {
-  margin-top: 12px;
   font-size: 13px;
+}
+
+.build-run-metadata {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart-card:has(.workflow-step-timeline) .chart-wrap {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  min-height: auto;
 }
 
 .diagnostic-filters {
