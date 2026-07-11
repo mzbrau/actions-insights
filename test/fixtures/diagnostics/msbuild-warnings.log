@@ -1,0 +1,5 @@
+Build started 1/1/2024 12:00:00 PM.
+src/Program.cs(15,9): warning CS0168: The variable 'x' is declared but never used [/project/Project.csproj]
+src/Program.cs(22,5): error CS0103: The name 'Missing' does not exist in the current context [/project/Project.csproj]
+warning CS8032: An instance of analyzer cannot be created
+Build FAILED.

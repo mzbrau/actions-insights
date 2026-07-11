@@ -4,6 +4,7 @@ _report/
 _site/
 .local-results/
 *.log
+!test/fixtures/**/*.log
 .DS_Store
 /coverage/
 licenses.txt
