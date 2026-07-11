@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "runId": "1",
+  "summary": {
+    "errors": 1,
+    "warnings": 2,
+    "bySource": { "msbuild": { "errors": 1, "warnings": 2 } }
+  },
+  "items": [
+    { "s": 1, "m": "The variable 'x' is declared but never used", "p": 0, "l": 15, "r": "CS0168", "o": "msbuild" },
+    { "s": 0, "m": "The name 'Missing' does not exist in the current context", "p": 0, "l": 22, "r": "CS0103", "o": "msbuild" },
+    { "s": 1, "m": "An instance of analyzer cannot be created", "r": "CS8032", "o": "msbuild" }
+  ],
+  "paths": ["src/Program.cs"],
+  "sourceFiles": ["build.log"]
+}

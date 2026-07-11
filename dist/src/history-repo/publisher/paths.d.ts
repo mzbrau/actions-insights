@@ -1,4 +1,6 @@
-import type { BranchType } from '../models';
+import type { BranchType, CoverageReport } from '../models';
+import type { DiagnosticReport } from '../../model/diagnostics';
+import type { WorkflowTimingReport } from '../../model/timing';
 export interface PublishRunContext {
     repository: string;
     repositoryUrl: string;
@@ -36,7 +38,6 @@ export interface PublishTestCase {
     stderr?: string;
     isNewFailure?: boolean;
 }
-import type { CoverageReport } from '../models';
 export interface PublishTestRun {
     id: string;
     status: 'passed' | 'failed';
@@ -52,6 +53,8 @@ export interface PublishTestRun {
     tests: PublishTestCase[];
     context: PublishRunContext;
     coverage?: CoverageReport;
+    diagnostics?: DiagnosticReport;
+    workflowTiming?: WorkflowTimingReport;
 }
 export declare function sanitizeBranchKey(branch: string): string;
 export declare function resolveBranchKey(context: PublishRunContext): {
@@ -76,6 +79,10 @@ export interface HistoryPaths {
     runFileName: string;
     coverageFile?: string;
     coverageFileName?: string;
+    diagnosticsFile?: string;
+    diagnosticsFileName?: string;
+    timingFile?: string;
+    timingFileName?: string;
     testsFile: string;
     prDir?: string;
 }

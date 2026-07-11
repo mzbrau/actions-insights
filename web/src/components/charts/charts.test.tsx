@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { CoverageTrendChart } from './CoverageTrendChart';
+import { DiagnosticsTrendChart } from './DiagnosticsTrendChart';
 import { DonutChart } from './DonutChart';
 import { DurationTrendChart } from './DurationTrendChart';
 import { RunTrendsChart } from './RunTrendsChart';
 import { StackedBarChart } from './StackedBarChart';
+import { WorkflowDurationTrendChart } from './WorkflowDurationTrendChart';
 import type { EnrichedRun } from '../../utils/repositoryRuns';
 
 const sampleRun = (overrides: Partial<EnrichedRun> = {}): EnrichedRun => ({
@@ -197,5 +199,30 @@ describe('RunTrendsChart', () => {
     expect(bar).toBeTruthy();
     fireEvent.click(bar!);
     expect(onRunClick).toHaveBeenCalledWith(run);
+  });
+});
+
+describe('DiagnosticsTrendChart', () => {
+  it('renders empty state when no points', () => {
+    render(<DiagnosticsTrendChart points={[]} />);
+    expect(screen.getByText('No diagnostic data')).toBeTruthy();
+  });
+});
+
+describe('WorkflowDurationTrendChart', () => {
+  it('renders workflow duration bars', () => {
+    const { container } = render(
+      <WorkflowDurationTrendChart
+        points={[{
+          runId: '1',
+          date: '2026-07-09T12:00:00.000Z',
+          branchLabel: 'main',
+          commitShortSha: 'abc',
+          workflowDurationMs: 120000,
+          testDurationMs: 5000,
+        }]}
+      />,
+    );
+    expect(container.querySelector('.duration-trend-bar-fill')).toBeTruthy();
   });
 });

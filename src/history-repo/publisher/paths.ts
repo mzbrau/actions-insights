@@ -1,5 +1,7 @@
-import type { BranchType } from '../models';
+import type { BranchType, CoverageReport } from '../models';
 import { repositoryKeyFromName } from '../models';
+import type { DiagnosticReport } from '../../model/diagnostics';
+import type { WorkflowTimingReport } from '../../model/timing';
 
 export interface PublishRunContext {
   repository: string;
@@ -40,8 +42,6 @@ export interface PublishTestCase {
   isNewFailure?: boolean;
 }
 
-import type { CoverageReport } from '../models';
-
 export interface PublishTestRun {
   id: string;
   status: 'passed' | 'failed';
@@ -57,6 +57,8 @@ export interface PublishTestRun {
   tests: PublishTestCase[];
   context: PublishRunContext;
   coverage?: CoverageReport;
+  diagnostics?: DiagnosticReport;
+  workflowTiming?: WorkflowTimingReport;
 }
 
 export function sanitizeBranchKey(branch: string): string {
@@ -115,6 +117,10 @@ export interface HistoryPaths {
   runFileName: string;
   coverageFile?: string;
   coverageFileName?: string;
+  diagnosticsFile?: string;
+  diagnosticsFileName?: string;
+  timingFile?: string;
+  timingFileName?: string;
   testsFile: string;
   prDir?: string;
 }
@@ -131,6 +137,8 @@ export function resolveHistoryPaths(
   const branchDir = `${repoDir}/branches/${branchKey}`;
   const runFile = `${branchDir}/runs/${runFileName}`;
   const coverageFileName = runFileName.replace(/\.json$/, '.coverage.json');
+  const diagnosticsFileName = runFileName.replace(/\.json$/, '.diagnostics.json');
+  const timingFileName = runFileName.replace(/\.json$/, '.timing.json');
   const paths: HistoryPaths = {
     dataRoot,
     repositoriesIndex: `${dataRoot}/repositories.json`,
@@ -146,6 +154,10 @@ export function resolveHistoryPaths(
     runFileName,
     coverageFile: `${branchDir}/runs/${coverageFileName}`,
     coverageFileName,
+    diagnosticsFile: `${branchDir}/runs/${diagnosticsFileName}`,
+    diagnosticsFileName,
+    timingFile: `${branchDir}/runs/${timingFileName}`,
+    timingFileName,
     testsFile: `${repoDir}/tests.json`,
   };
   if (prNumber) {

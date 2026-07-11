@@ -33,6 +33,8 @@ export interface RunContext {
     completedAt: string;
 }
 import type { CoverageReport } from './coverage';
+import type { DiagnosticReport } from './diagnostics';
+import type { WorkflowTimingReport } from './timing';
 export interface TestRun {
     id: string;
     title: string;
@@ -44,6 +46,8 @@ export interface TestRun {
     matchedFiles?: string[];
     reportPath: string;
     coverage?: CoverageReport;
+    diagnostics?: DiagnosticReport;
+    workflowTiming?: WorkflowTimingReport;
 }
 export declare function computeStats(tests: TestCase[]): RunStats;
 export declare function deriveStatus(tests: TestCase[]): RunStatus;

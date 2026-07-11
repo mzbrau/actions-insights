@@ -1,6 +1,8 @@
 export const HISTORY_SCHEMA_VERSION = 2 as const;
 
 import type { CoverageSummaryCompact } from './coverage';
+import type { DiagnosticSummaryCompact } from './diagnostics';
+import type { TimingSummaryCompact } from './timing';
 
 export type RunStatus = 'passed' | 'failed';
 export type BranchType = 'branch' | 'pr' | 'tag';
@@ -82,6 +84,10 @@ export interface RunSummary {
   runFile: string;
   coverage?: CoverageSummaryCompact;
   coverageFile?: string;
+  diagnostics?: DiagnosticSummaryCompact;
+  diagnosticsFile?: string;
+  timing?: TimingSummaryCompact;
+  timingFile?: string;
 }
 
 export interface BranchLatest {
@@ -101,6 +107,10 @@ export interface BranchLatest {
   skipped: number;
   coverage?: CoverageSummaryCompact;
   coverageFile?: string;
+  diagnostics?: DiagnosticSummaryCompact;
+  diagnosticsFile?: string;
+  timing?: TimingSummaryCompact;
+  timingFile?: string;
 }
 
 export interface BranchHistory {
@@ -303,3 +313,42 @@ export {
   percentFromCounts,
   toCoverageSummaryCompact,
 } from './coverage';
+
+export type {
+  CompactDiagnosticItem,
+  DiagnosticItem,
+  DiagnosticParseError,
+  DiagnosticReport,
+  DiagnosticRunRecord,
+  DiagnosticSeverity,
+  DiagnosticSummaryCompact,
+  NormalizedDiagnosticItem,
+} from './diagnostics';
+
+export {
+  CODE_TO_SEVERITY,
+  computeDiagnosticSummary,
+  encodeDiagnosticRunRecord,
+  expandDiagnosticItems,
+  MAX_DIAGNOSTICS_PER_RUN,
+  normalizeDiagnosticRunRecord,
+  SEVERITY_TO_CODE,
+} from './diagnostics';
+
+export type {
+  TimingRunRecord,
+  TimingSummaryCompact,
+  WorkflowJobTiming,
+  WorkflowRunnerInfo,
+  WorkflowStepTiming,
+  WorkflowTimingReport,
+  WorkflowTimingSummary,
+} from './timing';
+
+export {
+  durationBetweenMs,
+  encodeTimingRunRecord,
+  findSlowestStep,
+  normalizeTimingRunRecord,
+  toTimingSummaryCompact,
+} from './timing';

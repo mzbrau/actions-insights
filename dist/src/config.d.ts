@@ -17,6 +17,11 @@ export interface CoverageConfig {
     files: string;
     failIfMissing: boolean;
 }
+export interface DiagnosticsConfig {
+    enabled: boolean;
+    files: string;
+    failIfMissing: boolean;
+}
 export interface ActionConfig {
     testResults: string;
     reportsSubdirectory: string;
@@ -43,6 +48,8 @@ export interface ActionConfig {
     checkName: string;
     history: HistoryConfig;
     coverage: CoverageConfig;
+    diagnostics: DiagnosticsConfig;
+    workflowTimingEnabled: boolean;
 }
 export declare function loadConfig(): ActionConfig;
 //# sourceMappingURL=config.d.ts.map

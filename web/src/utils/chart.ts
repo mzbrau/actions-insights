@@ -3,6 +3,7 @@ export const CHART_COLORS = {
   failed: '#ba1a1a',
   skipped: '#727785',
   inconclusive: '#913900',
+  info: '#2563eb',
 } as const;
 
 export interface ChartPoint {

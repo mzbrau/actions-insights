@@ -3,6 +3,7 @@ import type {
   BranchLatest,
   BranchesIndex,
   CoverageRunRecord,
+  DiagnosticRunRecord,
   HistoryRepoConfig,
   NormalizedRunRecord,
   RepositoriesIndex,
@@ -10,8 +11,15 @@ import type {
   RepositoryTestsFile,
   RunSummary,
   TestHistoryEntry,
+  TimingRunRecord,
 } from '@actions-insights/history-models';
-import { normalizeCoverageRunRecord, normalizeRunRecord, normalizeTestsFile } from '@actions-insights/history-models';
+import {
+  normalizeCoverageRunRecord,
+  normalizeDiagnosticRunRecord,
+  normalizeRunRecord,
+  normalizeTestsFile,
+  normalizeTimingRunRecord,
+} from '@actions-insights/history-models';
 
 const cache = new Map<string, unknown>();
 
@@ -89,6 +97,26 @@ export function loadRunCoverage(
 ): Promise<CoverageRunRecord> {
   return fetchJson(`data/repositories/${repoKey}/branches/${branchKey}/runs/${coverageFile}`).then(
     (data) => normalizeCoverageRunRecord(data),
+  );
+}
+
+export function loadRunDiagnostics(
+  repoKey: string,
+  branchKey: string,
+  diagnosticsFile: string,
+): Promise<DiagnosticRunRecord> {
+  return fetchJson(`data/repositories/${repoKey}/branches/${branchKey}/runs/${diagnosticsFile}`).then(
+    (data) => normalizeDiagnosticRunRecord(data),
+  );
+}
+
+export function loadRunTiming(
+  repoKey: string,
+  branchKey: string,
+  timingFile: string,
+): Promise<TimingRunRecord> {
+  return fetchJson(`data/repositories/${repoKey}/branches/${branchKey}/runs/${timingFile}`).then(
+    (data) => normalizeTimingRunRecord(data),
   );
 }
 

@@ -16,8 +16,9 @@ import { DurationTrendChart } from '../components/charts/DurationTrendChart';
 import { ChartCard } from '../components/ui/ChartCard';
 import { TabBar } from '../components/ui/TabBar';
 import { CoverageTrendsPanel } from '../components/dashboard/CoverageTrendsPanel';
+import { BuildInsightsPanel } from '../components/dashboard/BuildInsightsPanel';
 
-type DashboardTab = 'builds' | 'problematic-tests' | 'trends' | 'coverage';
+type DashboardTab = 'builds' | 'problematic-tests' | 'trends' | 'coverage' | 'build-insights';
 
 export function RepositoryDashboardPage() {
   const { repoKey } = useParams<{ repoKey: string }>();
@@ -26,7 +27,7 @@ export function RepositoryDashboardPage() {
   const branchFilter = searchParams.get('branch') ?? '';
   const activeTab = useMemo((): DashboardTab => {
     const tab = searchParams.get('tab');
-    if (tab === 'problematic-tests' || tab === 'trends' || tab === 'coverage') return tab;
+    if (tab === 'problematic-tests' || tab === 'trends' || tab === 'coverage' || tab === 'build-insights') return tab;
     return 'builds';
   }, [searchParams]);
   const [search, setSearch] = useState('');
@@ -88,6 +89,7 @@ export function RepositoryDashboardPage() {
     { id: 'problematic-tests', label: 'Problematic Tests' },
     { id: 'trends', label: 'Trends' },
     { id: 'coverage', label: 'Test Coverage' },
+    { id: 'build-insights', label: 'Build Insights' },
   ];
 
   if (loading) {
@@ -197,6 +199,10 @@ export function RepositoryDashboardPage() {
 
       {activeTab === 'coverage' && repoKey && (
         <CoverageTrendsPanel repoKey={repoKey} runs={trendRuns} />
+      )}
+
+      {activeTab === 'build-insights' && repoKey && (
+        <BuildInsightsPanel repoKey={repoKey} runs={trendRuns} />
       )}
     </AppShell>
   );

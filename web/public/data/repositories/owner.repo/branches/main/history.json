@@ -1,1 +1,35 @@
-{"version":2,"branchKey":"main","branchLabel":"main","updatedAt":"2026-07-07T09:00:00.000Z","runs":[{"runId":"2","workflowRunId":511,"status":"passed","date":"2026-07-07T09:00:00.000Z","durationMs":48000,"total":10,"passed":10,"failed":0,"skipped":0,"commitSha":"def456abcdef","commitShortSha":"def456a","commitMessage":"fix: auth provider logout loop","author":"octocat","runFile":"2026-07-07T09-00-00Z-2.json"}]}
+{
+  "version": 2,
+  "branchKey": "main",
+  "branchLabel": "main",
+  "updatedAt": "2026-07-07T09:00:00.000Z",
+  "runs": [
+    {
+      "runId": "2",
+      "workflowRunId": 511,
+      "status": "passed",
+      "date": "2026-07-07T09:00:00.000Z",
+      "durationMs": 48000,
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "commitSha": "def456abcdef",
+      "commitShortSha": "def456a",
+      "commitMessage": "fix: auth provider logout loop",
+      "author": "octocat",
+      "runFile": "2026-07-07T09-00-00Z-2.json",
+      "diagnostics": {
+        "errors": 0,
+        "warnings": 3,
+        "bySource": { "msbuild": { "errors": 0, "warnings": 3 } }
+      },
+      "diagnosticsFile": "2026-07-07T09-00-00Z-2.diagnostics.json",
+      "timing": {
+        "workflowDurationMs": 380000,
+        "slowestStep": "test › dotnet test"
+      },
+      "timingFile": "2026-07-07T09-00-00Z-2.timing.json"
+    }
+  ]
+}

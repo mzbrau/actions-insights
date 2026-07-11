@@ -1574,3 +1574,210 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 .coverage-files-toggle {
   margin-top: 16px;
 }
+
+/* Build insights */
+.build-insights-panel .build-insights-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.build-insight-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  min-width: 140px;
+}
+
+.build-insight-stat-label {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.build-insight-stat-value {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.diagnostics-stacked-track {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+}
+
+.build-summary-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.build-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 20px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  min-width: 100px;
+}
+
+.build-summary-card--wide {
+  min-width: 200px;
+  flex: 1;
+}
+
+.build-summary-card--error .build-summary-card-value {
+  color: var(--error);
+}
+
+.build-summary-card--warning .build-summary-card-value {
+  color: var(--color-warning, #913900);
+}
+
+.build-summary-card-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.build-summary-card-value--small {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.build-summary-card-label {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  margin-top: 4px;
+}
+
+.workflow-step-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workflow-step-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr auto;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.workflow-step-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.workflow-step-job {
+  font-size: 11px;
+  color: var(--on-surface-variant);
+}
+
+.workflow-step-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-step-bar-track {
+  height: 8px;
+  background: var(--surface-container-high);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.workflow-step-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+.workflow-step-duration {
+  font-variant-numeric: tabular-nums;
+  color: var(--on-surface-variant);
+}
+
+.workflow-runner-meta,
+.diagnostic-truncated-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.action-phases-details {
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.diagnostic-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.diagnostic-file-group {
+  margin-bottom: 8px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.diagnostic-file-group summary {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.diagnostic-file-count {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.diagnostic-item-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.diagnostic-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0;
+  border-top: 1px solid var(--outline-variant);
+  font-size: 13px;
+}
+
+.diagnostic-item--error .diagnostic-item-severity {
+  color: var(--error);
+}
+
+.diagnostic-item--warning .diagnostic-item-severity {
+  color: var(--color-warning, #913900);
+}
+
+.diagnostic-item-severity {
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: 56px;
+}
+
+.diagnostic-item-code {
+  font-size: 12px;
+}
+
+.diagnostic-item-message {
+  flex: 1 1 100%;
+}

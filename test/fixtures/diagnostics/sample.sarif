@@ -1,0 +1,40 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ESLint"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "no-unused-vars",
+          "level": "warning",
+          "message": { "text": "'foo' is defined but never used" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/app.ts" },
+                "region": { "startLine": 10, "startColumn": 7 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "no-undef",
+          "level": "error",
+          "message": { "text": "'bar' is not defined" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "src/app.ts" },
+                "region": { "startLine": 20, "startColumn": 3 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

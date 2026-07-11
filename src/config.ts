@@ -22,6 +22,12 @@ export interface CoverageConfig {
   failIfMissing: boolean;
 }
 
+export interface DiagnosticsConfig {
+  enabled: boolean;
+  files: string;
+  failIfMissing: boolean;
+}
+
 export interface ActionConfig {
   testResults: string;
   reportsSubdirectory: string;
@@ -48,6 +54,8 @@ export interface ActionConfig {
   checkName: string;
   history: HistoryConfig;
   coverage: CoverageConfig;
+  diagnostics: DiagnosticsConfig;
+  workflowTimingEnabled: boolean;
 }
 
 export function loadConfig(): ActionConfig {
@@ -83,6 +91,16 @@ export function loadConfig(): ActionConfig {
     checkName: core.getInput('check-name') || 'Actions Insights',
     history: loadHistoryConfig(),
     coverage: loadCoverageConfig(),
+    diagnostics: loadDiagnosticsConfig(),
+    workflowTimingEnabled: getBooleanOr('workflow-timing-enabled', true),
+  };
+}
+
+function loadDiagnosticsConfig(): DiagnosticsConfig {
+  return {
+    enabled: getBooleanOr('diagnostics-enabled', false),
+    files: core.getInput('diagnostics-files') || '**/*.{sarif,log}',
+    failIfMissing: getBooleanOr('diagnostics-fail-if-missing', false),
   };
 }
 

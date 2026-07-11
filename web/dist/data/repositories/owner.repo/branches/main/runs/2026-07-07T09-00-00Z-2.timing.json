@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "runId": "2",
+  "summary": {
+    "workflowDurationMs": 380000,
+    "jobs": [
+      { "name": "test", "durationMs": 380000 }
+    ],
+    "steps": [
+      { "jobName": "test", "stepName": "Checkout", "stepNumber": 1, "status": "success", "durationMs": 4000 },
+      { "jobName": "test", "stepName": "Restore dependencies", "stepNumber": 2, "status": "success", "durationMs": 38000 },
+      { "jobName": "test", "stepName": "dotnet test", "stepNumber": 3, "status": "success", "durationMs": 200000 },
+      { "jobName": "test", "stepName": "Actions Insights", "stepNumber": 4, "status": "success", "durationMs": 55000 }
+    ],
+    "slowestStep": "test › dotnet test"
+  },
+  "runner": {
+    "os": "Linux",
+    "labels": ["ubuntu-latest"]
+  }
+}

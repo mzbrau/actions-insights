@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "runId": "1",
+  "summary": {
+    "workflowDurationMs": 420000,
+    "jobs": [
+      { "name": "build", "durationMs": 420000 }
+    ],
+    "steps": [
+      { "jobName": "build", "stepName": "Checkout", "stepNumber": 1, "status": "success", "durationMs": 5000 },
+      { "jobName": "build", "stepName": "Restore dependencies", "stepNumber": 2, "status": "success", "durationMs": 45000 },
+      { "jobName": "build", "stepName": "dotnet build", "stepNumber": 3, "status": "success", "durationMs": 120000 },
+      { "jobName": "build", "stepName": "dotnet test", "stepNumber": 4, "status": "success", "durationMs": 180000 },
+      { "jobName": "build", "stepName": "Actions Insights", "stepNumber": 5, "status": "success", "durationMs": 70000 }
+    ],
+    "slowestStep": "build › dotnet test",
+    "actionPhases": {
+      "parseTests": 120,
+      "parseDiagnostics": 45,
+      "integrate": 890,
+      "publishHistory": 2100
+    }
+  },
+  "runner": {
+    "os": "Linux",
+    "labels": ["ubuntu-latest"]
+  }
+}

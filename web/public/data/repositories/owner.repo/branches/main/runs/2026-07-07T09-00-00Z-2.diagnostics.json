@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "runId": "2",
+  "summary": {
+    "errors": 0,
+    "warnings": 3,
+    "bySource": { "msbuild": { "errors": 0, "warnings": 3 } }
+  },
+  "items": [
+    { "s": 1, "m": "Possible null reference", "p": 0, "l": 8, "r": "CS8602", "o": "msbuild" },
+    { "s": 1, "m": "Member hides inherited member", "p": 1, "l": 42, "r": "CS0108", "o": "msbuild" },
+    { "s": 1, "m": "XML comment has badly formed XML", "p": 1, "l": 1, "r": "CS1570", "o": "msbuild" }
+  ],
+  "paths": ["src/AuthService.cs", "src/Models/User.cs"],
+  "sourceFiles": ["build.log"]
+}

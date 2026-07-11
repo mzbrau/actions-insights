@@ -12,14 +12,16 @@ Actions Insights is a GitHub Action that parses test result files and publishes 
 ```
 1. Parse test results (TRX, NUnit, xUnit, JUnit)
 2. Parse coverage files (optional: Cobertura/Coverlet, OpenCover, LCOV, JaCoCo)
-3. Restore site cache (Actions cache)
-4. Generate HTML report + merge into site history
-5. Save site cache
-6. Publish to history repository (optional)
-7. Upload site as workflow artifact
-8. Update PR comment (if PR context)
-9. Write job summary
-10. Publish check run with annotations
+3. Parse build diagnostics (optional: SARIF, MSBuild, gcc/clang logs)
+4. Fetch workflow timing from GitHub API (optional, when history enabled)
+5. Restore site cache (Actions cache)
+6. Generate HTML report + merge into site history
+7. Save site cache
+8. Publish to history repository (optional)
+9. Upload site as workflow artifact
+10. Update PR comment (if PR context)
+11. Write job summary
+12. Publish check run with annotations
 ```
 
 ## Module Layout
@@ -30,7 +32,8 @@ src/
 ├── config.ts            Action inputs
 ├── parsers/             Test result format detection and parsing
 ├── coverage-parsers/    Coverage format detection and parsing
-├── model/               TestCase, TestRun, CoverageReport, manifests
+├── diagnostic-parsers/  Build diagnostic format detection and parsing
+├── model/               TestCase, TestRun, CoverageReport, diagnostics, timing
 ├── generator/           HTML report pages + assets
 ├── history/             Site integration, retention, trends
 ├── reporting/           Shared markdown formatters (PR, summary, checks)
@@ -67,6 +70,19 @@ Download the artifact from the workflow run and open `test-reports/{branch}/late
 Report history is preserved across workflow runs using `@actions/cache`. Each run merges into the cached site tree, prunes old runs per `history` and `retain-days` settings, and re-uploads the complete site as an artifact.
 
 History pages use relative links so the artifact is self-contained when downloaded.
+
+## History repository JSON
+
+When `history-enabled` is true, each run writes JSON under `{history-path}/repositories/{owner.repo}/branches/{branch}/runs/`:
+
+| File | Content |
+|------|---------|
+| `{date}-{runId}.json` | Full test run (`RunRecord`) |
+| `{date}-{runId}.coverage.json` | Coverage detail (optional) |
+| `{date}-{runId}.diagnostics.json` | Build warnings/errors (optional) |
+| `{date}-{runId}.timing.json` | Workflow job/step durations (optional) |
+
+`history.json` stores compact `RunSummary` entries with optional `diagnostics`, `timing`, and file pointers for lazy loading in the React dashboard.
 
 ## Performance
 

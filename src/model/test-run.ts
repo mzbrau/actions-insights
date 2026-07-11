@@ -37,6 +37,8 @@ export interface RunContext {
 }
 
 import type { CoverageReport } from './coverage';
+import type { DiagnosticReport } from './diagnostics';
+import type { WorkflowTimingReport } from './timing';
 
 export interface TestRun {
   id: string;
@@ -49,6 +51,8 @@ export interface TestRun {
   matchedFiles?: string[];
   reportPath: string;
   coverage?: CoverageReport;
+  diagnostics?: DiagnosticReport;
+  workflowTiming?: WorkflowTimingReport;
 }
 
 export function computeStats(tests: TestCase[]): RunStats {

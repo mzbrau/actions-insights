@@ -18,10 +18,13 @@ import {
   OUTCOME_TO_CODE,
   decodeRepositoryTestsFile,
   encodeCoverageRunRecord,
+  encodeDiagnosticRunRecord,
   encodeRepositoryTestsFile,
   encodeRunFailures,
   encodeRunTests,
+  encodeTimingRunRecord,
   toCoverageSummaryCompact,
+  toTimingSummaryCompact,
 } from '../models';
 import {
   formatRunFileName,
@@ -84,7 +87,13 @@ export function buildHistoryUpdate(
   );
 
   const runRecord = buildRunRecord(run, branchKey, branchLabel, branchType, runFileName);
-  const runSummary = buildRunSummary(run, runFileName, paths.coverageFileName);
+  const runSummary = buildRunSummary(
+    run,
+    runFileName,
+    paths.coverageFileName,
+    paths.diagnosticsFileName,
+    paths.timingFileName,
+  );
 
   const branchHistory = updateBranchHistory(
     options.existing.branchHistory,
@@ -94,7 +103,13 @@ export function buildHistoryUpdate(
     { historyLimit: options.historyLimit, retainDays: options.retainDays },
   );
 
-  const branchLatest = buildBranchLatest(run, runFileName, paths.coverageFileName);
+  const branchLatest = buildBranchLatest(
+    run,
+    runFileName,
+    paths.coverageFileName,
+    paths.diagnosticsFileName,
+    paths.timingFileName,
+  );
   const branchesIndex = updateBranchesIndex(
     options.existing.branchesIndex,
     branchKey,
@@ -141,6 +156,16 @@ export function buildHistoryUpdate(
     files.push({ path: paths.coverageFile, content: coverageRecord });
   }
 
+  if (run.diagnostics && paths.diagnosticsFile) {
+    const diagnosticsRecord = encodeDiagnosticRunRecord(run.id, run.diagnostics);
+    files.push({ path: paths.diagnosticsFile, content: diagnosticsRecord });
+  }
+
+  if (run.workflowTiming && paths.timingFile) {
+    const timingRecord = encodeTimingRunRecord(run.id, run.workflowTiming);
+    files.push({ path: paths.timingFile, content: timingRecord });
+  }
+
   if (repoConfig) {
     files.push({ path: paths.configFile, content: repoConfig });
   }
@@ -156,6 +181,12 @@ export function buildHistoryUpdate(
   ];
   if (run.coverage && paths.coverageFile) {
     commitPaths.push(paths.coverageFile);
+  }
+  if (run.diagnostics && paths.diagnosticsFile) {
+    commitPaths.push(paths.diagnosticsFile);
+  }
+  if (run.workflowTiming && paths.timingFile) {
+    commitPaths.push(paths.timingFile);
   }
   if (repoConfig) {
     commitPaths.push(paths.configFile);
@@ -248,7 +279,13 @@ function buildRunRecord(
   };
 }
 
-function buildRunSummary(run: PublishTestRun, runFileName: string, coverageFileName?: string): RunSummary {
+function buildRunSummary(
+  run: PublishTestRun,
+  runFileName: string,
+  coverageFileName?: string,
+  diagnosticsFileName?: string,
+  timingFileName?: string,
+): RunSummary {
   const summary: RunSummary = {
     runId: run.id,
     workflowRunId: run.context.runId,
@@ -269,10 +306,24 @@ function buildRunSummary(run: PublishTestRun, runFileName: string, coverageFileN
     summary.coverage = toCoverageSummaryCompact(run.coverage);
     if (coverageFileName) summary.coverageFile = coverageFileName;
   }
+  if (run.diagnostics) {
+    summary.diagnostics = run.diagnostics.summary;
+    if (diagnosticsFileName) summary.diagnosticsFile = diagnosticsFileName;
+  }
+  if (run.workflowTiming) {
+    summary.timing = toTimingSummaryCompact(run.workflowTiming);
+    if (timingFileName) summary.timingFile = timingFileName;
+  }
   return summary;
 }
 
-function buildBranchLatest(run: PublishTestRun, runFileName: string, coverageFileName?: string): BranchLatest {
+function buildBranchLatest(
+  run: PublishTestRun,
+  runFileName: string,
+  coverageFileName?: string,
+  diagnosticsFileName?: string,
+  timingFileName?: string,
+): BranchLatest {
   const latest: BranchLatest = {
     version: HISTORY_SCHEMA_VERSION,
     runId: run.id,
@@ -292,6 +343,14 @@ function buildBranchLatest(run: PublishTestRun, runFileName: string, coverageFil
   if (run.coverage) {
     latest.coverage = toCoverageSummaryCompact(run.coverage);
     if (coverageFileName) latest.coverageFile = coverageFileName;
+  }
+  if (run.diagnostics) {
+    latest.diagnostics = run.diagnostics.summary;
+    if (diagnosticsFileName) latest.diagnosticsFile = diagnosticsFileName;
+  }
+  if (run.workflowTiming) {
+    latest.timing = toTimingSummaryCompact(run.workflowTiming);
+    if (timingFileName) latest.timingFile = timingFileName;
   }
   return latest;
 }

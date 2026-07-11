@@ -25,6 +25,26 @@ inputs:
     required: false
     default: 'false'
 
+  # Build diagnostics
+  diagnostics-enabled:
+    description: Enable build diagnostic (compiler warning/error) collection and reporting
+    required: false
+    default: 'false'
+  diagnostics-files:
+    description: Glob pattern(s) for build diagnostic files such as SARIF or build logs (comma-separated)
+    required: false
+    default: '**/*.{sarif,log}'
+  diagnostics-fail-if-missing:
+    description: Fail the step when diagnostics are enabled but no diagnostic files are found or parsed
+    required: false
+    default: 'false'
+
+  # Workflow timing
+  workflow-timing-enabled:
+    description: Capture workflow job/step durations from the GitHub Actions API (published when history-enabled)
+    required: false
+    default: 'true'
+
   # Reporting / artifact
   reports-subdirectory:
     description: Subdirectory within the site artifact for test reports

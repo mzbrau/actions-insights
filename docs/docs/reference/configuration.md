@@ -55,6 +55,34 @@ Fail the step when coverage is enabled but no files match or all parses fail.
 
 - **Default:** `false`
 
+### Build diagnostics
+
+#### `diagnostics-enabled`
+Enable build diagnostic (compiler warning/error) collection. When `history-enabled` is true, compact summaries and a per-run `.diagnostics.json` sidecar are published to the history repository for the dashboard **Build Insights** tab.
+
+- **Default:** `false`
+
+#### `diagnostics-files`
+Glob pattern(s) for build diagnostic files (SARIF, MSBuild logs, gcc/clang logs). Use comma-separated patterns for multiple globs.
+
+- **Default:** `**/*.{sarif,log}`
+- Supported formats: SARIF 2.1, MSBuild/Roslyn console output, gcc/clang compiler output
+
+#### `diagnostics-fail-if-missing`
+Fail the step when diagnostics are enabled but no files match or all parses fail.
+
+- **Default:** `false`
+
+See [Build diagnostics](build-diagnostics.md) for workflow examples.
+
+### Workflow timing
+
+#### `workflow-timing-enabled`
+Fetch workflow job and step durations from the GitHub Actions API when publishing to the history repository. Requires `actions: read` on `GITHUB_TOKEN` (included in default permissions for same-repo workflows).
+
+- **Default:** `true`
+- Only runs when `history-enabled` is `true`
+
 ### Reporting
 
 #### `reports-subdirectory`
