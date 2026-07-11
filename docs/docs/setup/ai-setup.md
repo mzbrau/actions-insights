@@ -5,7 +5,7 @@ title: AI Setup Guide
 
 # AI Setup Guide
 
-You can ask your AI coding assistant to set up Actions Insights in your repository. Share this page URL and the prompt below — the assistant will inspect your project, configure test output, add the GitHub Action, and ask which reporting outputs and code coverage options you want.
+You can ask your AI coding assistant to set up Actions Insights in your repository. Share this page URL and the prompt below — the assistant will inspect your project, configure test output, add the GitHub Action, and ask which reporting outputs, code coverage, and build diagnostics options you want.
 
 ## Copy this prompt
 
@@ -17,8 +17,8 @@ https://www.ghactionsinsights.com/docs/setup/ai-setup
 
 Inspect our test runner and GitHub Actions workflows, ensure we output a
 supported format (TRX, JUnit, NUnit, or xUnit XML), add the action step,
-then ask me which reporting outputs I want and whether I want code coverage
-before making changes.
+then ask me which reporting outputs I want, whether I want code coverage,
+and whether I want build diagnostics (warnings/errors) before making changes.
 ```
 
 ---
@@ -65,6 +65,7 @@ Add at the workflow or job level based on which outputs will be enabled:
 ```yaml
 permissions:
   contents: read          # Required for test-only jobs
+  actions: read           # Workflow job/step timing (when history-enabled)
   pull-requests: write    # PR comments
   checks: write           # Check runs and annotations
 ```
@@ -75,6 +76,9 @@ permissions:
 | GitHub Checks | `checks: write` |
 | Job summary | `contents: read` (no extra permission) |
 | HTML artifact | `contents: read` (no extra permission) |
+| Workflow timing (history) | `actions: read` |
+
+When `history-enabled` is true, workflow timing uses the GitHub Actions API to fetch job and step durations. Same-repo workflows with default token permissions usually include `actions: read` — add it explicitly only when the workflow uses custom restricted permissions.
 
 **Job-level permissions apply to every step in that job.** If the same job also runs `gh release create`, uploads release assets, or commits to the repository, you must grant `contents: write` — not `contents: read`. A common mistake is copying the minimal quick-start permissions into a release workflow:
 
@@ -213,7 +217,102 @@ When a workflow produces coverage from multiple jobs or formats, use comma-separ
 coverage-files: '**/coverage.cobertura.xml,**/lcov.info'
 ```
 
-### Phase 5 — Configure outputs (ask the user)
+### Phase 5 — Build diagnostics (optional, ask the user)
+
+**Stop and ask the user**: "Would you like to track build warnings and errors in the history dashboard?"
+
+If the user says **no**, skip this phase and leave `diagnostics-enabled` at its default (`false`).
+
+If the user says **yes**, make changes in **two places**:
+
+| Step | What to change |
+|------|----------------|
+| Build/compile step | Capture compiler output to a `.log` file or emit SARIF |
+| Action inputs | `diagnostics-enabled: true` and a `diagnostics-files` glob matching the output |
+
+Build diagnostics use the **same Actions Insights step** — no separate action is required. When `history-enabled` is true, summaries appear on the dashboard **Build Insights** tab and per-run **Build** panel. If the user wants diagnostics but not history yet, you can still enable collection for future use, but explain that dashboard charts require `history-enabled: true` (Phase 7).
+
+#### Supported formats
+
+| Format | Typical files | Languages / tools |
+|--------|---------------|-------------------|
+| SARIF 2.1 | `*.sarif` | CodeQL, ESLint, Roslyn analyzers (recommended) |
+| MSBuild / Roslyn | `build.log`, `msbuild.log` | .NET (`dotnet build` output) |
+| gcc / clang | `*.log` | C/C++ compiler stdout |
+
+Parser order is SARIF → MSBuild → gcc/clang. See [Configuration Reference — Build diagnostics](../reference/configuration#build-diagnostics) for canonical defaults.
+
+#### Per-language examples
+
+**.NET (MSBuild log)**:
+
+```yaml
+- name: Build
+  run: dotnet build --no-restore 2>&1 | tee build.log
+
+- uses: mzbrau/actions-insights@v1
+  if: always()
+  with:
+    test-results: '**/*.trx'
+    diagnostics-enabled: true
+    diagnostics-files: 'build.log'
+```
+
+**.NET (SARIF from Roslyn analyzers)**:
+
+```yaml
+- name: Build
+  run: dotnet build /p:ErrorLog=build.sarif
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: '**/*.trx'
+    diagnostics-enabled: true
+    diagnostics-files: 'build.sarif'
+```
+
+**JavaScript / TypeScript (ESLint SARIF)**:
+
+```yaml
+- name: Lint
+  run: npx eslint -f @microsoft/eslint-formatter-sarif -o eslint.sarif .
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+    diagnostics-enabled: true
+    diagnostics-files: 'eslint.sarif'
+```
+
+**C/C++ (gcc or clang)**:
+
+```yaml
+- name: Build
+  run: make 2>&1 | tee build.log
+
+- uses: mzbrau/actions-insights@v1
+  if: always()
+  with:
+    test-results: '**/TEST-*.xml'
+    diagnostics-enabled: true
+    diagnostics-files: 'build.log'
+```
+
+See [Build diagnostics](../reference/build-diagnostics) for additional workflow patterns.
+
+#### Optional strictness
+
+Only set `diagnostics-fail-if-missing: true` if the user wants the step to fail when diagnostics are enabled but no files match or all parses fail. Default is `false`.
+
+#### Multiple diagnostic files
+
+When a workflow produces diagnostics from multiple steps or formats, use comma-separated globs:
+
+```yaml
+diagnostics-files: 'build.log,eslint.sarif'
+```
+
+### Phase 6 — Configure outputs (ask the user)
 
 **Stop and ask the user** which reporting channels they want before applying non-default settings. Present these options:
 
@@ -257,7 +356,7 @@ coverage-files: '**/coverage.cobertura.xml,**/lcov.info'
 
 See [Choose Your Outputs](./choose-outputs) for the full decision guide.
 
-### Phase 6 — History repository (optional)
+### Phase 7 — History repository (optional)
 
 Only proceed if the user explicitly wants org-wide, persistent dashboards across repositories.
 
@@ -290,7 +389,40 @@ history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 
 See [History Repository Configuration](../history-repository/configuration) and [Adding Repositories](../history-repository/adding-repositories) for multi-repo setup.
 
-### Phase 7 — Validate
+#### Workflow timing (automatic)
+
+When `history-enabled: true`, `workflow-timing-enabled` defaults to **`true`** — no extra build steps are required. The action fetches job and step durations from the current workflow run via the GitHub Actions API. Ensure `actions: read` is in permissions when using restricted token scopes (see Phase 2). To disable timing capture, set `workflow-timing-enabled: false`.
+
+#### Dashboard tabs
+
+When history is enabled, the React dashboard surfaces:
+
+- **Test Coverage** — line coverage trends (when `coverage-enabled: true`)
+- **Build Insights** — diagnostic error/warning trends and workflow/test duration charts (when diagnostics and/or timing data is present)
+- **Run → Build** — step timeline and diagnostics grouped by file (lazy-loaded detail)
+
+#### Combined example (coverage + diagnostics + history)
+
+```yaml
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+- uses: mzbrau/actions-insights@v1
+  if: always()
+  with:
+    test-results: '**/*.trx'
+    coverage-enabled: true
+    coverage-files: '**/coverage.cobertura.xml'
+    diagnostics-enabled: true
+    diagnostics-files: 'build.log'
+    history-enabled: true
+    history-repository: 'my-org/actions-insights-history'
+    history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
+```
+
+### Phase 8 — Validate
 
 Before committing, verify every item on the [Setup Checklist](./checklist). At minimum:
 
@@ -302,7 +434,12 @@ Before committing, verify every item on the [Setup Checklist](./checklist). At m
 - [ ] If coverage enabled: test runner writes a supported format (Cobertura, OpenCover, LCOV, or JaCoCo) before the action step
 - [ ] `coverage-files` glob matches the actual coverage output path (or all coverage inputs omitted/default)
 - [ ] `coverage-enabled`, `coverage-files`, and `coverage-fail-if-missing` set together (or all omitted/default)
+- [ ] If diagnostics enabled: build/compile step writes SARIF or compiler log before the action step
+- [ ] `diagnostics-files` glob matches the actual diagnostic output path (or all diagnostics inputs omitted/default)
+- [ ] `diagnostics-enabled`, `diagnostics-files`, and `diagnostics-fail-if-missing` set together (or all omitted/default)
 - [ ] `history-enabled`, `history-repository`, and `history-token` are set together (or all omitted)
+- [ ] If history enabled: `actions: read` present when using restricted permissions
+- [ ] If history enabled: `workflow-timing-enabled` considered (default on; set `false` only if user opts out)
 - [ ] `history-enabled` is guarded on `pull_request` workflows (fork PRs cannot access secrets)
 - [ ] Fork PR workflows use a separate reporting job if PR comments are needed
 
@@ -311,7 +448,8 @@ Summarize changes to the user and explain how to verify:
 1. Open a pull request to see the test summary comment (and coverage line, if enabled)
 2. Open the workflow run to see the job summary table (and Coverage section, if enabled)
 3. Download the `actions-insights-report` artifact for the full HTML report
-4. If history repository is enabled, confirm coverage appears on the dashboard **Test Coverage** tab
+4. If history repository is enabled, confirm the **Test Coverage** tab shows trend data (when coverage enabled)
+5. If history repository is enabled, confirm the **Build Insights** tab shows diagnostic and/or duration trends; open a run → **Build** for step timeline and file-grouped diagnostics
 
 ---
 
@@ -341,6 +479,9 @@ See [Example Workflows](./example-workflows) for release and fork-PR patterns.
 - Enable `coverage-enabled` without updating the test command to produce coverage files
 - Enable `coverage-enabled: true` unconditionally — always ask the user first
 - Use unsupported coverage formats (only Cobertura, OpenCover, LCOV, and JaCoCo are supported)
+- Enable `diagnostics-enabled` without updating the build step to produce log/SARIF files
+- Enable `diagnostics-enabled: true` unconditionally — always ask the user first
+- Expect Build Insights dashboard data without `history-enabled: true`
 - Enable `history-enabled` without `history-token` and `history-repository`
 - Enable `history-enabled: true` unconditionally on `pull_request` workflows (fork PRs cannot access secrets)
 - Use `pull_request_target` without explaining the security trade-offs
@@ -349,4 +490,5 @@ See [Example Workflows](./example-workflows) for release and fork-PR patterns.
 
 - [Quick Start](./quick-start) — minimal workflow example
 - [Configuration Reference](../reference/configuration) — every input and output
+- [Build diagnostics](../reference/build-diagnostics) — SARIF, MSBuild, and gcc/clang setup
 - [Example Workflows](./example-workflows) — complete YAML for common scenarios
