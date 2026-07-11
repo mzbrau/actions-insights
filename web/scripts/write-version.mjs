@@ -1,13 +1,13 @@
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(webRoot, '..');
-const versionPath = path.join(webRoot, 'src', 'version.ts');
+const defaultRepoRoot = path.resolve(webRoot, '..');
+const defaultVersionPath = path.join(webRoot, 'src', 'version.ts');
 
-function isHistoryRepo() {
+export function isHistoryRepo(repoRoot) {
   const configPath = path.join(repoRoot, 'config.json');
   if (!existsSync(configPath)) return false;
 
@@ -19,15 +19,15 @@ function isHistoryRepo() {
   }
 }
 
-if (isHistoryRepo() && existsSync(versionPath)) {
-  process.exit(0);
-}
+function runGit(repoRoot, command) {
+  if (!existsSync(path.join(repoRoot, '.git'))) {
+    throw new Error('not a git repository');
+  }
 
-function runGit(command) {
   return execSync(command, { encoding: 'utf8', cwd: repoRoot }).trim();
 }
 
-function readPackageVersion() {
+function readPackageVersion(repoRoot) {
   const pkgPath = path.join(repoRoot, 'package.json');
   if (!existsSync(pkgPath)) return null;
 
@@ -39,24 +39,85 @@ function readPackageVersion() {
   }
 }
 
-let version = 'dev';
-
-try {
-  version = runGit('git describe --tags --exact-match 2>/dev/null');
-} catch {
-  const packageVersion = readPackageVersion();
-  if (packageVersion) {
-    version = packageVersion;
-  } else {
+export function resolveVersion(repoRoot, strategy = 'release') {
+  if (strategy === 'git-describe') {
     try {
-      version = runGit('git describe --tags 2>/dev/null');
+      return runGit(repoRoot, 'git describe --tags 2>/dev/null');
     } catch {
-      // no git available or no tags
+      const packageVersion = readPackageVersion(repoRoot);
+      if (packageVersion) {
+        return packageVersion;
+      }
+      return 'dev';
+    }
+  }
+
+  try {
+    return runGit(repoRoot, 'git describe --tags --exact-match 2>/dev/null');
+  } catch {
+    const packageVersion = readPackageVersion(repoRoot);
+    if (packageVersion) {
+      return packageVersion;
+    }
+
+    try {
+      return runGit(repoRoot, 'git describe --tags 2>/dev/null');
+    } catch {
+      return 'dev';
     }
   }
 }
 
-writeFileSync(
-  versionPath,
-  `export const APP_VERSION = ${JSON.stringify(version)};\n`,
-);
+function parseArgs(argv) {
+  const args = {
+    repoRoot: null,
+    output: null,
+    strategy: 'release',
+    explicit: false,
+  };
+
+  for (let i = 2; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--repo-root') {
+      args.repoRoot = path.resolve(argv[++i]);
+      args.explicit = true;
+    } else if (arg === '--output') {
+      args.output = path.resolve(argv[++i]);
+      args.explicit = true;
+    } else if (arg === '--strategy') {
+      args.strategy = argv[++i];
+      args.explicit = true;
+    }
+  }
+
+  return args;
+}
+
+function writeVersionFile(versionPath, version) {
+  mkdirSync(path.dirname(versionPath), { recursive: true });
+  writeFileSync(
+    versionPath,
+    `export const APP_VERSION = ${JSON.stringify(version)};\n`,
+  );
+}
+
+function main() {
+  const args = parseArgs(process.argv);
+  const repoRoot = args.repoRoot ?? defaultRepoRoot;
+  const versionPath = args.output ?? defaultVersionPath;
+
+  if (!args.explicit && isHistoryRepo(repoRoot) && existsSync(versionPath)) {
+    process.exit(0);
+  }
+
+  const version = resolveVersion(repoRoot, args.strategy);
+  writeVersionFile(versionPath, version);
+}
+
+const isMain =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  main();
+}

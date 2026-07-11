@@ -55,6 +55,7 @@ Or from repo root: `npm run build:web`.
 
 ## Gotchas
 
-- `web/src/version.ts` is **generated** by `scripts/write-version.mjs` (gitignored). It runs automatically via `predev`, `prebuild`, and `pretest` hooks.
+- `web/src/version.ts` is **generated** by `scripts/write-version.mjs` (gitignored in the monorepo). It runs automatically via `predev`, `prebuild`, and `pretest` hooks using the `release` strategy (exact tag, then root `package.json`, then `git describe`).
+- History repositories commit `web/src/version.ts` instead. `init-history-repo.sh` / `update-history-repo.sh` stamp it during dashboard sync via `write-version.mjs --strategy git-describe` from the actions-insights source checkout. Pages CI preserves that committed file on build.
 - `VITE_BASE_PATH` env var controls the base path for GitHub Pages deployment (see `web/vite.config.ts`).
 - HashRouter is used intentionally — the dashboard is deployed as static files without server-side routing.

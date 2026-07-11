@@ -3,6 +3,7 @@
 SOURCE_REPO="${ACTIONS_INSIGHTS_SOURCE:-mzbrau/actions-insights}"
 SOURCE_REF="${ACTIONS_INSIGHTS_REF:-main}"
 SOURCE_CHECKOUT=""
+SOURCE_ROOT=""
 TEMPLATE_DIR=""
 WEB_DIR=""
 MODELS_DIR=""
@@ -16,6 +17,7 @@ resolve_source_dirs() {
     TEMPLATE_DIR="${repo_root}/templates/history-repo"
     WEB_DIR="${repo_root}/web"
     MODELS_DIR="${repo_root}/packages/history-models"
+    SOURCE_ROOT="${repo_root}"
     return
   fi
 
@@ -25,6 +27,7 @@ resolve_source_dirs() {
   TEMPLATE_DIR="${SOURCE_CHECKOUT}/src/templates/history-repo"
   WEB_DIR="${SOURCE_CHECKOUT}/src/web"
   MODELS_DIR="${SOURCE_CHECKOUT}/src/packages/history-models"
+  SOURCE_ROOT="${SOURCE_CHECKOUT}/src"
 }
 
 validate_history_repo() {
@@ -98,9 +101,10 @@ sync_dashboard() {
     "${WEB_DIR}/" "${repo_path}/web/"
   rm -rf "${repo_path}/web/node_modules" "${repo_path}/web/dist"
 
-  printf 'export const APP_VERSION = %s;\n' \
-    "$(node -e "console.log(JSON.stringify(process.argv[1]))" "${SOURCE_REF}")" \
-    > "${repo_path}/web/src/version.ts"
+  node "${WEB_DIR}/scripts/write-version.mjs" \
+    --repo-root "${SOURCE_ROOT}" \
+    --output "${repo_path}/web/src/version.ts" \
+    --strategy git-describe
 
   if [[ "${verify_flag}" == true ]]; then
     bash "${prepare_script}" --verify "${repo_path}/web" "${MODELS_DIR}"

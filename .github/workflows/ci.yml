@@ -36,6 +36,15 @@ jobs:
           cp -R web "$tmpdir/web"
           bash scripts/prepare-standalone-web.sh --verify "$tmpdir/web" packages/history-models
 
+      - name: Verify dashboard version stamping
+        run: |
+          tmpdir=$(mktemp -d)
+          node web/scripts/write-version.mjs \
+            --repo-root . \
+            --output "$tmpdir/version.ts" \
+            --strategy git-describe
+          grep -v '"main"' "$tmpdir/version.ts"
+
       - name: Generate sample report
         run: npm run generate-sample
 
