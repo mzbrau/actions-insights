@@ -14,4 +14,14 @@ describe('CoverageProgressBar', () => {
     const { container } = render(<CoverageProgressBar label="Line" value={undefined} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('applies spectrum color to fill when colorMode is spectrum', () => {
+    const { container } = render(
+      <CoverageProgressBar label="Line coverage" value={25} colorMode="spectrum" />,
+    );
+    const fill = container.querySelector('.coverage-progress-fill') as HTMLElement;
+    expect(fill.style.width).toBe('25%');
+    expect(fill.style.background).toBeTruthy();
+    expect(fill.style.background).not.toBe('');
+  });
 });

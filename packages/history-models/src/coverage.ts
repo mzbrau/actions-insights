@@ -69,6 +69,7 @@ export interface CompactCoverageProject {
     metrics: CoverageMetrics;
     classes?: Array<{ name: string; file?: string; metrics: CoverageMetrics }>;
   }>;
+  files?: CompactCoverageFile[];
 }
 
 export interface CompactCoverageFile {
@@ -167,25 +168,28 @@ export function encodeCoverageRunRecord(
     return idx;
   };
 
-  for (const project of report.projects) {
-    for (const file of project.files ?? []) {
-      files.push({ p: indexPath(file.path), metrics: file.metrics });
-    }
-  }
+  const projects: CompactCoverageProject[] = report.projects.map((project) => {
+    const projectFiles = (project.files ?? []).map((file) => {
+      const entry = { p: indexPath(file.path), metrics: file.metrics };
+      files.push(entry);
+      return entry;
+    });
 
-  const projects: CompactCoverageProject[] = report.projects.map((project) => ({
-    name: project.name,
-    metrics: project.metrics,
-    packages: project.packages?.map((pkg) => ({
-      name: pkg.name,
-      metrics: pkg.metrics,
-      classes: pkg.classes?.map((cls) => ({
-        name: cls.name,
-        file: cls.file,
-        metrics: cls.metrics,
+    return {
+      name: project.name,
+      metrics: project.metrics,
+      packages: project.packages?.map((pkg) => ({
+        name: pkg.name,
+        metrics: pkg.metrics,
+        classes: pkg.classes?.map((cls) => ({
+          name: cls.name,
+          file: cls.file,
+          metrics: cls.metrics,
+        })),
       })),
-    })),
-  }));
+      ...(projectFiles.length > 0 ? { files: projectFiles } : {}),
+    };
+  });
 
   return {
     version: HISTORY_SCHEMA_VERSION,
@@ -195,6 +199,51 @@ export function encodeCoverageRunRecord(
     ...(paths.length > 0 ? { paths } : {}),
     ...(files.length > 0 ? { files } : {}),
   };
+}
+
+function resolveProjectFiles(
+  project: CompactCoverageProject,
+  record: CoverageRunRecord,
+): CoverageFile[] {
+  if (project.files?.length && record.paths) {
+    const result: CoverageFile[] = [];
+    for (const entry of project.files) {
+      const filePath = record.paths[entry.p];
+      if (filePath) result.push({ path: filePath, metrics: entry.metrics });
+    }
+    if (result.length > 0) return result;
+  }
+
+  const classPaths = new Set<string>();
+  for (const pkg of project.packages ?? []) {
+    for (const cls of pkg.classes ?? []) {
+      if (cls.file) classPaths.add(cls.file);
+    }
+  }
+
+  if (classPaths.size > 0 && record.files && record.paths) {
+    const metricsByPath = new Map<string, CoverageMetrics>();
+    for (const entry of record.files) {
+      const filePath = record.paths[entry.p];
+      if (filePath) metricsByPath.set(filePath, entry.metrics);
+    }
+    return [...classPaths].sort().map((filePath) => ({
+      path: filePath,
+      metrics: metricsByPath.get(filePath) ?? {},
+    }));
+  }
+
+  if (record.projects.length === 1 && record.files && record.paths) {
+    return record.files
+      .map((entry) => {
+        const filePath = record.paths![entry.p];
+        if (!filePath) return undefined;
+        return { path: filePath, metrics: entry.metrics };
+      })
+      .filter((file): file is CoverageFile => file !== undefined);
+  }
+
+  return [];
 }
 
 export function decodeCoverageRunRecord(record: CoverageRunRecord): CoverageReport {
@@ -212,14 +261,7 @@ export function decodeCoverageRunRecord(record: CoverageRunRecord): CoverageRepo
       });
     }
 
-    const projectFiles: CoverageFile[] = [];
-    if (record.files && record.paths) {
-      for (const entry of record.files) {
-        const filePath = record.paths[entry.p];
-        if (!filePath) continue;
-        projectFiles.push({ path: filePath, metrics: entry.metrics });
-      }
-    }
+    const projectFiles = resolveProjectFiles(project, record);
 
     return {
       name: project.name,

@@ -4,14 +4,25 @@ interface CoverageProgressBarProps {
   label: string;
   value: number | undefined;
   variant?: 'line' | 'branch';
+  colorMode?: 'primary' | 'spectrum';
+  className?: string;
 }
 
-export function CoverageProgressBar({ label, value, variant = 'line' }: CoverageProgressBarProps) {
+export function CoverageProgressBar({
+  label,
+  value,
+  variant = 'line',
+  colorMode = 'primary',
+  className,
+}: CoverageProgressBarProps) {
   if (value === undefined) return null;
   const pct = Math.min(100, Math.max(0, value));
+  const fillStyle = colorMode === 'spectrum'
+    ? { width: `${pct}%`, background: `hsl(${(pct / 100) * 120}, 65%, 45%)` }
+    : { width: `${pct}%` };
 
   return (
-    <div className="coverage-progress" role="group" aria-label={`${label} coverage`}>
+    <div className={['coverage-progress', className].filter(Boolean).join(' ')} role="group" aria-label={`${label} coverage`}>
       <div className="coverage-progress-header">
         <span className="coverage-progress-label">{label}</span>
         <span className="coverage-progress-value" aria-hidden="true">{pct.toFixed(1)}%</span>
@@ -24,7 +35,7 @@ export function CoverageProgressBar({ label, value, variant = 'line' }: Coverage
         aria-valuenow={pct}
         aria-label={`${label}: ${pct.toFixed(1)} percent`}
       >
-        <div className="coverage-progress-fill" style={{ width: `${pct}%` }} />
+        <div className="coverage-progress-fill" style={fillStyle} />
       </div>
     </div>
   );

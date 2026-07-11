@@ -64,6 +64,7 @@ export interface CompactCoverageProject {
             metrics: CoverageMetrics;
         }>;
     }>;
+    files?: CompactCoverageFile[];
 }
 export interface CompactCoverageFile {
     p: number;
