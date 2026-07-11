@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   DiagnosticRunRecord,
   DiagnosticSummaryCompact,
@@ -23,6 +23,40 @@ interface RunBuildPanelProps {
 
 type SeverityFilter = 'all' | 'error' | 'warning' | 'note';
 
+interface FileCounts {
+  errors: number;
+  warnings: number;
+  notes: number;
+}
+
+function countBySeverity(items: NormalizedDiagnosticItem[]): FileCounts {
+  let errors = 0;
+  let warnings = 0;
+  let notes = 0;
+  for (const item of items) {
+    if (item.severity === 'error') errors += 1;
+    else if (item.severity === 'warning') warnings += 1;
+    else notes += 1;
+  }
+  return { errors, warnings, notes };
+}
+
+function FileCountBadges({ counts }: { counts: FileCounts }) {
+  return (
+    <span className="diagnostic-file-badges">
+      {counts.errors > 0 && (
+        <span className="diagnostic-count-badge diagnostic-count-badge--error">{counts.errors}E</span>
+      )}
+      {counts.warnings > 0 && (
+        <span className="diagnostic-count-badge diagnostic-count-badge--warning">{counts.warnings}W</span>
+      )}
+      {counts.notes > 0 && (
+        <span className="diagnostic-count-badge diagnostic-count-badge--note">{counts.notes}N</span>
+      )}
+    </span>
+  );
+}
+
 export function RunBuildPanel({
   diagnosticsSummary,
   timingSummary,
@@ -32,8 +66,7 @@ export function RunBuildPanel({
   onRequestDetail,
 }: RunBuildPanelProps) {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('all');
-  const [showAllDiagnostics, setShowAllDiagnostics] = useState(false);
-  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   const items: NormalizedDiagnosticItem[] = useMemo(() => {
     if (!diagnosticsDetail) return [];
@@ -56,6 +89,21 @@ export function RunBuildPanel({
     return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
   }, [filteredItems]);
 
+  useEffect(() => {
+    if (byFile.length === 0) {
+      setSelectedFile(null);
+      return;
+    }
+    if (selectedFile === null || !byFile.some(([file]) => file === selectedFile)) {
+      setSelectedFile(byFile[0][0]);
+    }
+  }, [byFile, selectedFile]);
+
+  const selectedItems = useMemo(
+    () => byFile.find(([file]) => file === selectedFile)?.[1] ?? [],
+    [byFile, selectedFile],
+  );
+
   const steps = timingDetail?.summary.steps ?? [];
   const sortedSteps = useMemo(
     () => [...steps].sort((a, b) => b.durationMs - a.durationMs),
@@ -63,20 +111,10 @@ export function RunBuildPanel({
   );
   const maxStepMs = sortedSteps[0]?.durationMs ?? 1;
 
-  const toggleFile = (file: string) => {
-    setExpandedFiles((prev) => {
-      const next = new Set(prev);
-      if (next.has(file)) next.delete(file);
-      else next.add(file);
-      return next;
-    });
-  };
-
   const handleExpandDiagnostics = () => {
     if (!diagnosticsDetail && !detailLoading) {
       onRequestDetail();
     }
-    setShowAllDiagnostics(true);
   };
 
   return (
@@ -155,7 +193,7 @@ export function RunBuildPanel({
           )}
           {detailLoading && <p className="chart-empty">Loading diagnostics…</p>}
           {diagnosticsDetail && (
-            <>
+            <div className="diagnostic-browser">
               <div className="diagnostic-filters">
                 {(['all', 'error', 'warning', 'note'] as SeverityFilter[]).map((f) => (
                   <button
@@ -168,46 +206,65 @@ export function RunBuildPanel({
                   </button>
                 ))}
               </div>
-              {byFile.slice(0, showAllDiagnostics ? undefined : 10).map(([file, fileItems]) => (
-                <details
-                  key={file}
-                  className="diagnostic-file-group"
-                  open={expandedFiles.has(file)}
-                  onToggle={(e) => {
-                    if ((e.target as HTMLDetailsElement).open !== expandedFiles.has(file)) {
-                      toggleFile(file);
-                    }
-                  }}
-                >
-                  <summary>
-                    <code>{file}</code>
-                    <span className="diagnostic-file-count">{fileItems.length}</span>
-                  </summary>
-                  <ul className="diagnostic-item-list">
-                    {fileItems.map((item, idx) => (
-                      <li key={idx} className={`diagnostic-item diagnostic-item--${item.severity}`}>
-                        <span className="diagnostic-item-severity">{item.severity}</span>
-                        {item.code && <code className="diagnostic-item-code">{item.code}</code>}
-                        {item.line !== undefined && (
-                          <span className="diagnostic-item-location">:{item.line}</span>
-                        )}
-                        <span className="diagnostic-item-message">{item.message}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ))}
-              {!showAllDiagnostics && byFile.length > 10 && (
-                <button type="button" className="btn-secondary" onClick={() => setShowAllDiagnostics(true)}>
-                  Show all {byFile.length} files
-                </button>
+
+              {byFile.length === 0 ? (
+                <p className="chart-empty">No diagnostics match this filter.</p>
+              ) : (
+                <div className="diagnostic-browser-panes">
+                  <div className="diagnostic-file-list" role="listbox" aria-label="Files with diagnostics">
+                    {byFile.map(([file, fileItems]) => {
+                      const counts = countBySeverity(fileItems);
+                      const isActive = file === selectedFile;
+                      return (
+                        <button
+                          key={file}
+                          type="button"
+                          role="option"
+                          aria-selected={isActive}
+                          className={`diagnostic-file-row${isActive ? ' active' : ''}`}
+                          onClick={() => setSelectedFile(file)}
+                          title={file}
+                        >
+                          <code className="diagnostic-file-path">{file}</code>
+                          <FileCountBadges counts={counts} />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="diagnostic-detail-panel">
+                    {selectedFile ? (
+                      <>
+                        <div className="diagnostic-detail-header">
+                          <code>{selectedFile}</code>
+                          <FileCountBadges counts={countBySeverity(selectedItems)} />
+                        </div>
+                        <ul className="diagnostic-item-list">
+                          {selectedItems.map((item, idx) => (
+                            <li key={idx} className={`diagnostic-item diagnostic-item--${item.severity}`}>
+                              <span className="diagnostic-item-severity">{item.severity}</span>
+                              {item.code && <code className="diagnostic-item-code">{item.code}</code>}
+                              {item.line !== undefined && (
+                                <span className="diagnostic-item-location">:{item.line}</span>
+                              )}
+                              <span className="diagnostic-item-message">{item.message}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <p className="chart-empty">Select a file to view diagnostics.</p>
+                    )}
+                  </div>
+                </div>
               )}
+
               {diagnosticsDetail.truncated !== undefined && diagnosticsDetail.truncated > 0 && (
                 <p className="diagnostic-truncated-note">
                   {diagnosticsDetail.truncated} additional diagnostic(s) omitted from storage.
                 </p>
               )}
-            </>
+            </div>
           )}
         </ChartCard>
       )}

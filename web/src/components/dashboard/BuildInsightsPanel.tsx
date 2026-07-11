@@ -75,7 +75,7 @@ export function BuildInsightsPanel({ repoKey, runs }: BuildInsightsPanelProps) {
       </div>
 
       {diagnosticRuns.length > 0 && (
-        <ChartCard title="Build Diagnostics (errors / warnings)">
+        <ChartCard title="Build Diagnostics (errors / warnings)" trend>
           <DiagnosticsTrendChart
             points={runsToDiagnosticsPoints(diagnosticRuns)}
             onBarClick={onRunClick}
@@ -85,14 +85,14 @@ export function BuildInsightsPanel({ repoKey, runs }: BuildInsightsPanelProps) {
 
       {timingRuns.length > 0 && (
         <>
-          <ChartCard title="Workflow Duration">
+          <ChartCard title="Workflow Duration" trend>
             <WorkflowDurationTrendChart
               points={runsToWorkflowDurationPoints(timingRuns)}
               metric="workflow"
               onBarClick={onRunClick}
             />
           </ChartCard>
-          <ChartCard title="Test Duration (sum of test times)">
+          <ChartCard title="Test Duration (sum of test times)" trend>
             <WorkflowDurationTrendChart
               points={runsToWorkflowDurationPoints(timingRuns)}
               metric="tests"

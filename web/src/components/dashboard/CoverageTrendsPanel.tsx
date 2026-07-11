@@ -30,7 +30,7 @@ export function CoverageTrendsPanel({ repoKey, runs }: CoverageTrendsPanelProps)
 
   return (
     <div className="tab-panel" role="tabpanel">
-      <ChartCard title="Application Coverage (Line %)">
+      <ChartCard title="Application Coverage (Line %)" trend>
         <CoverageTrendChart
           points={runsToCoveragePoints(coverageRuns)}
           onBarClick={onRunClick}
@@ -38,7 +38,7 @@ export function CoverageTrendsPanel({ repoKey, runs }: CoverageTrendsPanelProps)
       </ChartCard>
 
       {projectNames.map((projectName) => (
-        <ChartCard key={projectName} title={`${projectName} — Line Coverage`}>
+        <ChartCard key={projectName} title={`${projectName} — Line Coverage`} trend>
           <CoverageTrendChart
             points={runsToCoveragePoints(coverageRuns, projectName)}
             onBarClick={onRunClick}

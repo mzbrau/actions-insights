@@ -29,7 +29,26 @@
         "workflowDurationMs": 380000,
         "slowestStep": "test › dotnet test"
       },
-      "timingFile": "2026-07-07T09-00-00Z-2.timing.json"
+      "timingFile": "2026-07-07T09-00-00Z-2.timing.json",
+      "coverage": {
+        "line": 82.5,
+        "branch": 71.4,
+        "coveredLines": 33,
+        "totalLines": 40,
+        "coveredBranches": 10,
+        "totalBranches": 14,
+        "projects": {
+          "MyApp": {
+            "line": 82.5,
+            "branch": 71.4,
+            "coveredLines": 33,
+            "totalLines": 40,
+            "coveredBranches": 10,
+            "totalBranches": 14
+          }
+        }
+      },
+      "coverageFile": "2026-07-07T09-00-00Z-2.coverage.json"
     }
   ]
 }

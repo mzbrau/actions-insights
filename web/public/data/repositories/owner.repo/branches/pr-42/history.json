@@ -29,7 +29,26 @@
         "workflowDurationMs": 420000,
         "slowestStep": "build › dotnet build"
       },
-      "timingFile": "2026-07-07T10-00-00Z-1.timing.json"
+      "timingFile": "2026-07-07T10-00-00Z-1.timing.json",
+      "coverage": {
+        "line": 68.0,
+        "branch": 55.0,
+        "coveredLines": 17,
+        "totalLines": 25,
+        "coveredBranches": 6,
+        "totalBranches": 11,
+        "projects": {
+          "MyApp": {
+            "line": 68.0,
+            "branch": 55.0,
+            "coveredLines": 17,
+            "totalLines": 25,
+            "coveredBranches": 6,
+            "totalBranches": 11
+          }
+        }
+      },
+      "coverageFile": "2026-07-07T10-00-00Z-1.coverage.json"
     }
   ]
 }
