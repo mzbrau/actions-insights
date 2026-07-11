@@ -9,7 +9,7 @@ import type {
 } from '../model/coverage';
 import { aggregateMetricsFromProjects } from '../model/coverage';
 import type { CoverageParser } from './types';
-import { asArray, attrNumber, attrString, metricsFromCounts, normalizePath } from './metrics-helpers';
+import { asArray, attrNumber, attrString, metricsFromCounts, normalizePath, resolveModuleName } from './metrics-helpers';
 
 function sequenceCoverage(metrics: CoverageMetrics, visited: number, numSequencePoints: number): void {
   if (numSequencePoints <= 0) return;
@@ -54,7 +54,7 @@ function parseOpenCover(content: string, filePath: string): CoverageReport {
   const projects: CoverageProject[] = [];
 
   for (const mod of modules) {
-    const moduleName = attrString(mod, 'ModuleName') || 'default';
+    const moduleName = resolveModuleName(mod, filePath);
     const filesNode = mod.Files as { File?: unknown } | undefined;
     const files = asArray<Record<string, unknown>>(filesNode?.File ?? mod.File);
     const classesNode = mod.Classes as { Class?: unknown } | undefined;

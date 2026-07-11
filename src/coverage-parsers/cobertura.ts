@@ -9,7 +9,15 @@ import type {
 } from '../model/coverage';
 import { aggregateMetricsFromProjects } from '../model/coverage';
 import type { CoverageParser } from './types';
-import { asArray, attrNumber, attrString, metricsFromCounts, normalizePath, parseRate } from './metrics-helpers';
+import {
+  asArray,
+  attrNumber,
+  attrString,
+  metricsFromCounts,
+  normalizePath,
+  parseRate,
+  resolveProjectNameFromPath,
+} from './metrics-helpers';
 
 function lineMetricsFromCoberturaClass(node: Record<string, unknown>): CoverageMetrics {
   const lines = asArray<Record<string, unknown>>((node.lines as { line?: unknown })?.line);
@@ -59,6 +67,20 @@ function aggregateFromFiles(files: CoverageFile[]): CoverageMetrics {
   return metricsFromCounts(coveredLines, totalLines, coveredBranches, totalBranches);
 }
 
+function aggregateClassMetrics(classes: CoverageClass[]): CoverageMetrics {
+  let coveredLines = 0;
+  let totalLines = 0;
+  let coveredBranches = 0;
+  let totalBranches = 0;
+  for (const cls of classes) {
+    coveredLines += cls.metrics.coveredLines ?? 0;
+    totalLines += cls.metrics.totalLines ?? 0;
+    coveredBranches += cls.metrics.coveredBranches ?? 0;
+    totalBranches += cls.metrics.totalBranches ?? 0;
+  }
+  return metricsFromCounts(coveredLines, totalLines, coveredBranches, totalBranches, undefined, undefined, classes.length, classes.length);
+}
+
 function parseCobertura(content: string, filePath: string): CoverageReport {
   const parser = createXmlParser({
     ignoreAttributes: false,
@@ -73,15 +95,15 @@ function parseCobertura(content: string, filePath: string): CoverageReport {
 
   const packagesNode = coverage.packages as { package?: unknown } | undefined;
   const packages = asArray<Record<string, unknown>>(packagesNode?.package);
-  const projectName = filePath.split(/[/\\]/).slice(-2, -1)[0] || 'default';
-  const pkgList: CoveragePackage[] = [];
-  const files: CoverageFile[] = [];
+  const pathFallback = resolveProjectNameFromPath(filePath);
+  const projects: CoverageProject[] = [];
 
   for (const pkg of packages) {
-    const pkgName = attrString(pkg, 'name') || 'default';
+    const pkgName = attrString(pkg, 'name') || pathFallback || 'default';
     const classesNode = pkg.classes as { class?: unknown } | undefined;
     const classes = asArray<Record<string, unknown>>(classesNode?.class);
     const classList: CoverageClass[] = [];
+    const files: CoverageFile[] = [];
 
     for (const cls of classes) {
       const clsName = attrString(cls, 'name') || 'unknown';
@@ -94,45 +116,46 @@ function parseCobertura(content: string, filePath: string): CoverageReport {
     }
 
     const pkgMetrics = aggregateClassMetrics(classList);
-    pkgList.push({ name: pkgName, metrics: pkgMetrics, classes: classList });
+    const pkgEntry: CoveragePackage = { name: pkgName, metrics: pkgMetrics, classes: classList };
+
+    projects.push({
+      name: pkgName,
+      metrics: aggregateFromFiles(files),
+      packages: [pkgEntry],
+      files,
+    });
   }
 
   const rootLineRate = parseRate(attrString(coverage, 'line-rate') ?? attrNumber(coverage, 'line-rate'));
   const rootBranchRate = parseRate(attrString(coverage, 'branch-rate') ?? attrNumber(coverage, 'branch-rate'));
 
-  const project: CoverageProject = {
-    name: projectName,
-    metrics: aggregateFromFiles(files),
-    packages: pkgList,
-    files,
-  };
-  if (rootLineRate !== undefined && project.metrics.line === undefined) {
-    project.metrics = { ...project.metrics, line: rootLineRate };
-  }
-  if (rootBranchRate !== undefined && project.metrics.branch === undefined) {
-    project.metrics = { ...project.metrics, branch: rootBranchRate };
+  if (projects.length === 0) {
+    projects.push({
+      name: pathFallback ?? 'default',
+      metrics: {},
+      packages: [],
+      files: [],
+    });
   }
 
-  const projects = [project];
+  if (rootLineRate !== undefined || rootBranchRate !== undefined) {
+    for (const project of projects) {
+      if (projects.length === 1) {
+        if (rootLineRate !== undefined && project.metrics.line === undefined) {
+          project.metrics = { ...project.metrics, line: rootLineRate };
+        }
+        if (rootBranchRate !== undefined && project.metrics.branch === undefined) {
+          project.metrics = { ...project.metrics, branch: rootBranchRate };
+        }
+      }
+    }
+  }
+
   return {
     summary: aggregateMetricsFromProjects(projects),
     projects,
     sourceFiles: [filePath],
   };
-}
-
-function aggregateClassMetrics(classes: CoverageClass[]): CoverageMetrics {
-  let coveredLines = 0;
-  let totalLines = 0;
-  let coveredBranches = 0;
-  let totalBranches = 0;
-  for (const cls of classes) {
-    coveredLines += cls.metrics.coveredLines ?? 0;
-    totalLines += cls.metrics.totalLines ?? 0;
-    coveredBranches += cls.metrics.coveredBranches ?? 0;
-    totalBranches += cls.metrics.totalBranches ?? 0;
-  }
-  return metricsFromCounts(coveredLines, totalLines, coveredBranches, totalBranches, undefined, undefined, classes.length, classes.length);
 }
 
 export const coberturaParser: CoverageParser = {

@@ -81,3 +81,67 @@ export function attrNumber(node: Record<string, unknown>, key: string): number |
 export function normalizePath(filePath: string): string {
   return filePath.replace(/\\/g, '/');
 }
+
+const GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const UNHELPFUL_PATH_NAMES = new Set(['tmp', 'temp', 'testresults', 'coverage', 'default']);
+
+export function isLikelyGuid(value: string): boolean {
+  return GUID_PATTERN.test(value);
+}
+
+export function resolveProjectNameFromPath(filePath: string): string | undefined {
+  const parent = filePath.split(/[/\\]/).slice(-2, -1)[0];
+  if (!parent) return undefined;
+  if (isLikelyGuid(parent) || UNHELPFUL_PATH_NAMES.has(parent.toLowerCase())) {
+    return undefined;
+  }
+  return parent;
+}
+
+export function formatCoverageDisplayName(name: string): string {
+  if (!name.includes('.')) return name;
+  const last = name.split('.').pop();
+  return last || name;
+}
+
+export function deriveProjectNameFromSourcePaths(paths: string[]): string {
+  if (paths.length === 0) return 'default';
+
+  const segments = paths.map((p) => normalizePath(p).split('/').filter(Boolean));
+  const firstSegments = segments.map((s) => s[0]).filter(Boolean);
+  if (firstSegments.length > 0) {
+    const common = firstSegments[0];
+    if (
+      common
+      && !UNHELPFUL_PATH_NAMES.has(common.toLowerCase())
+      && !isLikelyGuid(common)
+      && firstSegments.every((s) => s === common)
+    ) {
+      return common;
+    }
+  }
+
+  const fallback = segments[0]?.[0];
+  if (fallback && !UNHELPFUL_PATH_NAMES.has(fallback.toLowerCase()) && !isLikelyGuid(fallback)) {
+    return fallback;
+  }
+
+  return 'default';
+}
+
+export function resolveModuleName(
+  mod: Record<string, unknown>,
+  filePath: string,
+): string {
+  const moduleName = attrString(mod, 'ModuleName') || attrString(mod, 'moduleName');
+  if (moduleName && moduleName !== 'default') return moduleName;
+
+  const modulePath = attrString(mod, 'ModulePath') || attrString(mod, 'modulePath');
+  if (modulePath) {
+    const base = modulePath.split(/[/\\]/).pop()?.replace(/\.(dll|exe)$/i, '');
+    if (base) return base;
+  }
+
+  return resolveProjectNameFromPath(filePath) ?? 'default';
+}

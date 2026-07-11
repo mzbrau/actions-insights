@@ -6,7 +6,7 @@ import type {
 } from '../model/coverage';
 import { aggregateMetricsFromProjects } from '../model/coverage';
 import type { CoverageParser } from './types';
-import { metricsFromCounts, normalizePath } from './metrics-helpers';
+import { metricsFromCounts, normalizePath, deriveProjectNameFromSourcePaths, resolveProjectNameFromPath } from './metrics-helpers';
 
 interface LcovFileState {
   path: string;
@@ -97,7 +97,8 @@ function parseLcov(content: string, filePath: string): CoverageReport {
     totalBranches += file.metrics.totalBranches ?? 0;
   }
 
-  const projectName = filePath.split(/[/\\]/).slice(-2, -1)[0] || 'default';
+  const projectName = resolveProjectNameFromPath(filePath)
+    ?? deriveProjectNameFromSourcePaths(files.map((f) => f.path));
   const project: CoverageProject = {
     name: projectName,
     metrics: metricsFromCounts(coveredLines, totalLines, coveredBranches, totalBranches, undefined, undefined, undefined, undefined, files.filter((f) => (f.metrics.coveredLines ?? 0) > 0).length, files.length),

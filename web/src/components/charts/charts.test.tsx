@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { CoverageTrendChart } from './CoverageTrendChart';
 import { DonutChart } from './DonutChart';
 import { DurationTrendChart } from './DurationTrendChart';
 import { RunTrendsChart } from './RunTrendsChart';
@@ -56,6 +57,52 @@ describe('StackedBarChart', () => {
       />,
     );
     expect(container.querySelectorAll('rect').length).toBeGreaterThan(0);
+  });
+});
+
+describe('CoverageTrendChart', () => {
+  it('renders empty state when no points', () => {
+    render(<CoverageTrendChart points={[]} />);
+    expect(screen.getByText('No coverage data')).toBeTruthy();
+  });
+
+  it('renders bar track and fill structure', () => {
+    const { container } = render(
+      <CoverageTrendChart
+        points={[
+          {
+            runId: 'run-1',
+            date: '2026-07-09T12:00:00.000Z',
+            branchLabel: 'main',
+            commitShortSha: 'abc1234',
+            line: 75,
+          },
+        ]}
+      />,
+    );
+    expect(container.querySelector('.duration-trend-bar-track')).toBeTruthy();
+    expect(container.querySelector('.duration-trend-bar-fill')).toBeTruthy();
+    expect(screen.getByText('75%')).toBeTruthy();
+  });
+
+  it('calls onBarClick with run id when a bar is clicked', () => {
+    const onBarClick = vi.fn();
+    render(
+      <CoverageTrendChart
+        points={[
+          {
+            runId: 'cov-run',
+            date: '2026-07-09T12:00:00.000Z',
+            branchLabel: 'main',
+            commitShortSha: 'abc1234',
+            line: 80,
+          },
+        ]}
+        onBarClick={onBarClick}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /80\.0% line coverage/i }));
+    expect(onBarClick).toHaveBeenCalledWith('cov-run');
   });
 });
 

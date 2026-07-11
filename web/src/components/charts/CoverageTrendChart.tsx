@@ -62,11 +62,12 @@ export function CoverageTrendChart({
         {chartPoints.map((point) => {
           const value = metric === 'line' ? point.line! : point.branch!;
           const pct = Math.max(4, (value / maxPct) * 100);
+          const label = `${value.toFixed(0)}%`;
           return (
             <button
               key={point.runId}
               type="button"
-              className="duration-trend-bar-col coverage-trend-bar-col"
+              className="duration-trend-bar passed coverage-trend-bar"
               onMouseEnter={(e) => showTooltip(point, e.currentTarget)}
               onMouseLeave={() => setTooltip(null)}
               onFocus={(e) => showTooltip(point, e.currentTarget)}
@@ -74,11 +75,14 @@ export function CoverageTrendChart({
               onClick={() => onBarClick?.(point.runId)}
               aria-label={`Run ${point.runId}: ${value.toFixed(1)}% ${metric} coverage`}
             >
-              <div
-                className="duration-trend-bar coverage-trend-bar"
-                style={{ height: `${pct}%`, backgroundColor: CHART_COLORS.passed }}
-              />
-              <span className="duration-trend-label">{formatDateCompact(point.date)}</span>
+              <div className="duration-trend-bar-track">
+                <span
+                  className="duration-trend-bar-fill"
+                  style={{ height: `${pct}%`, background: CHART_COLORS.passed }}
+                />
+              </div>
+              <span className="duration-trend-bar-key" title={label}>{label}</span>
+              <span className="duration-trend-bar-date">{formatDateCompact(point.date)}</span>
             </button>
           );
         })}

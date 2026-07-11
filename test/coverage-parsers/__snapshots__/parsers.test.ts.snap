@@ -25,7 +25,7 @@ exports[`coverage parsers > parses Cobertura XML 1`] = `
         "totalBranches": 2,
         "totalLines": 4,
       },
-      "name": "tmp",
+      "name": "MyApp",
       "packages": [
         {
           "classes": [
@@ -175,7 +175,7 @@ exports[`coverage parsers > parses LCOV 1`] = `
         "totalFiles": 2,
         "totalLines": 5,
       },
-      "name": "tmp",
+      "name": "src",
     },
   ],
   "sourceFiles": [
@@ -219,7 +219,7 @@ exports[`coverage parsers > parses OpenCover XML 1`] = `
         "totalBranches": 0,
         "totalLines": 3,
       },
-      "name": "default",
+      "name": "MyApp",
       "packages": [
         {
           "classes": [
@@ -243,7 +243,7 @@ exports[`coverage parsers > parses OpenCover XML 1`] = `
             "totalBranches": 0,
             "totalLines": 3,
           },
-          "name": "default",
+          "name": "MyApp",
         },
       ],
     },

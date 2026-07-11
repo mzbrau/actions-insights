@@ -21,10 +21,24 @@ describe('coverage parsers', () => {
     const report = coberturaParser.parse(content, '/tmp/coverage.cobertura.xml');
     expect(report.summary.line).toBe(75);
     expect(report.summary.totalLines).toBe(4);
-    expect(report.projects[0].name).toBeTruthy();
+    expect(report.projects[0].name).toBe('MyApp');
     expect(report.projects[0].packages?.[0].classes?.[0].name).toContain('Calculator');
     expect(validateCoverageReport(report).filter((i) => i.level === 'error')).toHaveLength(0);
     expect(report).toMatchSnapshot();
+  });
+
+  it('uses package name instead of GUID folder for Cobertura project name', () => {
+    const content = readFixture('cobertura.xml');
+    const guidPath = '/build/TestResults/0d25845c-895f-41e0-8cad-570d520d20e4/coverage.cobertura.xml';
+    const report = coberturaParser.parse(content, guidPath);
+    expect(report.projects[0].name).toBe('MyApp');
+    expect(report.projects[0].name).not.toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
+  it('parses OpenCover moduleName attribute', () => {
+    const content = readFixture('opencover.xml');
+    const report = opencoverParser.parse(content, '/tmp/opencover.xml');
+    expect(report.projects[0].name).toBe('MyApp');
   });
 
   it('parses JaCoCo XML', () => {

@@ -5,4 +5,9 @@ export declare function asArray<T>(value: T | T[] | unknown | undefined): T[];
 export declare function attrString(node: Record<string, unknown>, key: string): string | undefined;
 export declare function attrNumber(node: Record<string, unknown>, key: string): number | undefined;
 export declare function normalizePath(filePath: string): string;
+export declare function isLikelyGuid(value: string): boolean;
+export declare function resolveProjectNameFromPath(filePath: string): string | undefined;
+export declare function formatCoverageDisplayName(name: string): string;
+export declare function deriveProjectNameFromSourcePaths(paths: string[]): string;
+export declare function resolveModuleName(mod: Record<string, unknown>, filePath: string): string;
 //# sourceMappingURL=metrics-helpers.d.ts.map

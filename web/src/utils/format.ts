@@ -43,6 +43,12 @@ export function shortTestName(fullName: string): string {
   return lastDot >= 0 ? fullName.slice(lastDot + 1) : fullName;
 }
 
+export function formatCoverageDisplayName(name: string): string {
+  if (name.includes('.')) return shortTestName(name);
+  const lastSlash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+  return lastSlash >= 0 ? name.slice(lastSlash + 1) : name;
+}
+
 export function passRate(passed: number, total: number): number {
   return total > 0 ? Math.round((passed / total) * 1000) / 10 : 0;
 }

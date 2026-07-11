@@ -67,25 +67,22 @@ export function RunDetailPage() {
     return () => { cancelled = true; };
   }, [repoKey, branchKey, runId]);
 
-  useEffect(() => {
-    if (activeTab !== 'coverage' || !repoKey || !branchKey || !runSummary?.coverageFile) {
+  const requestCoverageDetail = () => {
+    if (!repoKey || !branchKey || !runSummary?.coverageFile || coverage || coverageLoading) {
       return;
     }
-    if (coverage) return;
-    let cancelled = false;
     setCoverageLoading(true);
     loadRunCoverage(repoKey, branchKey, runSummary.coverageFile)
       .then((data) => {
-        if (!cancelled) setCoverage(data);
+        setCoverage(data);
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+        setError(e instanceof Error ? e.message : String(e));
       })
       .finally(() => {
-        if (!cancelled) setCoverageLoading(false);
+        setCoverageLoading(false);
       });
-    return () => { cancelled = true; };
-  }, [activeTab, repoKey, branchKey, runSummary, coverage]);
+  };
 
   const slowThreshold = 1000;
 
@@ -154,10 +151,13 @@ export function RunDetailPage() {
           slowTests={slowTests}
         />
       ) : activeTab === 'coverage' ? (
-        coverageLoading ? (
-          <p className="muted">Loading coverage…</p>
-        ) : coverage ? (
-          <RunCoveragePanel coverage={coverage} />
+        runSummary.coverage ? (
+          <RunCoveragePanel
+            summary={runSummary.coverage}
+            detail={coverage}
+            detailLoading={coverageLoading}
+            onRequestDetail={requestCoverageDetail}
+          />
         ) : (
           <p className="chart-empty">Coverage data unavailable.</p>
         )
