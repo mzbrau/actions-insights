@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite errors="1" failures="0" tests="3" skipped="1" name=".home.runner.work.list_pilot.list_pilot.test.todo_notification_service" timestamp="2026-07-12T19:47:45">
+    <properties>
+      <property name="platform" value="vm"/>
+    </properties>
+    <testcase classname=".home.runner.work.list_pilot.list_pilot.test.todo_notification_service" name="cancelReminder does not throw before initialization" time="0.016"/>
+    <testcase classname=".home.runner.work.list_pilot.list_pilot.test.todo_notification_service" name="scheduleReminder skips past reminders without initializing" time="0.056">
+      <error message="LateInitializationError: Field '_instance@1869271368' has not been initialized.">package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart        FlutterLocalNotificationsPlatform._instance
+package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 52:43                             FlutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation
+</error>
+      <system-out>Binding has not yet been initialized.</system-out>
+    </testcase>
+  </testsuite>
+  <testsuite errors="0" failures="0" tests="1" skipped="1" name=".home.runner.work.list_pilot.list_pilot.test.receipt_pdf_import" timestamp="2026-07-12T19:47:45">
+    <properties>
+      <property name="platform" value="vm"/>
+    </properties>
+    <testcase classname=".home.runner.work.list_pilot.list_pilot.test.receipt_pdf_import" name="parses large April receipt from Reference PDF" time="0.001">
+      <skipped/>
+      <system-out>Skip: Reference/ data not available in CI</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>

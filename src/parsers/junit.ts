@@ -8,7 +8,12 @@ const parser = createXmlParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
   textNodeName: '#text',
-  isArray: (name) => name === 'testcase' || name === 'testsuite' || name === 'failure' || name === 'skipped',
+  isArray: (name) =>
+    name === 'testcase' ||
+    name === 'testsuite' ||
+    name === 'failure' ||
+    name === 'error' ||
+    name === 'skipped',
 });
 
 function mapOutcome(status: string | undefined): TestOutcome {
@@ -33,6 +38,24 @@ function getText(node: unknown): string | undefined {
     if ('message' in node) return getText((node as { message: unknown }).message);
   }
   return undefined;
+}
+
+function hasChildElement(value: unknown): boolean {
+  return value != null && (Array.isArray(value) ? value.length > 0 : true);
+}
+
+function getResultElement(
+  elements: Record<string, unknown> | undefined,
+): { message?: string; stackTrace?: string } | undefined {
+  if (!elements) return undefined;
+  const attributeMessage = getText(elements['@_message']);
+  const bodyText = getText(elements);
+  const explicitStack = getText((elements as { stacktrace?: unknown }).stacktrace);
+  return {
+    message: attributeMessage ?? bodyText,
+    stackTrace:
+      attributeMessage && bodyText && bodyText !== attributeMessage ? bodyText : explicitStack,
+  };
 }
 
 function parseClassName(classname: string | undefined): { namespace?: string; className?: string } {
@@ -68,12 +91,23 @@ function collectTestCases(
       const { namespace, className } = parseClassName(classname);
       const fullName = classname ? `${classname}.${name}` : name;
       const failure = asArray(t.failure as unknown)[0] as Record<string, unknown> | undefined;
+      const error = asArray(t.error as unknown)[0] as Record<string, unknown> | undefined;
       const skipped = asArray(t.skipped as unknown)[0] as Record<string, unknown> | undefined;
+      const hasSkipped = 'skipped' in t;
       let outcome: TestOutcome = mapOutcome(t['@_status'] as string | undefined);
       if (!t['@_status']) {
-        if (failure) outcome = 'failed';
-        else if (skipped) outcome = 'skipped';
+        if (hasChildElement(t.failure)) outcome = 'failed';
+        else if (hasChildElement(t.error)) outcome = 'failed';
+        else if (hasSkipped) outcome = 'skipped';
         else outcome = 'passed';
+      }
+
+      const failureResult = getResultElement(failure);
+      const errorResult = getResultElement(error);
+      const result = failureResult ?? errorResult;
+      let message = result?.message;
+      if (!message && hasSkipped) {
+        message = getText(skipped?.['@_message']) ?? getText(t['system-out']);
       }
 
       cases.push({
@@ -86,8 +120,8 @@ function collectTestCases(
         namespace,
         className,
         method: name,
-        message: failure ? getText(failure) ?? getText(failure['@_message']) : getText(skipped),
-        stackTrace: failure ? getText((failure as { stacktrace?: unknown }).stacktrace) : undefined,
+        message,
+        stackTrace: result?.stackTrace,
         stdout: getText(t['system-out']),
         stderr: getText(t['system-err']),
         attachments: [],

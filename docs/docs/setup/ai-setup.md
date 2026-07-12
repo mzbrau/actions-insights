@@ -30,7 +30,7 @@ When helping a user set up Actions Insights, follow these phases in order. **Can
 ### Phase 0 — Discover
 
 1. Find workflow files in `.github/workflows/`
-2. Detect the primary language and test framework (e.g. .NET/xUnit, Java/Maven, Python/pytest, JavaScript/Jest)
+2. Detect the primary language and test framework (e.g. .NET/xUnit, Java/Maven, Python/pytest, JavaScript/Jest, Flutter)
 3. Locate the test command step and any existing result file paths
 4. Note the workflow trigger (`pull_request`, `push`, `schedule`, etc.)
 
@@ -43,7 +43,7 @@ Actions Insights reads **TRX, JUnit XML, NUnit XML, or xUnit XML** files. It doe
 | Format | Extensions | Typical runners |
 |--------|-----------|-----------------|
 | TRX | `.trx` | .NET (`dotnet test`), Visual Studio |
-| JUnit XML | `.xml` | Java (Maven, Gradle), Python (pytest), JavaScript, Go (`gotestsum`) |
+| JUnit XML | `.xml` | Java (Maven, Gradle), Python (pytest), JavaScript, Flutter (tojunit), Go (`gotestsum`) |
 | NUnit XML | `.xml` | NUnit (.NET) |
 | xUnit XML | `.xml` | xUnit (.NET) |
 
@@ -57,6 +57,7 @@ If the runner does not already emit a supported format, update the test command.
 - [Java / JUnit](https://github.com/mzbrau/actions-insights/blob/main/examples/java.yml)
 - [Python / JUnit](https://github.com/mzbrau/actions-insights/blob/main/examples/python.yml)
 - [JavaScript / JUnit](https://github.com/mzbrau/actions-insights/blob/main/examples/javascript.yml)
+- [Flutter / JUnit via tojunit](https://github.com/mzbrau/actions-insights/blob/main/examples/flutter.yml)
 
 ### Phase 2 — Add permissions
 

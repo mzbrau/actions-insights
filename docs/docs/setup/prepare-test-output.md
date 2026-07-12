@@ -12,7 +12,7 @@ Actions Insights reads test result files in their **native format**. Your test r
 | Format | Typical extensions | Test runners |
 |--------|-------------------|--------------|
 | TRX | `.trx` | .NET (`dotnet test`), Visual Studio |
-| JUnit XML | `.xml` | Java (Maven, Gradle), Python (pytest), JavaScript |
+| JUnit XML | `.xml` | Java (Maven, Gradle), Python (pytest), JavaScript, Flutter (tojunit) |
 | NUnit XML | `.xml` | NUnit (.NET) |
 | xUnit XML | `.xml` | xUnit (.NET) |
 
@@ -82,6 +82,35 @@ Install `jest-junit` and configure it in `jest.config.js` to write `junit.xml`.
 ```
 
 See the [JavaScript example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/javascript.yml).
+
+## Flutter / Dart (JUnit via tojunit)
+
+Flutter's test runner does not write JUnit XML directly. Pipe machine-readable output through the [`junitreport`](https://pub.dev/packages/junitreport) package (`tojunit`):
+
+```yaml
+- uses: subosito/flutter-action@v2
+  with:
+    channel: stable
+
+- name: Install tojunit
+  run: dart pub global activate junitreport
+
+- name: Add pub cache bin to PATH
+  run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+- name: Run tests
+  run: flutter test --coverage --machine | tojunit > test-results.xml
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+For plain Dart projects (without Flutter), use `dart test --reporter json | tojunit` instead of `flutter test --machine`.
+
+The `tojunit` converter writes test failures as `<error>` elements and skipped tests as `<skipped/>`. Actions Insights maps both to the correct pass/fail/skip counts in PR comments and reports.
+
+See the [Flutter example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/flutter.yml).
 
 ## Go (JUnit via gotestsum)
 

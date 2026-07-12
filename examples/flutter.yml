@@ -1,0 +1,38 @@
+# Example: Flutter JUnit test reports (tojunit)
+# Copy relevant sections into your workflow.
+
+name: Example Flutter Test Reports
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install tojunit
+        run: dart pub global activate junitreport
+
+      - name: Add pub cache bin to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Test
+        run: flutter test --coverage --machine | tojunit > test-results.xml
+
+      - name: Actions Insights
+        uses: mzbrau/actions-insights@v1
+        with:
+          test-results: 'test-results.xml'

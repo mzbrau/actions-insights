@@ -212,6 +212,22 @@ See the full [Python example workflow](https://github.com/mzbrau/actions-insight
 
 See the full [JavaScript example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/javascript.yml).
 
+## Flutter (JUnit via tojunit)
+
+```yaml
+- uses: subosito/flutter-action@v2
+  with:
+    channel: stable
+- run: dart pub global activate junitreport
+- run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+- run: flutter test --coverage --machine | tojunit > test-results.xml
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-results.xml'
+```
+
+See the full [Flutter example workflow](https://github.com/mzbrau/actions-insights/blob/main/examples/flutter.yml).
+
 ## Full Reference
 
 [Configuration Reference](../reference/configuration) — every input and output.

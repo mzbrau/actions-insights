@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { describe, expect, it } from 'vitest';
 import type { TestCase } from '../../src/model/test-case';
+import { computeStats, deriveStatus } from '../../src/model/test-run';
 import { encodeRunTests, expandRunTests } from '@actions-insights/history-models';
 import { junitParser } from '../../src/parsers/junit';
 import { nunitParser } from '../../src/parsers/nunit';
@@ -94,6 +95,29 @@ describe('JUnit parser', () => {
     expect(cases[0].fullName).toBe('com.example.CalculatorTest.testAdd');
     expect(cases[1].fullName).toBe('com.example.CalculatorTest.testSubtract');
     expect(countGroups(cases)).toBeLessThan(cases.length);
+  });
+
+  it('parses Flutter tojunit xml with error and empty skipped elements', () => {
+    const content = fs.readFileSync(path.join(fixtures, 'flutter-junit.xml'), 'utf8');
+    const cases = junitParser.parse(content, 'flutter-junit.xml');
+    expect(cases).toHaveLength(3);
+    expectQualifiedNames(cases);
+    expect(cases.filter((c) => c.outcome === 'passed')).toHaveLength(1);
+    expect(cases.filter((c) => c.outcome === 'failed')).toHaveLength(1);
+    expect(cases.filter((c) => c.outcome === 'skipped')).toHaveLength(1);
+
+    const errored = cases.find((c) => c.name === 'scheduleReminder skips past reminders without initializing');
+    expect(errored?.outcome).toBe('failed');
+    expect(errored?.message).toContain('LateInitializationError');
+    expect(errored?.stackTrace).toContain('flutter_local_notifications');
+
+    const skipped = cases.find((c) => c.name === 'parses large April receipt from Reference PDF');
+    expect(skipped?.outcome).toBe('skipped');
+    expect(skipped?.message).toBe('Skip: Reference/ data not available in CI');
+
+    const stats = computeStats(cases);
+    expect(stats).toMatchObject({ passed: 1, failed: 1, skipped: 1 });
+    expect(deriveStatus(cases)).toBe('failed');
   });
 });
 
