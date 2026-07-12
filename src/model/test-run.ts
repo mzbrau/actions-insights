@@ -62,7 +62,8 @@ export function computeStats(tests: TestCase[]): RunStats {
   const inconclusive = tests.filter((t) => t.outcome === 'inconclusive').length;
   const total = tests.length;
   const durationMs = tests.reduce((sum, t) => sum + t.durationMs, 0);
-  const successRate = total > 0 ? Math.round((passed / total) * 1000) / 10 : 0;
+  const executed = passed + failed;
+  const successRate = executed > 0 ? Math.round((passed / executed) * 1000) / 10 : 0;
   return { total, passed, failed, skipped, inconclusive, durationMs, successRate };
 }
 

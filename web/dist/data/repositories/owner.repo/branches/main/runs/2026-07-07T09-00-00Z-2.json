@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "runId": "2",
+  "workflowRunId": 511,
+  "status": "passed",
+  "date": "2026-07-07T09:00:00.000Z",
+  "durationMs": 48000,
+  "context": {
+    "repository": "owner/repo",
+    "repositoryUrl": "https://github.com/owner/repo",
+    "workflow": "CI",
+    "branch": "main",
+    "branchKey": "main",
+    "branchLabel": "main",
+    "branchType": "branch",
+    "ref": "refs/heads/main",
+    "commitSha": "def456abcdef",
+    "commitShortSha": "def456a",
+    "commitMessage": "fix: auth provider logout loop",
+    "commitUrl": "https://github.com/owner/repo/commit/def456abcdef",
+    "author": "octocat",
+    "actor": "octocat",
+    "startedAt": "2026-07-07T08:52:00.000Z",
+    "completedAt": "2026-07-07T09:00:00.000Z"
+  },
+  "stats": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0,
+    "durationMs": 48000,
+    "successRate": 100
+  },
+  "classes": ["AuthServiceTests", "CalculatorTests", "UserModelTests"],
+  "tests": [
+    { "c": 0, "m": "LoginReturnsToken", "o": 0, "d": 1200 },
+    { "c": 0, "m": "LogoutClearsSession", "o": 0, "d": 890 },
+    { "c": 0, "m": "RefreshTokenValid", "o": 0, "d": 650 },
+    { "c": 1, "m": "AddReturnsSum", "o": 0, "d": 45 },
+    { "c": 1, "m": "DivideByZeroThrows", "o": 0, "d": 32 },
+    { "c": 2, "m": "UserNameRequired", "o": 0, "d": 78 },
+    { "c": 2, "m": "EmailFormatValid", "o": 0, "d": 56 },
+    { "c": 0, "m": "ExpiredTokenRejected", "o": 0, "d": 1100 },
+    { "c": 1, "m": "SubtractReturnsDifference", "o": 0, "d": 28 },
+    { "c": 2, "m": "AgeMustBePositive", "o": 0, "d": 41 }
+  ],
+  "links": {
+    "workflowUrl": "https://github.com/owner/repo/actions/runs/511",
+    "commitUrl": "https://github.com/owner/repo/commit/def456abcdef"
+  }
+}

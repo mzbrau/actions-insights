@@ -5,6 +5,7 @@ import { TestRow } from './TestRow';
 import { TestsTable } from './TestsTable';
 import {
   filterTests,
+  getSortedProjectNames,
   groupTestsByProjectAndClass,
   sortTests,
   type TestFilterKey,
@@ -49,15 +50,23 @@ export function RunTestsPanel({
   slowThreshold = 1000,
 }: RunTestsPanelProps) {
   const [search, setSearch] = useState('');
+  const [selectedProject, setSelectedProject] = useState('all');
   const [filters, setFilters] = useState<Set<TestFilterKey>>(new Set());
   const [sortBy, setSortBy] = useState<TestSortBy>('default');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const getPassRate = (fullName: string) => trends?.[fullName]?.passRate ?? null;
 
+  const projectNames = useMemo(() => getSortedProjectNames(tests), [tests]);
+
   const filtered = useMemo(
-    () => filterTests(tests, { search, filters, slowThreshold }),
-    [tests, search, filters, slowThreshold],
+    () => filterTests(tests, {
+      search,
+      filters,
+      slowThreshold,
+      project: selectedProject === 'all' ? undefined : selectedProject,
+    }),
+    [tests, search, filters, slowThreshold, selectedProject],
   );
 
   const sorted = useMemo(
@@ -93,6 +102,23 @@ export function RunTestsPanel({
       <h2 className="section-title">All Tests ({totalCount})</h2>
 
       <div className="tests-toolbar">
+        {projectNames.length > 1 && (
+          <div className="tests-toolbar-row">
+            <select
+              className="sort-select tests-project-select"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              aria-label="Filter by project"
+            >
+              <option value="all">All projects</option>
+              {projectNames.map((project) => (
+                <option key={project} value={project}>
+                  {project === '—' ? 'No project' : project}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="tests-toolbar-row">
           <input
             type="search"
@@ -130,7 +156,7 @@ export function RunTestsPanel({
       {filtered.length === 0 ? (
         <p className="empty-state">No tests match your filters.</p>
       ) : (
-        <TestsTable visibleCount={filtered.length}>
+        <TestsTable shownCount={filtered.length} totalCount={tests.length}>
           {sortBy === 'default' && grouped ? (
             <TestListGrouped
               grouped={grouped}

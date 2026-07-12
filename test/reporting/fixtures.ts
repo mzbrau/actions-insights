@@ -12,7 +12,7 @@ export const sampleRun: TestRun = {
     skipped: 1,
     inconclusive: 0,
     durationMs: 1634,
-    successRate: 33.3,
+    successRate: 50,
   },
   tests: [
     {

@@ -9,6 +9,7 @@ import {
   getProblematicTests,
   getShortName,
   getShortNameFromFullName,
+  getSortedProjectNames,
   groupTestsByProjectAndClass,
   sortTests,
 } from './testList';
@@ -41,6 +42,30 @@ describe('testList', () => {
     expect(url).toContain('github.com/search');
     expect(url).toContain('repo%3Aowner%2Frepo');
     expect(url).toContain('ShouldPass');
+  });
+
+  it('returns sorted unique project names', () => {
+    const tests = [
+      makeTest({ a: 'Beta' }),
+      makeTest({ i: 1, a: 'Alpha' }),
+      makeTest({ i: 2, a: undefined }),
+    ];
+    expect(getSortedProjectNames(tests)).toEqual(['Alpha', 'Beta', '—']);
+  });
+
+  it('filters by project', () => {
+    const tests = [
+      makeTest({ n: 'A.One', a: 'Alpha' }),
+      makeTest({ i: 1, n: 'B.One', a: 'Beta' }),
+    ];
+    const alphaOnly = filterTests(tests, {
+      search: '',
+      filters: new Set(),
+      slowThreshold: 1000,
+      project: 'Alpha',
+    });
+    expect(alphaOnly).toHaveLength(1);
+    expect(alphaOnly[0].n).toBe('A.One');
   });
 
   it('filters by outcome and search', () => {

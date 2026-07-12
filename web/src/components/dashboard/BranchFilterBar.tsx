@@ -1,4 +1,5 @@
 import type { BranchIndexEntry } from '@actions-insights/history-models';
+import { formatDateWithRelative } from '../../utils/format';
 
 interface BranchFilterBarProps {
   branches: BranchIndexEntry[];
@@ -57,7 +58,7 @@ export function BranchFilterBar({
       </div>
       {lastUpdated && (
         <div className="branch-filter-meta muted small">
-          Last updated: {new Date(lastUpdated).toLocaleString()}
+          Last updated: {formatDateWithRelative(lastUpdated)}
         </div>
       )}
     </div>

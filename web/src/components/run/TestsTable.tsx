@@ -1,16 +1,17 @@
 import type { ReactNode } from 'react';
 
 interface TestsTableProps {
-  visibleCount: number;
+  shownCount: number;
+  totalCount: number;
   children: ReactNode;
 }
 
-export function TestsTable({ visibleCount, children }: TestsTableProps) {
+export function TestsTable({ shownCount, totalCount, children }: TestsTableProps) {
   return (
     <section className="tests-table-section">
       <div className="tests-table-header">
         <span className="muted small">
-          {visibleCount} test{visibleCount === 1 ? '' : 's'} visible
+          {shownCount} of {totalCount} test{totalCount === 1 ? '' : 's'} shown
         </span>
       </div>
       <div className="tests-table-wrap">

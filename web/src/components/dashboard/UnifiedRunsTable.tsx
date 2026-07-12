@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { EnrichedRun } from '../../utils/repositoryRuns';
-import { formatDate, formatDuration, statusIcon } from '../../utils/format';
+import { formatDateWithRelative, formatDuration, statusIcon } from '../../utils/format';
 
 const PAGE_SIZE = 25;
 
@@ -82,7 +82,7 @@ export function UnifiedRunsTable({ runs, search }: UnifiedRunsTableProps) {
                   <div className="muted small commit-msg">{run.commitMessage}</div>
                 </td>
                 <td>{run.author}</td>
-                <td className="text-right small">{formatDate(run.date)}</td>
+                <td className="text-right small">{formatDateWithRelative(run.date)}</td>
               </tr>
             ))}
           </tbody>

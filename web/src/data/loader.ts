@@ -32,7 +32,7 @@ function dataUrl(relative: string): string {
 async function fetchJson<T>(relative: string): Promise<T> {
   const url = dataUrl(relative);
   if (cache.has(url)) return cache.get(url) as T;
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to load ${relative}: ${res.status}`);
   const data = (await res.json()) as T;
   cache.set(url, data);

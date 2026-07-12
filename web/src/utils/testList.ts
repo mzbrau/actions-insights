@@ -36,13 +36,27 @@ export interface TestFilterOptions {
   search: string;
   filters: Set<TestFilterKey>;
   slowThreshold: number;
+  project?: string;
+}
+
+export function getSortedProjectNames(tests: CompactTestRecord[]): string[] {
+  const names = new Set<string>();
+  for (const test of tests) {
+    names.add(getProjectName(test) || '—');
+  }
+  return [...names].sort((a, b) => {
+    if (a === '—' && b !== '—') return 1;
+    if (a !== '—' && b === '—') return -1;
+    return a.localeCompare(b);
+  });
 }
 
 export function filterTests(tests: CompactTestRecord[], options: TestFilterOptions): CompactTestRecord[] {
-  const { search, filters, slowThreshold } = options;
+  const { search, filters, slowThreshold, project } = options;
   const q = search.toLowerCase();
 
   return tests.filter((t) => {
+    if (project && (getProjectName(t) || '—') !== project) return false;
     const outcome = CODE_TO_OUTCOME[t.o] ?? 'inconclusive';
     if (filters.has('failed') && outcome !== 'failed') return false;
     if (filters.has('passed') && outcome !== 'passed') return false;

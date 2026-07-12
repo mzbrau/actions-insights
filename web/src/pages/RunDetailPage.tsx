@@ -4,7 +4,7 @@ import type { CoverageRunRecord, DiagnosticRunRecord, NormalizedRunRecord, RunSu
 import { CODE_TO_OUTCOME } from '@actions-insights/history-models';
 import { loadBranchHistory, loadRun, loadRunCoverage, loadRunDiagnostics, loadRunTiming } from '../data/loader';
 import { useRepositoryTestTrends } from '../hooks/useRepositoryTestTrends';
-import { formatDate, formatDuration, statusIcon } from '../utils/format';
+import { formatDateWithRelative, formatDuration, statusIcon } from '../utils/format';
 import { AppShell } from '../components/layout/AppShell';
 import { PageHeader } from '../components/ui/PageHeader';
 import { TabBar } from '../components/ui/TabBar';
@@ -162,7 +162,7 @@ export function RunDetailPage() {
         meta={
           <>
             <span>{statusIcon(run.status)} {run.context.branchLabel}</span>
-            <span>{formatDate(run.date)}</span>
+            <span>{formatDateWithRelative(run.date)}</span>
             {runSummary.timing?.workflowDurationMs !== undefined && (
               <span className="meta-metric">
                 Workflow run: {formatDuration(runSummary.timing.workflowDurationMs)}
