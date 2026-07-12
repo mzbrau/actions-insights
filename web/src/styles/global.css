@@ -1633,6 +1633,14 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   overflow: visible;
 }
 
+.chart-card-trend:has(.coverage-trend-chart) .chart-wrap {
+  height: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-items: stretch;
+  overflow: visible;
+}
+
 .chart-card-trend .duration-trend-chart {
   height: 100%;
   flex: 1;
@@ -1649,8 +1657,104 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   margin-top: 16px;
 }
 
-.coverage-trend-chart .duration-trend-bar-fill {
-  background: var(--primary) !important;
+.coverage-trend-chart {
+  position: relative;
+  width: 100%;
+}
+
+.chart-card-trend .coverage-trend-chart {
+  min-height: 0;
+}
+
+.coverage-trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.coverage-trend-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition);
+}
+
+.coverage-trend-legend-item.is-hidden {
+  opacity: 0.4;
+}
+
+.coverage-trend-legend-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.coverage-trend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.coverage-trend-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.coverage-trend-grid-line {
+  stroke: var(--outline-variant);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+
+.coverage-trend-axis-line {
+  stroke: var(--outline);
+  stroke-width: 1;
+}
+
+.coverage-trend-axis-label {
+  fill: var(--on-surface-variant);
+  font-size: 11px;
+}
+
+.coverage-trend-axis-title {
+  fill: var(--on-surface-variant);
+  font-size: 11px;
+}
+
+.coverage-trend-line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.coverage-trend-point {
+  transition: r var(--transition);
+}
+
+.coverage-trend-point.clickable {
+  cursor: pointer;
+}
+
+.coverage-trend-point.clickable:hover,
+.coverage-trend-point.clickable:focus-visible {
+  r: 6;
+}
+
+.coverage-trend-date-label {
+  fill: var(--on-surface-variant);
+  font-size: 10px;
 }
 
 .coverage-package-item {

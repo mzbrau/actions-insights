@@ -6,6 +6,19 @@ export const CHART_COLORS = {
   info: '#2563eb',
 } as const;
 
+export const COVERAGE_SERIES_COLORS = [
+  '#2563eb',
+  '#0a6e31',
+  '#913900',
+  '#7c3aed',
+  '#db2777',
+  '#0891b2',
+  '#ca8a04',
+  '#dc2626',
+  '#059669',
+  '#6366f1',
+] as const;
+
 export interface ChartPoint {
   passed: number;
   failed: number;

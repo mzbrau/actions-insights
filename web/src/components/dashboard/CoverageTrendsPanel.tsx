@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import type { EnrichedRun } from '../../utils/repositoryRuns';
-import { CoverageTrendChart, collectProjectNames, runsToCoveragePoints } from '../charts/CoverageTrendChart';
+import { CoverageTrendChart } from '../charts/CoverageTrendChart';
 import { ChartCard } from '../ui/ChartCard';
 
 interface CoverageTrendsPanelProps {
@@ -11,7 +11,6 @@ interface CoverageTrendsPanelProps {
 export function CoverageTrendsPanel({ repoKey, runs }: CoverageTrendsPanelProps) {
   const navigate = useNavigate();
   const coverageRuns = runs.filter((r) => r.coverage?.line !== undefined);
-  const projectNames = collectProjectNames(coverageRuns);
 
   const onRunClick = (runId: string) => {
     const run = coverageRuns.find((r) => r.runId === runId);
@@ -30,21 +29,9 @@ export function CoverageTrendsPanel({ repoKey, runs }: CoverageTrendsPanelProps)
 
   return (
     <div className="tab-panel" role="tabpanel">
-      <ChartCard title="Application Coverage (Line %)" trend>
-        <CoverageTrendChart
-          points={runsToCoveragePoints(coverageRuns)}
-          onBarClick={onRunClick}
-        />
+      <ChartCard title="Line coverage by build" trend>
+        <CoverageTrendChart runs={coverageRuns} onPointClick={onRunClick} />
       </ChartCard>
-
-      {projectNames.map((projectName) => (
-        <ChartCard key={projectName} title={`${projectName} — Line Coverage`} trend>
-          <CoverageTrendChart
-            points={runsToCoveragePoints(coverageRuns, projectName)}
-            onBarClick={onRunClick}
-          />
-        </ChartCard>
-      ))}
     </div>
   );
 }
