@@ -70,10 +70,14 @@ See [Add the Action](../setup/add-action#history-on-fork-pull-requests).
 
 ## Push conflicts
 
-Multiple workflows pushing simultaneously may conflict on index files. The action retries up to 3 times with rebase. If failures persist:
+Multiple workflows pushing simultaneously may conflict on shared index files (`repositories.json`, branch indexes, `history.json`). Each source repository mostly writes under its own subtree, but concurrent runs from the **same** repository (for example, a PR workflow and a push to `main` finishing together) are the most common cause of conflicts.
 
-- Reduce concurrent writes to the same branch
+The action retries automatically — up to 3 attempts with rebase, backoff, and a fresh clone between retries. If failures persist:
+
+- Add a workflow [concurrency group](configuration.md#concurrency) to serialize history publishes (recommended)
 - Check history repo branch protection rules allow pushes
+
+If you see `History publish failed (attempt 1/3)` followed by success on a later attempt, a transient conflict was resolved automatically. Persistent failures after all 3 attempts usually mean too many concurrent writes or branch protection blocking pushes.
 
 ## Dashboard 404
 

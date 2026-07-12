@@ -38,6 +38,32 @@ history-repository: my-org/test-history
 history-token: ${{ secrets.ACTIONS_INSIGHTS_HISTORY_TOKEN }}
 ```
 
+## Concurrency
+
+When multiple workflow runs finish at the same time, they may conflict on shared index files in the history repository. The action retries automatically (up to 3 attempts with rebase), but you should serialize history publishes in your workflow to avoid conflicts.
+
+**Same source repository** — use when multiple jobs or events (for example, a PR run and a push to `main`) can finish together:
+
+```yaml
+concurrency:
+  group: actions-insights-history-${{ github.repository }}
+  cancel-in-progress: false
+```
+
+Use `cancel-in-progress: false` so queued runs still publish when they reach the front of the queue (no lost history).
+
+**Multiple source repositories → one history repository** — optional, when several repos publish to the same history branch:
+
+```yaml
+concurrency:
+  group: actions-insights-history-my-org/test-history-main
+  cancel-in-progress: false
+```
+
+All source repositories publishing to the same history branch should share the same group name.
+
+See [Troubleshooting — Push conflicts](troubleshooting.md#push-conflicts) if publish failures persist.
+
 ## Secret setup
 
 1. Create a fine-grained PAT or classic PAT with `contents: write` on the history repository

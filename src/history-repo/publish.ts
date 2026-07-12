@@ -13,6 +13,7 @@ import { readExistingState } from './import/existing-state';
 import { writeJsonFile } from '../publisher/site-merger';
 
 const MAX_PUSH_RETRIES = 3;
+const RETRY_BACKOFF_MS = 2000;
 
 export async function publishToHistoryRepository(
   run: TestRun,
@@ -85,11 +86,12 @@ export async function publishToHistoryRepository(
       } catch (error) {
         if (attempt === MAX_PUSH_RETRIES) throw error;
         core.warning(
-          `History push conflict (attempt ${attempt}/${MAX_PUSH_RETRIES}), retrying: ${
+          `History publish failed (attempt ${attempt}/${MAX_PUSH_RETRIES}), retrying: ${
             error instanceof Error ? error.message : String(error)
           }`,
         );
-        resetToRemote(workDir, history.branch, repoUrl);
+        await sleep(attempt * RETRY_BACKOFF_MS);
+        prepareForRetry(workDir, history.branch, repoUrl);
       }
     }
   } finally {
@@ -124,9 +126,23 @@ function push(workDir: string, branch: string, repoUrl: string): void {
   git(['push', repoUrl, `HEAD:${branch}`], workDir);
 }
 
-function resetToRemote(workDir: string, branch: string, repoUrl: string): void {
-  git(['fetch', repoUrl, branch], workDir);
-  git(['reset', '--hard', `FETCH_HEAD`], workDir);
+function prepareForRetry(workDir: string, branch: string, repoUrl: string): void {
+  abortRebaseIfNeeded(workDir);
+  fs.rmSync(workDir, { recursive: true, force: true });
+  cloneRepository(repoUrl, branch, workDir);
+  configureGitIdentity(workDir);
+}
+
+function abortRebaseIfNeeded(workDir: string): void {
+  try {
+    git(['rebase', '--abort'], workDir);
+  } catch {
+    // No rebase in progress.
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function git(args: string[], cwd: string): string {

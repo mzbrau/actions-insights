@@ -30,7 +30,8 @@ Multiple source repositories may write simultaneously. To minimize merge conflic
 
 - Each run creates a unique file under `runs/`
 - Writers only update their `owner.repo/` subtree plus their entry in `repositories.json`
-- The action retries push with rebase on conflict (up to 3 attempts)
+- Source workflows should use a [concurrency group](configuration.md#concurrency) to serialize publishes from the same repository (primary defense)
+- The action retries push with rebase on conflict (up to 3 attempts with backoff and re-clone) as a secondary safety net
 
 ## Authentication
 

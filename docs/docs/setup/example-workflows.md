@@ -82,6 +82,10 @@ permissions:
   pull-requests: write
   checks: write
 
+concurrency:
+  group: actions-insights-history-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
