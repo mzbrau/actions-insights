@@ -51,6 +51,7 @@ describe('coverage reporting', () => {
     );
     expect(line).toContain('82.4%');
     expect(line).toContain('+1.3%');
+    expect(line).not.toContain('branch');
   });
 
   it('formats coverage stats table', () => {
@@ -60,5 +61,7 @@ describe('coverage reporting', () => {
     );
     expect(table).toContain('Line coverage');
     expect(table).toContain('App');
+    expect(table).not.toContain('Branch coverage');
+    expect(table).not.toContain('| Branch |');
   });
 });

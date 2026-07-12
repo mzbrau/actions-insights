@@ -9,6 +9,7 @@ export interface ReportLinks {
   commit: string;
   repository: string;
   pullRequest?: string;
+  historyRepository?: string;
   historyRun?: string;
 }
 
@@ -62,6 +63,10 @@ export function formatTestNameWithCodeLinkForTable(
   return codeUrl ? `[${escaped}](${codeUrl})` : escaped;
 }
 
+export function formatHistoryDetailsLink(url: string): string {
+  return `[Details](${url})`;
+}
+
 export function formatFooterLinks(links: ReportLinks): string {
   const items = [
     `[Workflow run](${links.workflowRun})`,
@@ -71,8 +76,11 @@ export function formatFooterLinks(links: ReportLinks): string {
   if (links.pullRequest) {
     items.push(`[Pull request](${links.pullRequest})`);
   }
+  if (links.historyRepository) {
+    items.push(`[Test history](${links.historyRepository})`);
+  }
   if (links.historyRun) {
-    items.push(`[Test history](${links.historyRun})`);
+    items.push(formatHistoryDetailsLink(links.historyRun));
   }
   items.push(`[Repository](${links.repository})`);
   return `Actions Insights · ${items.join(' · ')}`;

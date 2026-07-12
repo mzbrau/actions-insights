@@ -6,6 +6,7 @@ import type { PreviousRun } from '../history/previous-run';
 import type { TestRun } from '../model/test-run';
 import { buildReportingContext } from '../reporting/context';
 import { buildReportLinks } from '../reporting/links';
+import { archiveCommentResults } from '../reporting/comment-history';
 import { COMMENT_MARKER, renderPrComment } from '../reporting/pr-comment';
 
 export async function upsertPrComment(
@@ -14,6 +15,7 @@ export async function upsertPrComment(
   config: ActionConfig,
   previousRun?: PreviousRun,
   baseBranchRun?: PreviousRun,
+  historyRepositoryUrl?: string,
   historyRunUrl?: string,
   previousCoverageRun?: PreviousCoverageRun,
   baseBranchCoverageRun?: PreviousCoverageRun,
@@ -24,8 +26,11 @@ export async function upsertPrComment(
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
   const ctx = buildReportingContext(run, config, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun);
-  const links = { ...buildReportLinks(run.context), historyRun: historyRunUrl };
-  const body = renderPrComment(ctx, config, links);
+  const links = {
+    ...buildReportLinks(run.context),
+    historyRepository: historyRepositoryUrl,
+    historyRun: historyRunUrl,
+  };
 
   try {
     const { data: comments } = await octokit.rest.issues.listComments({
@@ -36,6 +41,9 @@ export async function upsertPrComment(
     });
 
     const existing = comments.find((c) => c.body?.includes(COMMENT_MARKER));
+    const previousResults = existing?.body ? archiveCommentResults(existing.body) : [];
+    const body = renderPrComment(ctx, config, links, previousResults);
+
     if (existing) {
       await octokit.rest.issues.updateComment({
         owner,

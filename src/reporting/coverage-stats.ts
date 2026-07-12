@@ -33,16 +33,8 @@ export function formatCoverageCompactLine(
 ): string | undefined {
   if (!summary || summary.line === undefined) return undefined;
   const parts = [`📊 **Coverage:** ${formatCoveragePercent(summary.line)} lines`];
-  if (summary.branch !== undefined) {
-    parts[0] += ` · ${formatCoveragePercent(summary.branch)} branches`;
-  }
-  if (delta && vsLabel) {
-    const deltaParts: string[] = [];
-    if (delta.line !== undefined) deltaParts.push(formatCoverageDeltaValue(delta.line));
-    if (delta.branch !== undefined) deltaParts.push(formatCoverageDeltaValue(delta.branch));
-    if (deltaParts.length > 0) {
-      parts.push(`(${deltaParts.join(' / ')} vs ${vsLabel})`);
-    }
+  if (delta && vsLabel && delta.line !== undefined) {
+    parts.push(`(${formatCoverageDeltaValue(delta.line)} vs ${vsLabel})`);
   }
   return parts.join(' ');
 }
@@ -53,21 +45,15 @@ export function formatCoverageStatsTable(
 ): string {
   const lines = ['| Metric | Value |', '| --- | --- |'];
   if (summary.line !== undefined) lines.push(`| Line coverage | ${formatCoveragePercent(summary.line)} |`);
-  if (summary.branch !== undefined) lines.push(`| Branch coverage | ${formatCoveragePercent(summary.branch)} |`);
   if (summary.method !== undefined) lines.push(`| Method coverage | ${formatCoveragePercent(summary.method)} |`);
   if (summary.coveredLines !== undefined && summary.totalLines !== undefined) {
     lines.push(`| Lines | ${summary.coveredLines} / ${summary.totalLines} |`);
   }
-  if (summary.coveredBranches !== undefined && summary.totalBranches !== undefined) {
-    lines.push(`| Branches | ${summary.coveredBranches} / ${summary.totalBranches} |`);
-  }
 
   if (projects && Object.keys(projects).length > 0) {
-    lines.push('', '**By project**', '', '| Project | Line | Branch |', '| --- | --- | --- |');
+    lines.push('', '**By project**', '', '| Project | Line |', '| --- | --- |');
     for (const [name, metrics] of Object.entries(projects).sort(([a], [b]) => a.localeCompare(b))) {
-      lines.push(
-        `| ${name} | ${formatCoveragePercent(metrics.line)} | ${formatCoveragePercent(metrics.branch)} |`,
-      );
+      lines.push(`| ${name} | ${formatCoveragePercent(metrics.line)} |`);
     }
   }
 

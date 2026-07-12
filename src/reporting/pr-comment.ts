@@ -1,10 +1,15 @@
 import type { ActionConfig } from '../config';
 import type { PreviousRun } from '../history/previous-run';
 import type { ReportingContext } from './context';
+import {
+  buildCommentHistoryMarkers,
+  formatPreviousResultsSection,
+  type CommentResultSnapshot,
+} from './comment-history';
 import { computeTestDelta, formatDeltaSection, BASE_BRANCH_DELTA_CONFIG, PUSH_DELTA_CONFIG, buildBaseBranchDeltaHeading, buildPushDeltaHeading } from './delta';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
-import { formatFooterLinks, formatTestNameWithLinks, type ReportLinks } from './links';
+import { formatFooterLinks, formatHistoryDetailsLink, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSlowTestsSection, SLOW_TOTAL } from './slow-tests';
 import { resolveCoverageComparison } from './coverage-delta';
 import { formatCoverageCompactLine, formatCoverageStatsTable } from './coverage-stats';
@@ -18,12 +23,19 @@ export function renderPrComment(
   ctx: ReportingContext,
   config: ActionConfig,
   links: ReportLinks,
+  previousResults: CommentResultSnapshot[] = [],
 ): string {
   const { run, failedTests, failedCount, slowTests, extendedStats, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun } = ctx;
   const { context, status } = run;
   const emoji = status === 'passed' ? '✅' : '❌';
   const statusLabel = status === 'passed' ? 'Passed' : 'Failed';
   const timestamp = formatUtcTimestamp(context.completedAt);
+  const currentState: CommentResultSnapshot = {
+    completedAt: timestamp,
+    passed: extendedStats.passed,
+    failed: extendedStats.failed,
+    skipped: extendedStats.skipped,
+  };
 
   const failureOptions = {
     maxStackTraceLines: config.maxStackTraceLines,
@@ -34,14 +46,18 @@ export function renderPrComment(
 
   const lines: string[] = [
     COMMENT_MARKER,
+    ...buildCommentHistoryMarkers(currentState, previousResults),
     `# ${emoji} ${statusLabel} — ${config.reportTitle}`,
     '',
     `**${context.repository}** · \`${context.workflow}\` · \`${context.branch}\``,
     `\`${context.commitShortSha}\` ${context.commitMessage} · ${context.author} · ${timestamp}`,
-    '',
-    formatCompactSummary(extendedStats),
-    '',
   ];
+
+  if (links.historyRun) {
+    lines.push(formatHistoryDetailsLink(links.historyRun));
+  }
+
+  lines.push('', formatCompactSummary(extendedStats), '');
 
   if (run.coverage) {
     const comparison = resolveCoverageComparison({
@@ -141,6 +157,11 @@ export function renderPrComment(
     lines.push('');
     const compact = toCoverageSummaryCompact(run.coverage);
     lines.push(formatCoverageStatsTable(run.coverage.summary, compact.projects));
+  }
+  const previousSection = formatPreviousResultsSection(previousResults);
+  if (previousSection.length > 0) {
+    lines.push('');
+    lines.push(...previousSection);
   }
   lines.push('');
   lines.push('---');

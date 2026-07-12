@@ -51,14 +51,16 @@ describe('links', () => {
     expect(formatted).toContain('type=code');
   });
 
-  it('formatFooterLinks includes optional history run link', () => {
+  it('formatFooterLinks includes optional history links', () => {
     const formatted = formatFooterLinks({
       workflowRun: 'https://example.com/run',
       artifacts: 'https://example.com/run#artifacts',
       commit: 'https://example.com/commit',
       repository: 'https://example.com/repo',
+      historyRepository: 'https://history.example.com/#/r/owner.repo',
       historyRun: 'https://history.example.com/#/r/owner.repo/b/main/run/1',
     });
-    expect(formatted).toContain('[Test history](https://history.example.com/#/r/owner.repo/b/main/run/1)');
+    expect(formatted).toContain('[Test history](https://history.example.com/#/r/owner.repo)');
+    expect(formatted).toContain('[Details](https://history.example.com/#/r/owner.repo/b/main/run/1)');
   });
 });

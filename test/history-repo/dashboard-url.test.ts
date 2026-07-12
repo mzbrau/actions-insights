@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { buildHistoryRunUrl, normalizePagesBaseUrl, resolveHistoryPagesBaseUrl } from '../../src/history-repo/dashboard-url';
+import { buildHistoryRepositoryUrl, buildHistoryRunUrl, normalizePagesBaseUrl, resolveHistoryPagesBaseUrl } from '../../src/history-repo/dashboard-url';
 
 describe('history-repo dashboard-url', () => {
   it('normalizePagesBaseUrl ensures trailing slash', () => {
     expect(normalizePagesBaseUrl('https://example.com/foo')).toBe('https://example.com/foo/');
     expect(normalizePagesBaseUrl('https://example.com/foo/')).toBe('https://example.com/foo/');
+  });
+
+  it('buildHistoryRepositoryUrl builds a URL for the repository dashboard', () => {
+    const url = buildHistoryRepositoryUrl('https://my-org.github.io/test-history/', 'owner/repo');
+    expect(url).toBe('https://my-org.github.io/test-history/#/r/owner.repo');
   });
 
   it('buildHistoryRunUrl builds a URL for a PR run', () => {

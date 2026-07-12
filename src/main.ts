@@ -9,7 +9,11 @@ import { fetchWorkflowTiming, resolveCurrentJobUrl } from './github/jobs';
 import { writeJobSummary } from './github/job-summary';
 import { integrateReportIntoSite } from './history/integrate';
 import { publishToHistoryRepository } from './history-repo/publish';
-import { buildHistoryRunUrl, resolveHistoryPagesBaseUrl } from './history-repo/dashboard-url';
+import {
+  buildHistoryRepositoryUrl,
+  buildHistoryRunUrl,
+  resolveHistoryPagesBaseUrl,
+} from './history-repo/dashboard-url';
 import { computeStats, deriveStatus } from './model/test-run';
 import type { TestRun } from './model/test-run';
 import { parseCoverageFiles } from './coverage-parsers/registry';
@@ -164,14 +168,26 @@ async function run(): Promise<void> {
   }
 
   if (config.commentMode === 'update' && context.prNumber) {
+    let historyRepositoryUrl: string | undefined;
     let historyRunUrl: string | undefined;
     if (config.history.enabled && config.history.repositoryName) {
       const base = await resolveHistoryPagesBaseUrl(config.history);
       if (base) {
+        historyRepositoryUrl = buildHistoryRepositoryUrl(base, config.history.repositoryName);
         historyRunUrl = buildHistoryRunUrl(base, config.history.repositoryName, testRun.context, testRun.id);
       }
     }
-    await upsertPrComment(config.githubToken, mergedRun, config, previousRun, baseBranchRun, historyRunUrl, previousCoverageRun, baseBranchCoverageRun);
+    await upsertPrComment(
+      config.githubToken,
+      mergedRun,
+      config,
+      previousRun,
+      baseBranchRun,
+      historyRepositoryUrl,
+      historyRunUrl,
+      previousCoverageRun,
+      baseBranchCoverageRun,
+    );
   }
 
   await writeJobSummary(mergedRun, config, previousRun, previousCoverageRun, baseBranchCoverageRun);

@@ -51,6 +51,12 @@ export async function resolveHistoryPagesBaseUrl(history: HistoryConfig): Promis
   return `https://${parsed.owner}.github.io/${parsed.repo}/`;
 }
 
+export function buildHistoryRepositoryUrl(baseUrl: string, repositoryName: string): string {
+  const base = normalizePagesBaseUrl(baseUrl);
+  const repoKey = repositoryKeyFromName(repositoryName);
+  return `${base}#/r/${encodeURIComponent(repoKey)}`;
+}
+
 export function buildHistoryRunUrl(
   baseUrl: string,
   repositoryName: string,

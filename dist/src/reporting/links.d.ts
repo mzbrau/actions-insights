@@ -6,6 +6,7 @@ export interface ReportLinks {
     commit: string;
     repository: string;
     pullRequest?: string;
+    historyRepository?: string;
     historyRun?: string;
 }
 export declare function buildReportLinks(context: RunContext): ReportLinks;
@@ -15,5 +16,6 @@ export declare function formatTestNameWithLinks(context: RunContext, links: Repo
 export declare function formatTestNameWithCodeLink(context: RunContext, shortName: string, test: TestCase): string;
 /** Job summary tables: link without backticks and escape pipes in link text. */
 export declare function formatTestNameWithCodeLinkForTable(context: RunContext, shortName: string, test: TestCase): string;
+export declare function formatHistoryDetailsLink(url: string): string;
 export declare function formatFooterLinks(links: ReportLinks): string;
 //# sourceMappingURL=links.d.ts.map
