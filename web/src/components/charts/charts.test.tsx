@@ -242,10 +242,60 @@ describe('DiagnosticsTrendChart', () => {
     render(<DiagnosticsTrendChart points={[]} />);
     expect(screen.getByText('No diagnostic data')).toBeTruthy();
   });
+
+  it('renders SVG with errors and warnings lines', () => {
+    const { container } = render(
+      <DiagnosticsTrendChart
+        points={[
+          {
+            runId: 'run-1',
+            date: '2026-07-09T12:00:00.000Z',
+            branchLabel: 'main',
+            commitShortSha: 'abc1234',
+            errors: 1,
+            warnings: 2,
+          },
+          {
+            runId: 'run-2',
+            date: '2026-07-10T12:00:00.000Z',
+            branchLabel: 'main',
+            commitShortSha: 'def5678',
+            errors: 0,
+            warnings: 3,
+          },
+        ]}
+      />,
+    );
+    expect(container.querySelector('.coverage-trend-svg')).toBeTruthy();
+    expect(container.querySelectorAll('.coverage-trend-line').length).toBe(2);
+    expect(screen.getByText('Errors')).toBeTruthy();
+    expect(screen.getByText('Warnings')).toBeTruthy();
+  });
+
+  it('calls onPointClick when a point is clicked', () => {
+    const onPointClick = vi.fn();
+    const { container } = render(
+      <DiagnosticsTrendChart
+        points={[{
+          runId: 'run-1',
+          date: '2026-07-09T12:00:00.000Z',
+          branchLabel: 'main',
+          commitShortSha: 'abc1234',
+          errors: 1,
+          warnings: 2,
+        }]}
+        onPointClick={onPointClick}
+      />,
+    );
+    const point = container.querySelector('.coverage-trend-point.clickable');
+    expect(point).toBeTruthy();
+    fireEvent.click(point!);
+    expect(onPointClick).toHaveBeenCalledWith('run-1');
+  });
 });
 
 describe('WorkflowDurationTrendChart', () => {
-  it('renders workflow duration bars', () => {
+  it('renders workflow duration line chart', () => {
     const { container } = render(
       <WorkflowDurationTrendChart
         points={[{
@@ -254,10 +304,31 @@ describe('WorkflowDurationTrendChart', () => {
           branchLabel: 'main',
           commitShortSha: 'abc',
           workflowDurationMs: 120000,
-          testDurationMs: 5000,
         }]}
       />,
     );
-    expect(container.querySelector('.duration-trend-bar-fill')).toBeTruthy();
+    expect(container.querySelector('.coverage-trend-svg')).toBeTruthy();
+    expect(container.querySelector('.coverage-trend-line')).toBeTruthy();
+    expect(screen.getByText('Workflow run')).toBeTruthy();
+  });
+
+  it('calls onPointClick when a point is clicked', () => {
+    const onPointClick = vi.fn();
+    const { container } = render(
+      <WorkflowDurationTrendChart
+        points={[{
+          runId: 'run-1',
+          date: '2026-07-09T12:00:00.000Z',
+          branchLabel: 'main',
+          commitShortSha: 'abc1234',
+          workflowDurationMs: 120000,
+        }]}
+        onPointClick={onPointClick}
+      />,
+    );
+    const point = container.querySelector('.coverage-trend-point.clickable');
+    expect(point).toBeTruthy();
+    fireEvent.click(point!);
+    expect(onPointClick).toHaveBeenCalledWith('run-1');
   });
 });

@@ -1806,12 +1806,6 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   font-weight: 600;
 }
 
-.diagnostics-stacked-track {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-}
-
 .build-summary-cards {
   display: flex;
   flex-wrap: wrap;
