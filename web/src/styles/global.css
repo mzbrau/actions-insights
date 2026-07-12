@@ -1059,7 +1059,7 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
 .metrics-bento .chart-card-compact:has(.duration-trend-chart) .chart-wrap {
   align-items: stretch;
   justify-content: flex-start;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .quick-stats-panel {
@@ -1154,7 +1154,7 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .duration-trend-bar-area {
@@ -1164,14 +1164,14 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   display: flex;
   align-items: stretch;
   justify-content: space-evenly;
-  gap: 10px;
-  overflow: visible;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .duration-trend-bar {
-  flex: 1 1 42px;
-  min-width: 32px;
-  max-width: 64px;
+  flex: 0 1 20px;
+  min-width: 12px;
+  max-width: 24px;
   height: 100%;
   min-height: 0;
   display: flex;

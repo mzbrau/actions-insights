@@ -4,6 +4,7 @@ import type { BranchIndexEntry } from '@actions-insights/history-models';
 import { loadRepository } from '../data/loader';
 import { useRepositoryRuns } from '../hooks/useRepositoryRuns';
 import { formatDuration, statusIcon } from '../utils/format';
+import { BUILD_PERFORMANCE_MAX_RUNS } from '../utils/chart';
 import { AppShell } from '../components/layout/AppShell';
 import { DashboardTopBar } from '../components/layout/DashboardTopBar';
 import { BranchFilterBar } from '../components/dashboard/BranchFilterBar';
@@ -60,7 +61,7 @@ export function RepositoryDashboardPage() {
     return () => { cancelled = true; };
   }, [repoKey]);
 
-  const chartRuns = useMemo(() => runs.slice(0, 20).reverse(), [runs]);
+  const chartRuns = useMemo(() => runs.slice(0, BUILD_PERFORMANCE_MAX_RUNS).reverse(), [runs]);
   const trendRuns = useMemo(() => [...runs].reverse().slice(-30), [runs]);
 
   const setBranchFilter = (branchKey: string) => {

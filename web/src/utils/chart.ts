@@ -1,3 +1,5 @@
+export const BUILD_PERFORMANCE_MAX_RUNS = 15;
+
 export const CHART_COLORS = {
   passed: '#0a6e31',
   failed: '#ba1a1a',

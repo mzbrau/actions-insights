@@ -7,6 +7,7 @@ import { DurationTrendChart } from './DurationTrendChart';
 import { RunTrendsChart } from './RunTrendsChart';
 import { StackedBarChart } from './StackedBarChart';
 import { WorkflowDurationTrendChart } from './WorkflowDurationTrendChart';
+import { BUILD_PERFORMANCE_MAX_RUNS } from '../../utils/chart';
 import type { EnrichedRun } from '../../utils/repositoryRuns';
 
 const sampleRun = (overrides: Partial<EnrichedRun> = {}): EnrichedRun => ({
@@ -179,6 +180,16 @@ describe('DurationTrendChart', () => {
     render(<DurationTrendChart runs={[run]} onBarClick={onBarClick} />);
     fireEvent.click(screen.getByRole('button', { name: /click-me/i }));
     expect(onBarClick).toHaveBeenCalledWith(run);
+  });
+
+  it('limits bars to BUILD_PERFORMANCE_MAX_RUNS and keeps the most recent runs', () => {
+    const runs = Array.from({ length: BUILD_PERFORMANCE_MAX_RUNS + 5 }, (_, i) =>
+      sampleRun({ runId: `run-${i}`, branchLabel: `branch-${i}` }),
+    );
+    const { container } = render(<DurationTrendChart runs={runs} />);
+    expect(container.querySelectorAll('.duration-trend-bar')).toHaveLength(BUILD_PERFORMANCE_MAX_RUNS);
+    expect(screen.queryByText('branch-0')).toBeNull();
+    expect(screen.getByText(`branch-${BUILD_PERFORMANCE_MAX_RUNS + 4}`)).toBeTruthy();
   });
 });
 

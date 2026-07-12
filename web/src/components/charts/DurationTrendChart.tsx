@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { EnrichedRun } from '../../utils/repositoryRuns';
-import { CHART_COLORS, maxValue } from '../../utils/chart';
+import { BUILD_PERFORMANCE_MAX_RUNS, CHART_COLORS, maxValue } from '../../utils/chart';
 import { formatDate, formatDateCompact, formatDuration, statusIcon } from '../../utils/format';
 
 interface DurationTrendChartProps {
@@ -21,7 +21,7 @@ export function DurationTrendChart({
   singleBranchView = false,
   onBarClick,
 }: DurationTrendChartProps) {
-  const points = runs.slice(-20);
+  const points = runs.slice(-BUILD_PERFORMANCE_MAX_RUNS);
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
