@@ -22,10 +22,16 @@ export interface CoverageFile {
     path: string;
     metrics: CoverageMetrics;
 }
+export interface CoverageMethod {
+    name: string;
+    signature?: string;
+    metrics: CoverageMetrics;
+}
 export interface CoverageClass {
     name: string;
     file?: string;
     metrics: CoverageMetrics;
+    methods?: CoverageMethod[];
 }
 export interface CoveragePackage {
     name: string;
@@ -62,6 +68,7 @@ export interface CompactCoverageProject {
             name: string;
             file?: string;
             metrics: CoverageMetrics;
+            methods?: CoverageMethod[];
         }>;
     }>;
     files?: CompactCoverageFile[];

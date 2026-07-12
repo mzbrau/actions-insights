@@ -2,6 +2,7 @@ import { createXmlParser } from '../parsers/xml-parser';
 import type {
   CoverageClass,
   CoverageFile,
+  CoverageMethod,
   CoverageMetrics,
   CoveragePackage,
   CoverageProject,
@@ -73,6 +74,7 @@ function parseOpenCover(content: string, filePath: string): CoverageReport {
       const clsName = attrString(cls, 'fullname') || attrString(cls, 'name') || 'unknown';
       const fileRef = attrString(cls, 'FileRef') || attrString(cls, 'filename') || '';
       const clsMetrics: CoverageMetrics = { coveredLines: 0, totalLines: 0, coveredMethods: 0, totalMethods: 0 };
+      const methodList: CoverageMethod[] = [];
 
       const methods = asArray<Record<string, unknown>>((cls.Methods as { Method?: unknown })?.Method ?? cls.Method);
       for (const method of methods) {
@@ -80,22 +82,30 @@ function parseOpenCover(content: string, filePath: string): CoverageReport {
         const visited = attrNumber(method, 'visited') ?? 0;
         if (visited > 0) clsMetrics.coveredMethods = (clsMetrics.coveredMethods ?? 0) + 1;
 
+        const methodMetrics: CoverageMetrics = { coveredLines: 0, totalLines: 0, coveredBranches: 0, totalBranches: 0 };
         const seqPoints = asArray<Record<string, unknown>>(
           (method.SequencePoints as { SequencePoint?: unknown })?.SequencePoint ?? method.SequencePoint,
         );
         for (const sp of seqPoints) {
           const vc = attrNumber(sp, 'vc') ?? 0;
           sequenceCoverage(clsMetrics, vc > 0 ? 1 : 0, 1);
+          sequenceCoverage(methodMetrics, vc > 0 ? 1 : 0, 1);
           const fileId = attrString(sp, 'fileid') || '';
           const fileMetrics = fileMap.get(fileId);
           if (fileMetrics) sequenceCoverage(fileMetrics, vc > 0 ? 1 : 0, 1);
         }
+
+        const methodName = attrString(method, 'name')
+          || attrString(method, 'fullname')
+          || `Method #${methodList.length + 1}`;
+        methodList.push({ name: methodName, metrics: finalizeMetrics(methodMetrics) });
       }
 
       classList.push({
         name: clsName,
         file: fileRef ? normalizePath(fileRef) : undefined,
         metrics: finalizeMetrics(clsMetrics),
+        ...(methodList.length > 0 ? { methods: methodList } : {}),
       });
     }
 

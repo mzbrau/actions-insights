@@ -7,15 +7,22 @@ import type {
 } from '@actions-insights/history-models';
 import { CoverageProgressBar } from '../ui/CoverageProgressBar';
 import { CoverageMetricRow } from '../ui/CoverageMetricRow';
+import { CopyCoverageGapsButton } from '../ui/CopyCoverageGapsButton';
 import {
+  buildFileGapsScope,
+  buildProjectGapsScope,
+  collectFileMethods,
   collectPackageFiles,
   collectProjectFiles,
   filterCoverageFiles,
+  filterCoverageMethods,
   shouldFlattenPackages,
   sortCoverageFiles,
+  sortCoverageMethods,
   fileBasename,
   type CoverageFileRow,
   type CoverageFileSortBy,
+  type CoverageMethodRow,
 } from '../../utils/coverageDisplay';
 
 interface RunCoveragePanelProps {
@@ -45,20 +52,98 @@ const FILE_SORT_OPTIONS: { value: CoverageFileSortBy; label: string }[] = [
   { value: 'branch-desc', label: 'Branch coverage (high → low)' },
 ];
 
-function CoverageFileList({
-  files,
+function CoverageMethodList({
+  methods,
   search,
   sortBy,
   onSearchChange,
   onSortChange,
   idPrefix,
 }: {
-  files: CoverageFileRow[];
+  methods: CoverageMethodRow[];
   search: string;
   sortBy: CoverageFileSortBy;
   onSearchChange: (value: string) => void;
   onSortChange: (value: CoverageFileSortBy) => void;
   idPrefix: string;
+}) {
+  const filtered = useMemo(
+    () => sortCoverageMethods(filterCoverageMethods(methods, search), sortBy),
+    [methods, search, sortBy],
+  );
+
+  if (methods.length === 0) {
+    return <p className="coverage-project-loading muted">No method breakdown available.</p>;
+  }
+
+  return (
+    <div className="coverage-method-list">
+      <div className="coverage-file-toolbar tests-toolbar-row">
+        <input
+          type="search"
+          className="search-input"
+          placeholder="Filter methods…"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          aria-label={`Filter methods for ${idPrefix}`}
+        />
+        <select
+          className="sort-select"
+          value={sortBy}
+          onChange={(e) => onSortChange(e.target.value as CoverageFileSortBy)}
+          aria-label={`Sort methods for ${idPrefix}`}
+        >
+          {FILE_SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      <p className="muted coverage-file-count">{filtered.length} method{filtered.length === 1 ? '' : 's'}</p>
+      <ul className="coverage-method-rows">
+        {filtered.map((method) => (
+          <li key={`${idPrefix}::${method.label}`} className="coverage-method-row">
+            <CoverageMetricRow
+              label={method.label}
+              title={method.title}
+              value={method.metrics.line}
+              compact
+            />
+            {method.metrics.branch !== undefined && (
+              <span className="coverage-file-branch muted">{method.metrics.branch.toFixed(1)}% branches</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CoverageFileList({
+  files,
+  project,
+  pkgFilter,
+  search,
+  sortBy,
+  onSearchChange,
+  onSortChange,
+  idPrefix,
+  expandedFiles,
+  onFileToggle,
+  methodState,
+  updateMethodState,
+}: {
+  files: CoverageFileRow[];
+  project: CompactCoverageProject;
+  pkgFilter?: NonNullable<CompactCoverageProject['packages']>[number];
+  search: string;
+  sortBy: CoverageFileSortBy;
+  onSearchChange: (value: string) => void;
+  onSortChange: (value: CoverageFileSortBy) => void;
+  idPrefix: string;
+  expandedFiles: Set<string>;
+  onFileToggle: (fileKey: string, open: boolean) => void;
+  methodState: Record<string, ProjectFileState>;
+  updateMethodState: (key: string, patch: Partial<ProjectFileState>) => void;
 }) {
   const filtered = useMemo(
     () => sortCoverageFiles(filterCoverageFiles(files, search), sortBy),
@@ -93,19 +178,48 @@ function CoverageFileList({
       </div>
       <p className="muted coverage-file-count">{filtered.length} file{filtered.length === 1 ? '' : 's'}</p>
       <ul className="coverage-file-rows">
-        {filtered.map((file) => (
-          <li key={file.path} className="coverage-file-row">
-            <CoverageMetricRow
-              label={fileBasename(file.path)}
-              title={file.path}
-              value={file.metrics.line}
-              compact
-            />
-            {file.metrics.branch !== undefined && (
-              <span className="coverage-file-branch muted">{file.metrics.branch.toFixed(1)}% branches</span>
-            )}
-          </li>
-        ))}
+        {filtered.map((file) => {
+          const fileKey = `${idPrefix}::${file.path}`;
+          const isOpen = expandedFiles.has(fileKey);
+          const methods = collectFileMethods(file.path, project, pkgFilter);
+          const mState = methodState[fileKey] ?? { search: '', sortBy: 'line-asc' as CoverageFileSortBy };
+          const fileScope = buildFileGapsScope(file, project, pkgFilter);
+
+          return (
+            <li key={file.path} className="coverage-file-row">
+              <details
+                className="coverage-file-item"
+                open={isOpen}
+                onToggle={(e) => {
+                  onFileToggle(fileKey, (e.target as HTMLDetailsElement).open);
+                }}
+              >
+                <summary className="coverage-file-summary">
+                  <CoverageMetricRow
+                    label={fileBasename(file.path)}
+                    title={file.path}
+                    value={file.metrics.line}
+                    compact
+                  />
+                  {file.metrics.branch !== undefined && (
+                    <span className="coverage-file-branch muted">{file.metrics.branch.toFixed(1)}% branches</span>
+                  )}
+                  <CopyCoverageGapsButton scope={fileScope} />
+                </summary>
+                {isOpen && (
+                  <CoverageMethodList
+                    methods={methods}
+                    search={mState.search}
+                    sortBy={mState.sortBy}
+                    onSearchChange={(search) => updateMethodState(fileKey, { search })}
+                    onSortChange={(sortBy) => updateMethodState(fileKey, { sortBy })}
+                    idPrefix={fileKey}
+                  />
+                )}
+              </details>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -119,7 +233,9 @@ export function RunCoveragePanel({
 }: RunCoveragePanelProps) {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
+  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
   const [fileState, setFileState] = useState<Record<string, ProjectFileState>>({});
+  const [methodState, setMethodState] = useState<Record<string, ProjectFileState>>({});
 
   const projects = useMemo((): ProjectRow[] => {
     if (detail?.projects?.length) {
@@ -138,14 +254,21 @@ export function RunCoveragePanel({
     return [];
   }, [summary.projects, detail?.projects]);
 
-  const getFileState = (projectName: string): ProjectFileState => (
-    fileState[projectName] ?? { search: '', sortBy: 'line-asc' }
+  const getFileState = (key: string): ProjectFileState => (
+    fileState[key] ?? { search: '', sortBy: 'line-asc' }
   );
 
-  const updateFileState = (projectName: string, patch: Partial<ProjectFileState>) => {
+  const updateFileState = (key: string, patch: Partial<ProjectFileState>) => {
     setFileState((prev) => ({
       ...prev,
-      [projectName]: { ...(prev[projectName] ?? { search: '', sortBy: 'line-asc' }), ...patch },
+      [key]: { ...(prev[key] ?? { search: '', sortBy: 'line-asc' }), ...patch },
+    }));
+  };
+
+  const updateMethodState = (key: string, patch: Partial<ProjectFileState>) => {
+    setMethodState((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] ?? { search: '', sortBy: 'line-asc' }), ...patch },
     }));
   };
 
@@ -154,6 +277,15 @@ export function RunCoveragePanel({
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleFile = (fileKey: string, open: boolean) => {
+    setExpandedFiles((prev) => {
+      const next = new Set(prev);
+      if (open) next.add(fileKey);
+      else next.delete(fileKey);
       return next;
     });
   };
@@ -189,6 +321,9 @@ export function RunCoveragePanel({
               const isOpen = expandedProject === project.name;
               const flattened = detailProj ? shouldFlattenPackages(detailProj) : false;
               const state = getFileState(project.name);
+              const projectScope = detailProj
+                ? buildProjectGapsScope(detailProj, detail)
+                : buildProjectGapsScope({ name: project.name, metrics: project.metrics }, detail);
 
               return (
                 <details
@@ -209,20 +344,26 @@ export function RunCoveragePanel({
                         {project.metrics.branch.toFixed(1)}% branches
                       </span>
                     )}
+                    {detailProj && <CopyCoverageGapsButton scope={projectScope} />}
                   </summary>
 
                   {isOpen && detailLoading && !detail && (
                     <p className="coverage-project-loading muted">Loading project details…</p>
                   )}
 
-                  {isOpen && detail && flattened && (
+                  {isOpen && detail && flattened && detailProj && (
                     <CoverageFileList
                       idPrefix={project.name}
-                      files={collectProjectFiles(detailProj!, detail)}
+                      files={collectProjectFiles(detailProj, detail)}
+                      project={detailProj}
                       search={state.search}
                       sortBy={state.sortBy}
                       onSearchChange={(search) => updateFileState(project.name, { search })}
                       onSortChange={(sortBy) => updateFileState(project.name, { sortBy })}
+                      expandedFiles={expandedFiles}
+                      onFileToggle={toggleFile}
+                      methodState={methodState}
+                      updateMethodState={updateMethodState}
                     />
                   )}
 
@@ -233,6 +374,9 @@ export function RunCoveragePanel({
                         const pkgOpen = expandedPackages.has(pkgKey);
                         const pkgState = getFileState(pkgKey);
                         const pkgFiles = collectPackageFiles(pkg, detail);
+                        const pkgScope = detailProj
+                          ? buildProjectGapsScope(detailProj, detail, pkg)
+                          : buildProjectGapsScope({ name: project.name, metrics: project.metrics, packages: [pkg] }, detail, pkg);
 
                         return (
                           <details
@@ -246,15 +390,22 @@ export function RunCoveragePanel({
                           >
                             <summary className="coverage-package-summary">
                               <CoverageMetricRow label={pkg.name} value={pkg.metrics.line} compact />
+                              {detailProj && <CopyCoverageGapsButton scope={pkgScope} />}
                             </summary>
-                            {pkgOpen && (
+                            {pkgOpen && detailProj && (
                               <CoverageFileList
                                 idPrefix={pkgKey}
                                 files={pkgFiles}
+                                project={detailProj}
+                                pkgFilter={pkg}
                                 search={pkgState.search}
                                 sortBy={pkgState.sortBy}
                                 onSearchChange={(search) => updateFileState(pkgKey, { search })}
                                 onSortChange={(sortBy) => updateFileState(pkgKey, { sortBy })}
+                                expandedFiles={expandedFiles}
+                                onFileToggle={toggleFile}
+                                methodState={methodState}
+                                updateMethodState={updateMethodState}
                               />
                             )}
                           </details>

@@ -31,6 +31,20 @@ exports[`coverage parsers > parses Cobertura XML 1`] = `
           "classes": [
             {
               "file": "src/Calculator.cs",
+              "methods": [
+                {
+                  "metrics": {
+                    "branch": 100,
+                    "coveredBranches": 0,
+                    "coveredLines": 1,
+                    "line": 100,
+                    "totalBranches": 0,
+                    "totalLines": 1,
+                  },
+                  "name": "Add",
+                  "signature": "()",
+                },
+              ],
               "metrics": {
                 "branch": 50,
                 "coveredBranches": 1,
@@ -103,6 +117,32 @@ exports[`coverage parsers > parses JaCoCo XML 1`] = `
           "classes": [
             {
               "file": "Calculator.java",
+              "methods": [
+                {
+                  "metrics": {
+                    "branch": 100,
+                    "coveredBranches": 1,
+                    "coveredLines": 2,
+                    "line": 100,
+                    "totalBranches": 1,
+                    "totalLines": 2,
+                  },
+                  "name": "add",
+                  "signature": "(II)I",
+                },
+                {
+                  "metrics": {
+                    "branch": 0,
+                    "coveredBranches": 0,
+                    "coveredLines": 0,
+                    "line": 0,
+                    "totalBranches": 1,
+                    "totalLines": 1,
+                  },
+                  "name": "subtract",
+                  "signature": "(II)I",
+                },
+              ],
               "metrics": {
                 "branch": 50,
                 "coveredBranches": 1,
@@ -225,6 +265,19 @@ exports[`coverage parsers > parses OpenCover XML 1`] = `
           "classes": [
             {
               "file": "/src/Calculator.cs",
+              "methods": [
+                {
+                  "metrics": {
+                    "branch": NaN,
+                    "coveredBranches": 0,
+                    "coveredLines": 2,
+                    "line": 66.7,
+                    "totalBranches": 0,
+                    "totalLines": 3,
+                  },
+                  "name": "Add",
+                },
+              ],
               "metrics": {
                 "coveredLines": 2,
                 "coveredMethods": 1,

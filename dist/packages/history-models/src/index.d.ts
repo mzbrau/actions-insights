@@ -232,7 +232,7 @@ export declare function repositoryKeyFromName(name: string): string;
 export declare function repositoryNameFromKey(key: string): string;
 export { decodeRepositoryTestsFile, deriveClassNameFromCompactRecord, deriveQualifiedClassName, encodeRepositoryTestsFile, encodeRunFailures, encodeRunTests, expandRunFailures, expandRunTests, normalizeMethodName, normalizeRunRecord, normalizeTestsFile, resolveTestFullName, } from './encoding';
 export type { EncodeFailureInput, EncodeTestInput, NormalizedRunRecord, } from './encoding';
-export type { CoverageClass, CoverageFile, CoverageMetrics, CoveragePackage, CoverageParseError, CoverageProject, CoverageReport, CoverageRunRecord, CoverageSummary, CoverageSummaryCompact, CompactCoverageFile, CompactCoverageProject, } from './coverage';
+export type { CoverageClass, CoverageFile, CoverageMethod, CoverageMetrics, CoveragePackage, CoverageParseError, CoverageProject, CoverageReport, CoverageRunRecord, CoverageSummary, CoverageSummaryCompact, CompactCoverageFile, CompactCoverageProject, } from './coverage';
 export { aggregateMetricsFromProjects, decodeCoverageRunRecord, encodeCoverageRunRecord, mergeMetrics, normalizeCoverageRunRecord, percentFromCounts, toCoverageSummaryCompact, } from './coverage';
 export type { CompactDiagnosticItem, DiagnosticItem, DiagnosticParseError, DiagnosticReport, DiagnosticRunRecord, DiagnosticSeverity, DiagnosticSummaryCompact, NormalizedDiagnosticItem, } from './diagnostics';
 export { CODE_TO_SEVERITY, computeDiagnosticSummary, encodeDiagnosticRunRecord, expandDiagnosticItems, MAX_DIAGNOSTICS_PER_RUN, normalizeDiagnosticRunRecord, SEVERITY_TO_CODE, } from './diagnostics';

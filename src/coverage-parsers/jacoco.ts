@@ -2,6 +2,7 @@ import { createXmlParser } from '../parsers/xml-parser';
 import type {
   CoverageClass,
   CoverageFile,
+  CoverageMethod,
   CoverageMetrics,
   CoveragePackage,
   CoverageProject,
@@ -65,7 +66,7 @@ function parseJaCoCo(content: string, filePath: string): CoverageReport {
   const parser = createXmlParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
-    isArray: (name) => ['package', 'class', 'sourcefile', 'line', 'counter', 'sessioninfo'].includes(name),
+    isArray: (name) => ['package', 'class', 'sourcefile', 'line', 'counter', 'sessioninfo', 'method'].includes(name),
   });
   const doc = parser.parse(content) as Record<string, unknown>;
   const report = (doc.report ?? doc.Report) as Record<string, unknown> | undefined;
@@ -87,10 +88,22 @@ function parseJaCoCo(content: string, filePath: string): CoverageReport {
     for (const cls of classes) {
       const clsName = attrString(cls, 'name') || 'unknown';
       const sourceFile = attrString(cls, 'sourcefilename');
+      const classMethods = asArray<Record<string, unknown>>((cls.method as unknown) ?? []);
+      const methods: CoverageMethod[] = classMethods.map((method) => {
+        const name = attrString(method, 'name') || 'unknown';
+        const desc = attrString(method, 'desc') || undefined;
+        return {
+          name,
+          ...(desc ? { signature: desc } : {}),
+          metrics: countersFromJaCoCo(method),
+        };
+      });
+
       classList.push({
         name: clsName,
         file: sourceFile ? normalizePath(sourceFile) : undefined,
         metrics: countersFromJaCoCo(cls),
+        ...(methods.length > 0 ? { methods } : {}),
       });
     }
 

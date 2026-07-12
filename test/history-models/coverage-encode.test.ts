@@ -21,7 +21,15 @@ function multiProjectReport(): CoverageReport {
           name: 'App.Api',
           metrics: { line: 80 },
           classes: [
-            { name: 'Program', file: 'src/App.Api/Program.cs', metrics: { line: 80 } },
+            {
+              name: 'Program',
+              file: 'src/App.Api/Program.cs',
+              metrics: { line: 80 },
+              methods: [
+                { name: 'Main', signature: '()', metrics: { line: 100 } },
+                { name: 'Configure', signature: '()', metrics: { line: 50 } },
+              ],
+            },
           ],
         }],
       },
@@ -72,6 +80,15 @@ describe('coverage run record encode/decode', () => {
     expect(decoded.projects[1].files?.map((f) => f.path)).toEqual([
       'src/App.Client/Client.cs',
     ]);
+  });
+
+  it('round-trips method data under classes', () => {
+    const encoded = encodeCoverageRunRecord('run-1', multiProjectReport());
+    const decoded = decodeCoverageRunRecord(encoded);
+    const methods = decoded.projects[0].packages?.[0].classes?.[0].methods;
+    expect(methods).toHaveLength(2);
+    expect(methods?.[0].name).toBe('Main');
+    expect(methods?.[1].metrics.line).toBe(50);
   });
 
   it('falls back to class file paths when project.files is missing', () => {

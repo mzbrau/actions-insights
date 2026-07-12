@@ -1,6 +1,7 @@
 export type {
   CoverageClass,
   CoverageFile,
+  CoverageMethod,
   CoverageMetrics,
   CoveragePackage,
   CoverageParseError,

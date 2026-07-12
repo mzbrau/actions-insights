@@ -2,6 +2,14 @@
 <report name="JaCoCo Coverage Report">
   <package name="com/example/app">
     <class name="com/example/app/Calculator" sourcefilename="Calculator.java">
+      <method name="add" desc="(II)I" line="10">
+        <counter type="LINE" missed="0" covered="2"/>
+        <counter type="BRANCH" missed="0" covered="1"/>
+      </method>
+      <method name="subtract" desc="(II)I" line="15">
+        <counter type="LINE" missed="1" covered="0"/>
+        <counter type="BRANCH" missed="1" covered="0"/>
+      </method>
       <counter type="INSTRUCTION" missed="2" covered="8"/>
       <counter type="LINE" missed="1" covered="3"/>
       <counter type="BRANCH" missed="1" covered="1"/>

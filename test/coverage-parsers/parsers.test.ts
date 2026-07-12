@@ -23,6 +23,11 @@ describe('coverage parsers', () => {
     expect(report.summary.totalLines).toBe(4);
     expect(report.projects[0].name).toBe('MyApp');
     expect(report.projects[0].packages?.[0].classes?.[0].name).toContain('Calculator');
+    const methods = report.projects[0].packages?.[0].classes?.[0].methods;
+    expect(methods).toHaveLength(1);
+    expect(methods?.[0].name).toBe('Add');
+    expect(methods?.[0].signature).toBe('()');
+    expect(methods?.[0].metrics.line).toBe(100);
     expect(validateCoverageReport(report).filter((i) => i.level === 'error')).toHaveLength(0);
     expect(report).toMatchSnapshot();
   });
@@ -46,6 +51,11 @@ describe('coverage parsers', () => {
     const report = jacocoParser.parse(content, '/tmp/jacoco.xml');
     expect(report.summary.line).toBe(75);
     expect(report.summary.branch).toBe(50);
+    const methods = report.projects[0].packages?.[0].classes?.[0].methods;
+    expect(methods).toHaveLength(2);
+    expect(methods?.[0].name).toBe('add');
+    expect(methods?.[1].name).toBe('subtract');
+    expect(methods?.[1].metrics.line).toBe(0);
     expect(report).toMatchSnapshot();
   });
 
@@ -54,6 +64,10 @@ describe('coverage parsers', () => {
     const report = opencoverParser.parse(content, '/tmp/opencover.xml');
     expect(report.summary.line).toBeGreaterThan(0);
     expect(report.projects[0].files?.length).toBeGreaterThan(0);
+    const methods = report.projects[0].packages?.[0].classes?.[0].methods;
+    expect(methods).toHaveLength(1);
+    expect(methods?.[0].name).toBe('Add');
+    expect(methods?.[0].metrics.line).toBeCloseTo(66.7, 0);
     expect(report).toMatchSnapshot();
   });
 

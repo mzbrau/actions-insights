@@ -49,17 +49,29 @@
             {
               "name": "MyApp.AuthService",
               "file": "src/AuthService.cs",
-              "metrics": { "line": 60.0, "branch": 40.0, "coveredLines": 6, "totalLines": 10, "coveredBranches": 2, "totalBranches": 5 }
+              "metrics": { "line": 60.0, "branch": 40.0, "coveredLines": 6, "totalLines": 10, "coveredBranches": 2, "totalBranches": 5 },
+              "methods": [
+                { "name": "Login", "signature": "()", "metrics": { "line": 80.0 } },
+                { "name": "Logout", "signature": "()", "metrics": { "line": 40.0 } }
+              ]
             },
             {
               "name": "MyApp.Calculator",
               "file": "src/Calculator.cs",
-              "metrics": { "line": 75.0, "branch": 50.0, "coveredLines": 3, "totalLines": 4, "coveredBranches": 1, "totalBranches": 2 }
+              "metrics": { "line": 75.0, "branch": 50.0, "coveredLines": 3, "totalLines": 4, "coveredBranches": 1, "totalBranches": 2 },
+              "methods": [
+                { "name": "Add", "signature": "(System.Int32,System.Int32)", "metrics": { "line": 100.0 } },
+                { "name": "Subtract", "signature": "(System.Int32,System.Int32)", "metrics": { "line": 50.0 } }
+              ]
             },
             {
               "name": "MyApp.Models.User",
               "file": "src/Models/User.cs",
-              "metrics": { "line": 72.7, "branch": 75.0, "coveredLines": 8, "totalLines": 11, "coveredBranches": 3, "totalBranches": 4 }
+              "metrics": { "line": 72.7, "branch": 75.0, "coveredLines": 8, "totalLines": 11, "coveredBranches": 3, "totalBranches": 4 },
+              "methods": [
+                { "name": "Validate", "signature": "()", "metrics": { "line": 90.0 } },
+                { "name": "ToString", "signature": "()", "metrics": { "line": 55.0 } }
+              ]
             }
           ]
         }

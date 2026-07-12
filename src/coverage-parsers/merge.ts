@@ -1,12 +1,26 @@
 import type {
   CoverageClass,
   CoverageFile,
+  CoverageMethod,
   CoverageMetrics,
   CoveragePackage,
   CoverageProject,
   CoverageReport,
 } from '../model/coverage';
 import { aggregateMetricsFromProjects, mergeMetrics } from '../model/coverage';
+
+function mergeMethods(existing: CoverageMethod[], incoming: CoverageMethod[]): CoverageMethod[] {
+  const map = new Map<string, CoverageMethod>();
+  for (const method of existing) {
+    map.set(`${method.name}\0${method.signature ?? ''}`, method);
+  }
+  for (const method of incoming) {
+    const key = `${method.name}\0${method.signature ?? ''}`;
+    const prior = map.get(key);
+    map.set(key, prior ? { ...method, metrics: mergeMetrics(prior.metrics, method.metrics) } : method);
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
 
 function mergeClasses(existing: CoverageClass[], incoming: CoverageClass[]): CoverageClass[] {
   const map = new Map<string, CoverageClass>();
@@ -16,7 +30,16 @@ function mergeClasses(existing: CoverageClass[], incoming: CoverageClass[]): Cov
   for (const cls of incoming) {
     const key = `${cls.name}\0${cls.file ?? ''}`;
     const prior = map.get(key);
-    map.set(key, prior ? { ...cls, metrics: mergeMetrics(prior.metrics, cls.metrics) } : cls);
+    if (prior) {
+      const mergedMethods = mergeMethods(prior.methods ?? [], cls.methods ?? []);
+      map.set(key, {
+        ...cls,
+        metrics: mergeMetrics(prior.metrics, cls.metrics),
+        ...(mergedMethods.length > 0 ? { methods: mergedMethods } : {}),
+      });
+    } else {
+      map.set(key, cls);
+    }
   }
   return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
 }

@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@actions-insights/history-models': path.resolve(__dirname, '../packages/history-models/src/index.ts'),
+      '@actions-insights/history-models': path.resolve(__dirname, './vendor/history-models/src/index.ts'),
     },
   },
   build: {

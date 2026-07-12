@@ -2,6 +2,7 @@ import { createXmlParser } from '../parsers/xml-parser';
 import type {
   CoverageClass,
   CoverageFile,
+  CoverageMethod,
   CoverageMetrics,
   CoveragePackage,
   CoverageProject,
@@ -19,8 +20,7 @@ import {
   resolveProjectNameFromPath,
 } from './metrics-helpers';
 
-function lineMetricsFromCoberturaClass(node: Record<string, unknown>): CoverageMetrics {
-  const lines = asArray<Record<string, unknown>>((node.lines as { line?: unknown })?.line);
+function lineMetricsFromCoberturaLines(lines: Record<string, unknown>[]): CoverageMetrics {
   let coveredLines = 0;
   let totalLines = 0;
   let coveredBranches = 0;
@@ -44,13 +44,42 @@ function lineMetricsFromCoberturaClass(node: Record<string, unknown>): CoverageM
     }
   }
 
+  return metricsFromCounts(coveredLines, totalLines, coveredBranches, totalBranches);
+}
+
+function lineMetricsFromCoberturaClass(node: Record<string, unknown>): CoverageMetrics {
+  const lines = asArray<Record<string, unknown>>((node.lines as { line?: unknown })?.line);
   const lineRate = parseRate(attrString(node, 'line-rate') ?? attrNumber(node, 'line-rate'));
   const branchRate = parseRate(attrString(node, 'branch-rate') ?? attrNumber(node, 'branch-rate'));
 
-  const metrics = metricsFromCounts(coveredLines, totalLines, coveredBranches, totalBranches);
+  const metrics = lineMetricsFromCoberturaLines(lines);
   if (lineRate !== undefined && metrics.line === undefined) metrics.line = lineRate;
   if (branchRate !== undefined && metrics.branch === undefined) metrics.branch = branchRate;
   return metrics;
+}
+
+function methodsFromCoberturaClass(node: Record<string, unknown>): CoverageMethod[] {
+  const methodsNode = node.methods as { method?: unknown } | undefined;
+  const methods = asArray<Record<string, unknown>>(methodsNode?.method);
+  const result: CoverageMethod[] = [];
+
+  for (const method of methods) {
+    const name = attrString(method, 'name') || 'unknown';
+    const signature = attrString(method, 'signature') || undefined;
+    const lines = asArray<Record<string, unknown>>((method.lines as { line?: unknown })?.line);
+    const lineRate = parseRate(attrString(method, 'line-rate') ?? attrNumber(method, 'line-rate'));
+    const branchRate = parseRate(attrString(method, 'branch-rate') ?? attrNumber(method, 'branch-rate'));
+
+    const metrics = lines.length > 0
+      ? lineMetricsFromCoberturaLines(lines)
+      : metricsFromCounts(undefined, undefined, undefined, undefined);
+    if (lineRate !== undefined && metrics.line === undefined) metrics.line = lineRate;
+    if (branchRate !== undefined && metrics.branch === undefined) metrics.branch = branchRate;
+
+    result.push({ name, ...(signature ? { signature } : {}), metrics });
+  }
+
+  return result;
 }
 
 function aggregateFromFiles(files: CoverageFile[]): CoverageMetrics {
@@ -109,7 +138,13 @@ function parseCobertura(content: string, filePath: string): CoverageReport {
       const clsName = attrString(cls, 'name') || 'unknown';
       const filename = normalizePath(attrString(cls, 'filename') || '');
       const metrics = lineMetricsFromCoberturaClass(cls);
-      classList.push({ name: clsName, file: filename || undefined, metrics });
+      const classMethods = methodsFromCoberturaClass(cls);
+      classList.push({
+        name: clsName,
+        file: filename || undefined,
+        metrics,
+        ...(classMethods.length > 0 ? { methods: classMethods } : {}),
+      });
       if (filename) {
         files.push({ path: filename, metrics });
       }

@@ -25,10 +25,17 @@ export interface CoverageFile {
   metrics: CoverageMetrics;
 }
 
+export interface CoverageMethod {
+  name: string;
+  signature?: string;
+  metrics: CoverageMetrics;
+}
+
 export interface CoverageClass {
   name: string;
   file?: string;
   metrics: CoverageMetrics;
+  methods?: CoverageMethod[];
 }
 
 export interface CoveragePackage {
@@ -67,7 +74,12 @@ export interface CompactCoverageProject {
   packages?: Array<{
     name: string;
     metrics: CoverageMetrics;
-    classes?: Array<{ name: string; file?: string; metrics: CoverageMetrics }>;
+    classes?: Array<{
+      name: string;
+      file?: string;
+      metrics: CoverageMetrics;
+      methods?: CoverageMethod[];
+    }>;
   }>;
   files?: CompactCoverageFile[];
 }
@@ -185,6 +197,7 @@ export function encodeCoverageRunRecord(
           name: cls.name,
           file: cls.file,
           metrics: cls.metrics,
+          ...(cls.methods?.length ? { methods: cls.methods } : {}),
         })),
       })),
       ...(projectFiles.length > 0 ? { files: projectFiles } : {}),
@@ -257,6 +270,7 @@ export function decodeCoverageRunRecord(record: CoverageRunRecord): CoverageRepo
           name: cls.name,
           file: cls.file,
           metrics: cls.metrics,
+          ...(cls.methods?.length ? { methods: cls.methods } : {}),
         })),
       });
     }
