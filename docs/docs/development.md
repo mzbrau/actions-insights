@@ -66,7 +66,7 @@ Set `UPDATE_GOLDEN=1` to refresh golden file snapshots.
 
 ## Building the Action
 
-The build uses TypeScript + `@vercel/ncc` to produce a single `dist/index.js` bundle. Generator assets (CSS/JS) are copied to `dist/assets/`.
+The build uses TypeScript + `esbuild` to produce a single `dist/index.js` bundle. Generator assets (CSS/JS) are copied to `dist/assets/`.
 
 ## Adding a Parser
 

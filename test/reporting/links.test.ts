@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildReportLinks,
   buildTestCodeUrl,
   formatFooterLinks,
   formatTestNameWithCodeLink,
@@ -10,6 +11,17 @@ import { sampleRun } from './fixtures';
 
 describe('links', () => {
   const test = sampleRun.tests[1];
+
+  it('buildReportLinks defaults to workflow artifacts hash', () => {
+    const links = buildReportLinks(sampleRun.context);
+    expect(links.artifacts).toBe(`${sampleRun.context.workflowUrl}#artifacts`);
+  });
+
+  it('buildReportLinks prefers direct artifact URL when provided', () => {
+    const artifactUrl = `${sampleRun.context.workflowUrl}/artifacts/12345`;
+    const links = buildReportLinks(sampleRun.context, { artifactUrl });
+    expect(links.artifacts).toBe(artifactUrl);
+  });
 
   it('formatTestNameWithCodeLink links directly to code search', () => {
     const formatted = formatTestNameWithCodeLink(sampleRun.context, 'ShouldFail', test);

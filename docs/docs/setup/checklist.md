@@ -91,7 +91,7 @@ After the workflow runs:
 1. **Pull request** — open the PR and confirm the Actions Insights comment appears (if `comment-mode` is not `off`); if coverage is enabled, confirm the coverage line and table appear
 2. **Workflow run** — open the run page and check the job summary table; if coverage is enabled, confirm the Coverage section
 3. **Checks** — confirm the Actions Insights check run with annotations (if `publish-checks` is enabled)
-4. **Artifact** — download the `actions-insights-report` artifact and open the HTML report (if `upload-html-report` is enabled); if coverage is enabled, confirm the Coverage section
+4. **Artifact** — click the Report link (or open `actions-insights-report-{sha}.html`) to view the HTML report in the browser (if `upload-html-report` is enabled); if coverage is enabled, confirm the Coverage section
 5. **History dashboard** — visit the GitHub Pages URL and confirm the latest run appears (if history repository is enabled); if coverage is enabled, confirm the **Test Coverage** tab shows trend data; if diagnostics or timing are enabled, confirm the **Build Insights** tab and **Run → Build** panel show data
 
 ## Troubleshooting

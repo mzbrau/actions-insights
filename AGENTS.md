@@ -15,7 +15,7 @@ GitHub Action monorepo that parses test result files (TRX, JUnit, NUnit, xUnit),
 | `src/` | GitHub Action source (parsers, generator, history, reporting, GitHub API) |
 | `test/` | Vitest unit tests; fixtures in `test/fixtures/` |
 | `action.yml` | Action manifest — **source of truth** for inputs and defaults |
-| `dist/` | Bundled action output (`ncc` → `dist/index.js`) — **committed to git** |
+| `dist/` | Bundled action output (`esbuild` → `dist/index.js`) — **committed to git** |
 | `web/` | React SPA dashboard for history repositories — see [`web/AGENTS.md`](web/AGENTS.md) |
 | `docs/` | Docusaurus documentation site — see [`docs/AGENTS.md`](docs/AGENTS.md) |
 | `packages/` | Shared workspace packages — see [`packages/AGENTS.md`](packages/AGENTS.md) |
@@ -62,7 +62,7 @@ Prerequisites: Node.js 20+, npm.
 npm ci                    # install all workspaces
 npm test                  # run root Vitest suite
 npm run lint              # TypeScript type check (tsc --noEmit)
-npm run build             # tsc + copy assets + ncc bundle → dist/
+npm run build             # tsc + copy assets + esbuild bundle → dist/
 npm run generate-sample   # sample output in _report/ and _site/
 npm run generate-local -- <path>   # report from your own result file
 npm run build:web         # build React dashboard

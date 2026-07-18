@@ -13,10 +13,13 @@ export interface ReportLinks {
   historyRun?: string;
 }
 
-export function buildReportLinks(context: RunContext): ReportLinks {
+export function buildReportLinks(
+  context: RunContext,
+  options?: { artifactUrl?: string },
+): ReportLinks {
   return {
     workflowRun: context.workflowUrl,
-    artifacts: `${context.workflowUrl}#artifacts`,
+    artifacts: options?.artifactUrl ?? `${context.workflowUrl}#artifacts`,
     commit: context.commitUrl,
     repository: context.repositoryUrl,
     pullRequest: context.prUrl,

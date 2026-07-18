@@ -135,7 +135,7 @@ Use step outputs in later steps:
 | `status` | `passed` or `failed` |
 | `total`, `passed`, `failed`, `skipped` | Test counts |
 | `workflow-url` | Link to the workflow run |
-| `artifact-url` | Link to workflow artifacts |
+| `artifact-url` | Direct link to the unzipped HTML report artifact |
 
 ## Next Step
 

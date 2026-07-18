@@ -13,13 +13,14 @@ export async function writeJobSummary(
   previousRun?: PreviousRun,
   previousCoverageRun?: PreviousCoverageRun,
   baseBranchCoverageRun?: PreviousCoverageRun,
+  artifactUrl?: string,
 ): Promise<void> {
   if (!config.generateJobSummary || !process.env.GITHUB_STEP_SUMMARY) {
     return;
   }
 
   const ctx = buildReportingContext(run, config, previousRun, undefined, previousCoverageRun, baseBranchCoverageRun);
-  const links = buildReportLinks(run.context);
+  const links = buildReportLinks(run.context, { artifactUrl });
   const summary = renderJobSummary(ctx, config, links);
   await core.summary.addRaw(summary).write();
 }

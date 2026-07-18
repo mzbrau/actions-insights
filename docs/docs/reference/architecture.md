@@ -57,13 +57,12 @@ A dedicated check run (default name: "Actions Insights") with a rich summary and
 
 ### Deep Dive: HTML Artifact
 
-The full `_site/` directory is uploaded as the `actions-insights-report` artifact. It includes:
+The reports subdirectory (default `_site/test-reports`) is uploaded as two workflow artifacts:
 
-- Per-run reports (`index.html`, `all-tests.html`)
-- Branch/PR history pages with trends
-- Multi-run retention managed via Actions cache
+- `actions-insights-report-{sha}.html` — unzipped self-contained HTML (opens directly in the browser)
+- `actions-insights-report-{sha}` — zip containing `report.html`, `trends.json`, and optional `raw/` files
 
-Download the artifact from the workflow run and open `test-reports/{branch}/latest/index.html` locally.
+PR comments, job summaries, and the `artifact-url` output link to the unzipped HTML artifact. Multi-run history in the HTML report is managed via Actions cache.
 
 ## History
 

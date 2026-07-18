@@ -153,7 +153,8 @@ describe('pr-comment', () => {
     const config = { ...sampleConfig, maxFailedTestsInComment: 10 };
     const body = renderPrComment(buildReportingContext(run, config), config, buildReportLinks(run.context));
     expect(body).toContain('…and 6 additional failed tests');
-    expect(body).toContain('View complete report in workflow artifacts');
+    expect(body).toContain('View complete report');
+    expect(body).not.toContain('View complete report in workflow artifacts');
   });
 
   it('collapses slow tests beyond top 3', () => {

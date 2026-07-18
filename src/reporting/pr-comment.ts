@@ -132,7 +132,7 @@ export function renderPrComment(
     if (remaining > 0) {
       lines.push(`_…and ${remaining.toLocaleString()} additional failed test${remaining === 1 ? '' : 's'}._`);
       lines.push('');
-      lines.push(`[View complete report in workflow artifacts](${links.artifacts})`);
+      lines.push(`[View complete report](${links.artifacts})`);
       lines.push('');
     }
   }

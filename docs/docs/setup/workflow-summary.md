@@ -38,7 +38,7 @@ with:
 - Failed tests table with stack traces
 - Slowest tests
 - Skipped tests
-- Links to the workflow run and artifacts
+- Links to the workflow run and the HTML report artifact
 
 ## Key Inputs
 

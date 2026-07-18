@@ -9,7 +9,7 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsc && node scripts/copy-assets.js && ncc build src/main.ts -o dist --source-map --license licenses.txt",
+    "build": "tsc && node scripts/copy-assets.js && esbuild src/main.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --format=cjs --sourcemap --legal-comments=inline",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
@@ -32,7 +32,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@actions/artifact": "^2.1.1",
+    "@actions/artifact": "^6.2.1",
     "@actions/cache": "^3.2.4",
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@vercel/ncc": "^0.38.3",
+    "esbuild": "^0.25.12",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"

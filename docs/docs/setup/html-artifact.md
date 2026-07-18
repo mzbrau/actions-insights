@@ -50,14 +50,22 @@ with:
 
 ## Accessing the Report
 
+PR comments, the workflow job summary, and the `artifact-url` output link directly to the unzipped HTML artifact. Click **Report** to open the interactive report in your browser (GitHub login required).
+
+Each run uploads two artifacts:
+
+| Artifact | Format | Contents |
+|----------|--------|----------|
+| `actions-insights-report-{commit-sha}.html` | Unzipped HTML | Self-contained interactive report (opens in browser) |
+| `actions-insights-report-{commit-sha}` | Zip | `report.html`, `trends.json`, and optional `raw/` files |
+
+To download files for offline use:
+
 1. Open the workflow run on GitHub
 2. Scroll to **Artifacts**
-3. Download `actions-insights-report-{commit-sha}`
-4. Open `report.html` locally
+3. Download either artifact above
 
-The artifact also includes a `raw/` folder with the original test result files (TRX, XML, JSON, etc.) that matched your `test-results` glob, plus `raw/manifest.json` mapping artifact paths back to the workspace paths. Use these when you need the unprocessed output.
-
-## Artifact Contents
+## Artifact Contents (zipped bundle)
 
 | Path | Description |
 |------|-------------|
@@ -65,6 +73,8 @@ The artifact also includes a `raw/` folder with the original test result files (
 | `trends.json` | Branch history and per-test trends |
 | `raw/` | Original test result files from the workflow |
 | `raw/manifest.json` | Index of raw files with source paths and parse status |
+
+The artifact also includes a `raw/` folder with the original test result files (TRX, XML, JSON, etc.) that matched your `test-results` glob, plus `raw/manifest.json` mapping artifact paths back to the workspace paths. Use these when you need the unprocessed output.
 
 ## History Across Runs
 

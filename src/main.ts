@@ -31,7 +31,7 @@ async function run(): Promise<void> {
   const config = loadConfig();
   const context = detectContext();
   context.jobUrl = await resolveCurrentJobUrl(config.githubToken, context);
-  const links = buildReportLinks(context);
+  let htmlArtifactUrl: string | undefined;
 
   core.info(`Parsing test results: ${config.testResults}`);
   const { tests, sourceFiles, matchedFiles } = await parseTestFiles(config.testResults);
@@ -152,11 +152,18 @@ async function run(): Promise<void> {
   if (config.uploadHtmlReport) {
     try {
       const uploadStart = performance.now();
-      await uploadReportArtifact(artifactDir, config.artifactRetentionDays, context.commitShortSha, {
-        includeRawTestResults: config.includeRawTestResults,
-        matchedFiles: mergedRun.matchedFiles ?? matchedFiles,
-        sourceFiles: mergedRun.sourceFiles,
-      });
+      const uploadResult = await uploadReportArtifact(
+        artifactDir,
+        config.artifactRetentionDays,
+        context.commitShortSha,
+        context.workflowUrl,
+        {
+          includeRawTestResults: config.includeRawTestResults,
+          matchedFiles: mergedRun.matchedFiles ?? matchedFiles,
+          sourceFiles: mergedRun.sourceFiles,
+        },
+      );
+      htmlArtifactUrl = uploadResult.htmlArtifactUrl;
       actionPhases.uploadArtifact = Math.round(performance.now() - uploadStart);
       if (mergedRun.workflowTiming) {
         mergedRun.workflowTiming.summary.actionPhases = { ...actionPhases };
@@ -166,6 +173,8 @@ async function run(): Promise<void> {
       core.info(`Report files are available locally at ${config.siteOutput}`);
     }
   }
+
+  const links = buildReportLinks(context, { artifactUrl: htmlArtifactUrl });
 
   if (config.commentMode === 'update' && context.prNumber) {
     let historyRepositoryUrl: string | undefined;
@@ -187,13 +196,14 @@ async function run(): Promise<void> {
       historyRunUrl,
       previousCoverageRun,
       baseBranchCoverageRun,
+      htmlArtifactUrl,
     );
   }
 
-  await writeJobSummary(mergedRun, config, previousRun, previousCoverageRun, baseBranchCoverageRun);
+  await writeJobSummary(mergedRun, config, previousRun, previousCoverageRun, baseBranchCoverageRun, htmlArtifactUrl);
 
   if (config.publishChecks) {
-    await publishCheckRun(config.githubToken, mergedRun, config);
+    await publishCheckRun(config.githubToken, mergedRun, config, htmlArtifactUrl);
   }
 
   core.setOutput('workflow-url', links.workflowRun);

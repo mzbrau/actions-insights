@@ -212,7 +212,7 @@ Token for GitHub API calls.
 | Output | Description |
 |--------|-------------|
 | `workflow-url` | URL to the workflow run |
-| `artifact-url` | URL to workflow artifacts |
+| `artifact-url` | Direct URL to the unzipped HTML report artifact (falls back to the workflow Artifacts section) |
 | `status` | `passed` or `failed` |
 | `total` | Total test count |
 | `passed` | Passed count |

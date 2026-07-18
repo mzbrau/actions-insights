@@ -47,7 +47,7 @@ jobs:
 | Output | Description |
 |--------|-------------|
 | `workflow-url` | Link to the workflow run |
-| `artifact-url` | Link to workflow artifacts (HTML report) |
+| `artifact-url` | Direct link to the unzipped HTML report artifact |
 | `status` | `passed` or `failed` |
 | `total`, `passed`, `failed`, `skipped` | Test counts |
 

@@ -14,11 +14,12 @@ export async function publishCheckRun(
   token: string,
   run: TestRun,
   config: ActionConfig,
+  artifactUrl?: string,
 ): Promise<void> {
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
   const ctx = buildReportingContext(run, config);
-  const links = buildReportLinks(run.context);
+  const links = buildReportLinks(run.context, { artifactUrl });
   const summary = renderJobSummary(
     ctx,
     {

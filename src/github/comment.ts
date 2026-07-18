@@ -19,6 +19,7 @@ export async function upsertPrComment(
   historyRunUrl?: string,
   previousCoverageRun?: PreviousCoverageRun,
   baseBranchCoverageRun?: PreviousCoverageRun,
+  artifactUrl?: string,
 ): Promise<void> {
   const prNumber = run.context.prNumber;
   if (!prNumber || config.commentMode === 'off') return;
@@ -27,7 +28,7 @@ export async function upsertPrComment(
   const { owner, repo } = github.context.repo;
   const ctx = buildReportingContext(run, config, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun);
   const links = {
-    ...buildReportLinks(run.context),
+    ...buildReportLinks(run.context, { artifactUrl }),
     historyRepository: historyRepositoryUrl,
     historyRun: historyRunUrl,
   };
