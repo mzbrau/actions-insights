@@ -256,6 +256,13 @@ export function renderReportHtml(
   const js = readAsset('report-app.js');
   const logoLight = readLogoDataUri('logo-black.png');
   const logoDark = readLogoDataUri('logo-white.png');
+  // Static initial theme for correct logo before JS runs; `auto` defaults to light
+  // and report-app.js upgrades via prefers-color-scheme.
+  const initialTheme = theme === 'dark' ? 'dark' : 'light';
+  const logoCss = `
+.header-logo-light { background-image: url("${logoLight}"); }
+.header-logo-dark { background-image: url("${logoDark}"); }
+`;
   const trendsJson = trends
     ? JSON.stringify(trends).replace(/</g, '\\u003c')
     : '';
@@ -332,20 +339,20 @@ export function renderReportHtml(
     : '';
 
   return `<!DOCTYPE html>
-<html lang="en" data-default-theme="${escapeHtml(theme)}">
+<html lang="en" data-theme="${initialTheme}" data-default-theme="${escapeHtml(theme)}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>${escapeHtml(reportTitle)} — Test Report</title>
-  <style>${css}</style>
+  <style>${css}${logoCss}</style>
 </head>
 <body>
 <div class="app">
   <header class="header">
     <div class="header-main">
       <div class="header-brand-row">
-        <img class="header-logo header-logo-light" src="${logoLight}" alt="" width="28" height="28"/>
-        <img class="header-logo header-logo-dark" src="${logoDark}" alt="" width="28" height="28"/>
+        <span class="header-logo header-logo-light" role="img" aria-hidden="true"></span>
+        <span class="header-logo header-logo-dark" role="img" aria-hidden="true"></span>
         <div class="header-brand">${escapeHtml(reportTitle)}</div>
       </div>
       <div class="header-meta">

@@ -146,6 +146,10 @@ describe('report generator', () => {
     expect(html).toContain('panel-tests');
     expect(html).toContain('ShouldFail');
     expect(html).toContain('header-logo');
+    expect(html).toContain('data-theme=');
+    expect(html).toContain('.header-logo-light { background-image: url("data:image/png;base64,');
+    expect(html).toContain('.header-logo-dark { background-image: url("data:image/png;base64,');
+    expect(html).not.toContain('<img class="header-logo');
     expect(html).toContain('Commit abc123d');
     expect(html).toContain('Slow tests');
     expect(html).toContain('ShouldBeSlow');
@@ -155,6 +159,11 @@ describe('report generator', () => {
     expect(html).not.toContain('<link rel="stylesheet"');
     expect(html).toContain('<style>');
     expect(html).toContain('SampleTests');
+  });
+
+  it('sets data-theme dark when theme input is dark', () => {
+    const html = renderReportHtml(sampleRun, 'Actions Insights', 'dark', 1000);
+    expect(html).toContain('data-theme="dark"');
   });
 
   it('embeds trends data when provided', () => {
