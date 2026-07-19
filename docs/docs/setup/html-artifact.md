@@ -5,7 +5,7 @@ title: HTML Artifact
 
 # HTML Artifact
 
-Actions Insights generates a standalone, responsive, interactive HTML report and uploads it as a workflow artifact. The report includes per-run details and basic test history merged across runs.
+Actions Insights generates a standalone, responsive, interactive HTML report and uploads it as a workflow artifact. The report mirrors the history dashboard’s single-run view (Summary, All Tests, Test Coverage, and Build tabs when data is available) and embeds test trends, coverage, and build details so it opens in the browser without sidecar files.
 
 ![Interactive web report workflow summary](/img/html-summary.png)
 
@@ -14,7 +14,7 @@ Actions Insights generates a standalone, responsive, interactive HTML report and
 Enable the HTML artifact when you need:
 
 - Deep investigation beyond what fits in a PR comment
-- Offline review of test results
+- Offline review of test results (self-contained HTML — no `trends.json` required)
 - Per-branch test history across workflow runs
 - Sharing reports with stakeholders who do not have PR access
 
@@ -59,18 +59,29 @@ Each run uploads two artifacts:
 | `actions-insights-report-{commit-sha}.html` | Unzipped HTML | Self-contained interactive report (opens in browser) |
 | `actions-insights-report-{commit-sha}` | Zip | `report.html`, `trends.json`, and optional `raw/` files |
 
+The unzipped HTML embeds run data, trends, coverage, and build diagnostics/timing. Opening the Report link shows the full interactive report with no extra download.
+
 To download files for offline use:
 
 1. Open the workflow run on GitHub
 2. Scroll to **Artifacts**
 3. Download either artifact above
 
+## Report tabs
+
+| Tab | Contents |
+|-----|----------|
+| Summary | KPIs, outcome distribution, coverage bars, failed tests, slow tests |
+| All Tests | Searchable/filterable test list with per-test history from embedded trends |
+| Test Coverage | Shown when coverage is present — project → file → method drill-down |
+| Build | Shown when diagnostics and/or workflow timing are present |
+
 ## Artifact Contents (zipped bundle)
 
 | Path | Description |
 |------|-------------|
-| `report.html` | Interactive HTML report |
-| `trends.json` | Branch history and per-test trends |
+| `report.html` | Interactive HTML report (same self-contained file as the unzipped artifact) |
+| `trends.json` | Sidecar copy of branch history and per-test trends (also embedded in the HTML) |
 | `raw/` | Original test result files from the workflow |
 | `raw/manifest.json` | Index of raw files with source paths and parse status |
 

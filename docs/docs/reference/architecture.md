@@ -62,6 +62,8 @@ The reports subdirectory (default `_site/test-reports`) is uploaded as two workf
 - `actions-insights-report-{sha}.html` — unzipped self-contained HTML (opens directly in the browser)
 - `actions-insights-report-{sha}` — zip containing `report.html`, `trends.json`, and optional `raw/` files
 
+The HTML report mirrors the dashboard single-run layout (Summary, All Tests, and conditional Test Coverage / Build tabs). Trends, coverage, and build data are embedded in the HTML so the unzipped artifact works without sidecar fetches; `trends.json` remains in the zip for offline/debug use.
+
 PR comments, job summaries, and the `artifact-url` output link to the unzipped HTML artifact. Multi-run history in the HTML report is managed via Actions cache.
 
 ## History

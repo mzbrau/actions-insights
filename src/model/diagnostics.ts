@@ -5,3 +5,8 @@ export type {
   DiagnosticSeverity,
   DiagnosticSummaryCompact,
 } from '@actions-insights/history-models';
+
+export {
+  encodeDiagnosticRunRecord,
+  expandDiagnosticItems,
+} from '@actions-insights/history-models';

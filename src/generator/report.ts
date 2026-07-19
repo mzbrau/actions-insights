@@ -1,12 +1,23 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ThemeMode } from '../config';
+import {
+  encodeCoverageRunRecord,
+  toCoverageSummaryCompact,
+  type CoverageSummaryCompact,
+} from '../model/coverage';
+import { encodeDiagnosticRunRecord } from '../model/diagnostics';
 import type { TrendsFile } from '../model/manifest';
 import { OUTCOME_TO_CODE } from '../model/manifest';
 import type { TestCase } from '../model/test-case';
 import type { TestRun } from '../model/test-run';
 import { formatDuration } from '../model/test-run';
-import { formatCoveragePercent } from '../reporting/coverage-stats';
+import { encodeTimingRunRecord } from '../model/timing';
+import {
+  computeCoverageDelta,
+  formatCoverageDeltaValue,
+  formatCoveragePercent,
+} from '../reporting/coverage-stats';
 import { getCodeSearchName, getShortTestName, groupTestsByClass } from '../reporting/grouping';
 import { escapeHtml } from './escape';
 
@@ -29,7 +40,12 @@ function readAsset(name: string): string {
   return fs.readFileSync(path.join(resolveAssetsDir(), name), 'utf8');
 }
 
-function toCompactTests(run: TestRun, slowThresholdMs: number) {
+function readLogoDataUri(name: 'logo-white.png' | 'logo-black.png'): string {
+  const buf = fs.readFileSync(path.join(resolveAssetsDir(), name));
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
+function toCompactTests(run: TestRun, _slowThresholdMs: number) {
   return run.tests.map((test, index) => ({
     i: index,
     n: test.fullName,
@@ -77,16 +93,134 @@ function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
 
 function renderFailuresSection(run: TestRun): string {
   const failures = run.tests.filter((t) => t.outcome === 'failed');
-  if (failures.length === 0) {
-    return '<div class="empty-state">No failures — all tests passed.</div>';
-  }
+  if (failures.length === 0) return '';
 
   const groups = groupTestsByClass(failures);
-  return groups.map((group) => `
+  const body = groups.map((group) => `
     <div class="failure-group">
       <div class="failure-group-title">${escapeHtml(group.qualifiedClassName)}</div>
       ${group.tests.map((t) => renderFailureBlock(t, run.context)).join('')}
     </div>`).join('');
+
+  return `<section class="section">
+    <h2 class="section-title">Failed Tests (${failures.length.toLocaleString()})</h2>
+    ${body}
+  </section>`;
+}
+
+function renderSlowTestsSection(run: TestRun, slowThresholdMs: number): string {
+  const slow = run.tests
+    .filter((t) => t.outcome === 'passed' && t.durationMs >= slowThresholdMs)
+    .sort((a, b) => b.durationMs - a.durationMs)
+    .slice(0, 18);
+  if (slow.length === 0) return '';
+
+  const items = slow.map((t) =>
+    `<li>⏱ ${escapeHtml(getShortTestName(t))} — ${formatDuration(t.durationMs)}</li>`).join('');
+
+  return `<section class="section">
+    <h2 class="section-title">Slow tests</h2>
+    <ul class="simple-list">${items}</ul>
+  </section>`;
+}
+
+function renderCoverageProgressBar(label: string, value: number | undefined, variant: 'line' | 'branch'): string {
+  if (value === undefined) return '';
+  const pct = Math.min(100, Math.max(0, value));
+  return `<div class="coverage-progress" role="group" aria-label="${escapeHtml(label)} coverage">
+    <div class="coverage-progress-header">
+      <span class="coverage-progress-label">${escapeHtml(label)}</span>
+      <span class="coverage-progress-value">${pct.toFixed(1)}%</span>
+    </div>
+    <div class="coverage-progress-track coverage-progress-${variant}" role="progressbar"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"
+      aria-label="${escapeHtml(label)}: ${pct.toFixed(1)} percent">
+      <div class="coverage-progress-fill" style="width:${pct}%"></div>
+    </div>
+  </div>`;
+}
+
+function renderSummaryCoverageSection(run: TestRun): string {
+  const line = run.coverage?.summary.line;
+  if (line === undefined) return '';
+  return `<section class="section coverage-summary-section">
+    <h2 class="section-title">Code Coverage</h2>
+    <div class="coverage-summary-bars">
+      ${renderCoverageProgressBar('Line coverage', line, 'line')}
+      ${renderCoverageProgressBar('Branch coverage', run.coverage?.summary.branch, 'branch')}
+    </div>
+  </section>`;
+}
+
+interface CoverageDeltaInfo {
+  line?: number;
+  branch?: number;
+  label: 'base' | 'previous';
+}
+
+function findComparisonCoverage(
+  run: TestRun,
+  trends?: TrendsFile,
+): CoverageSummaryCompact | undefined {
+  if (run.coverage?.summary.line === undefined) return undefined;
+
+  type RunWithCoverage = { runId: string; coverage?: CoverageSummaryCompact };
+  const runs = trends?.runs as RunWithCoverage[] | undefined;
+  if (!runs?.length) return undefined;
+
+  const currentId = String(run.context.runId);
+  const idx = runs.findIndex((r) => r.runId === currentId);
+  const isPr = Boolean(run.context.prNumber);
+  const start = idx >= 0 ? idx + 1 : 0;
+
+  if (isPr) {
+    return runs.find((r, i) => i >= start && r.coverage?.line !== undefined)?.coverage;
+  }
+  for (let i = start; i < runs.length; i += 1) {
+    if (runs[i].coverage?.line !== undefined) return runs[i].coverage;
+  }
+  return undefined;
+}
+
+function buildCoverageDelta(run: TestRun, trends?: TrendsFile): CoverageDeltaInfo | undefined {
+  if (run.coverage?.summary.line === undefined) return undefined;
+  const previous = findComparisonCoverage(run, trends);
+  if (!previous) return undefined;
+  const delta = computeCoverageDelta(run.coverage.summary, previous);
+  if (delta.line === undefined && delta.branch === undefined) return undefined;
+  return {
+    ...delta,
+    label: run.context.prNumber ? 'base' : 'previous',
+  };
+}
+
+function formatDeltaHint(delta: number | undefined, label: string): string {
+  const formatted = formatCoverageDeltaValue(delta);
+  if (!formatted) return '';
+  const cls = delta === undefined || Math.abs(delta) < 0.05
+    ? 'neutral'
+    : delta > 0 ? 'positive' : 'negative';
+  return `<div class="stat-hint ${cls}">${escapeHtml(formatted)} vs ${escapeHtml(label)}</div>`;
+}
+
+function renderCoverageStatCards(run: TestRun, delta?: CoverageDeltaInfo): string {
+  const line = run.coverage?.summary.line;
+  if (line === undefined) return '';
+  const branch = run.coverage?.summary.branch;
+  const label = delta?.label ?? 'previous';
+  let html = `<div class="stat-card">
+    <div class="label">Line Coverage</div>
+    <div class="value">${formatCoveragePercent(line)}</div>
+    ${formatDeltaHint(delta?.line, label)}
+  </div>`;
+  if (branch !== undefined) {
+    html += `<div class="stat-card">
+      <div class="label">Branch Coverage</div>
+      <div class="value">${formatCoveragePercent(branch)}</div>
+      ${formatDeltaHint(delta?.branch, label)}
+    </div>`;
+  }
+  return html;
 }
 
 export function writeRunReport(
@@ -108,30 +242,6 @@ export function writeRunReport(
   fs.writeFileSync(path.join(outputDir, 'trends.json'), JSON.stringify(trends, null, 2));
 }
 
-function renderCoverageSection(run: TestRun): string {
-  const cov = run.coverage;
-  if (!cov || cov.summary.line === undefined) return '';
-
-  const projectRows = cov.projects.map((p) => `
-    <tr>
-      <td>${escapeHtml(p.name)}</td>
-      <td>${formatCoveragePercent(p.metrics.line)}</td>
-      <td>${formatCoveragePercent(p.metrics.branch)}</td>
-    </tr>`).join('');
-
-  return `
-    <h2 class="section-title">Code Coverage</h2>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="label">Line Coverage</div><div class="value">${formatCoveragePercent(cov.summary.line)}</div></div>
-      <div class="stat-card"><div class="label">Branch Coverage</div><div class="value">${formatCoveragePercent(cov.summary.branch)}</div></div>
-    </div>
-    ${cov.projects.length > 0 ? `
-    <table class="data-table coverage-table">
-      <thead><tr><th>Project</th><th>Line</th><th>Branch</th></tr></thead>
-      <tbody>${projectRows}</tbody>
-    </table>` : ''}`;
-}
-
 export function renderReportHtml(
   run: TestRun,
   reportTitle: string,
@@ -144,37 +254,81 @@ export function renderReportHtml(
   const runTimestamp = ctx.completedAt || ctx.startedAt;
   const css = readAsset('report-v2.css');
   const js = readAsset('report-app.js');
+  const logoLight = readLogoDataUri('logo-black.png');
+  const logoDark = readLogoDataUri('logo-white.png');
   const trendsJson = trends
     ? JSON.stringify(trends).replace(/</g, '\\u003c')
     : '';
+
+  const hasCoverage = run.coverage?.summary.line !== undefined;
+  const hasBuild = Boolean(run.diagnostics || run.workflowTiming);
+  const coverageDelta = buildCoverageDelta(run, trends);
+
   const runJson = JSON.stringify({
     stats,
+    status,
     context: {
       repository: ctx.repository,
       workflow: ctx.workflow,
       branch: ctx.branch,
       commitShortSha: ctx.commitShortSha,
       commitSha: ctx.commitSha,
+      commitUrl: ctx.commitUrl,
       author: ctx.author,
       workflowUrl: ctx.workflowUrl,
       jobUrl: ctx.jobUrl,
       repositoryUrl: ctx.repositoryUrl,
       prNumber: ctx.prNumber,
       prUrl: ctx.prUrl,
+      runId: ctx.runId,
       completedAt: runTimestamp,
     },
     tests: toCompactTests(run, slowThresholdMs),
     slowThreshold: slowThresholdMs,
+    coverage: hasCoverage && run.coverage
+      ? {
+          summary: toCoverageSummaryCompact(run.coverage),
+          detail: encodeCoverageRunRecord(String(ctx.runId), run.coverage),
+        }
+      : undefined,
+    coverageDelta,
+    diagnostics: run.diagnostics
+      ? encodeDiagnosticRunRecord(String(ctx.runId), run.diagnostics)
+      : undefined,
+    timing: run.workflowTiming
+      ? encodeTimingRunRecord(String(ctx.runId), run.workflowTiming)
+      : undefined,
   }).replace(/</g, '\\u003c');
 
-  const bannerClass = status === 'passed' ? 'passed' : 'failed';
-  const bannerLabel = status === 'passed' ? 'PASSED' : 'FAILED';
-  const bannerIcon = status === 'passed' ? '✅' : '❌';
-  const bannerDetail = status === 'passed'
-    ? `All ${stats.total.toLocaleString()} tests passed`
-    : `${stats.failed.toLocaleString()} of ${stats.total.toLocaleString()} tests failed`;
+  const statusIcon = status === 'passed' ? '✓' : '✗';
+  const statusClass = status === 'passed' ? 'passed' : 'failed';
+  const branchOrPr = ctx.prNumber
+    ? (ctx.prUrl
+      ? `<a href="${escapeHtml(ctx.prUrl)}" target="_blank" rel="noopener">PR #${ctx.prNumber}</a>`
+      : `PR #${ctx.prNumber}`)
+    : escapeHtml(ctx.branch);
+
   const rawResultsNote = includeRawTestResults && (run.matchedFiles?.length ?? 0) > 0
     ? '<p class="raw-results-note">Original test result files are included in the <code>raw/</code> folder of the downloaded workflow artifact.</p>'
+    : '';
+
+  const coverageTab = hasCoverage
+    ? `<button class="tab" data-tab="coverage" type="button" role="tab">Test Coverage</button>`
+    : '';
+  const buildTab = hasBuild
+    ? `<button class="tab" data-tab="build" type="button" role="tab">Build</button>`
+    : '';
+
+  const coveragePanel = hasCoverage
+    ? `<main id="panel-coverage" class="tab-panel" role="tabpanel">
+    <div id="coverage-panel-root"></div>
+  </main>`
+    : '';
+
+  const buildPanel = hasBuild
+    ? `<main id="panel-build" class="tab-panel" role="tabpanel">
+    <div id="build-panel-root"></div>
+  </main>`
     : '';
 
   return `<!DOCTYPE html>
@@ -188,35 +342,40 @@ export function renderReportHtml(
 <body>
 <div class="app">
   <header class="header">
-    <div>
-      <div class="header-brand">${escapeHtml(reportTitle)}</div>
+    <div class="header-main">
+      <div class="header-brand-row">
+        <img class="header-logo header-logo-light" src="${logoLight}" alt="" width="28" height="28"/>
+        <img class="header-logo header-logo-dark" src="${logoDark}" alt="" width="28" height="28"/>
+        <div class="header-brand">${escapeHtml(reportTitle)}</div>
+      </div>
       <div class="header-meta">
+        <span class="status-pill ${statusClass}" aria-label="${statusClass}">${statusIcon} ${branchOrPr}</span>
+        ${runTimestamp ? `<span id="run-timestamp" data-run-timestamp="${escapeHtml(runTimestamp)}"></span>` : ''}
+        <span>Test time: ${formatDuration(stats.durationMs)}</span>
+      </div>
+      <div class="header-meta header-meta-secondary">
         <span><strong>${escapeHtml(ctx.repository)}</strong></span>
         <span>${escapeHtml(ctx.workflow)}</span>
-        <span>${escapeHtml(ctx.branch)}</span>
-        <span><a href="${escapeHtml(ctx.commitUrl)}" target="_blank" rel="noopener"><code>${escapeHtml(ctx.commitShortSha)}</code></a> ${escapeHtml(ctx.author)}</span>
-        ${runTimestamp ? `<span id="run-timestamp" data-run-timestamp="${escapeHtml(runTimestamp)}"></span>` : ''}
+        <span>${escapeHtml(ctx.author)}</span>
       </div>
+      ${rawResultsNote}
     </div>
     <div class="header-actions">
       <button id="theme-toggle" class="btn" type="button" aria-label="Toggle theme">◐ Theme</button>
-      ${ctx.prUrl ? `<a href="${escapeHtml(ctx.prUrl)}" class="btn" target="_blank" rel="noopener">Pull request</a>` : ''}
       <a href="${escapeHtml(ctx.workflowUrl)}" class="btn btn-primary" target="_blank" rel="noopener">Workflow</a>
+      <a href="${escapeHtml(ctx.commitUrl)}" class="btn" target="_blank" rel="noopener">Commit ${escapeHtml(ctx.commitShortSha)}</a>
+      ${ctx.prUrl ? `<a href="${escapeHtml(ctx.prUrl)}" class="btn" target="_blank" rel="noopener">Pull request</a>` : ''}
     </div>
   </header>
 
-  <nav class="tab-bar">
-    <button class="tab active" data-tab="summary" type="button">Summary</button>
-    <button class="tab" data-tab="tests" type="button">All Tests (${stats.total.toLocaleString()})</button>
+  <nav class="tab-bar" role="tablist" aria-label="Page sections">
+    <button class="tab active" data-tab="summary" type="button" role="tab" aria-selected="true">Summary</button>
+    <button class="tab" data-tab="tests" type="button" role="tab">All Tests (${stats.total.toLocaleString()})</button>
+    ${coverageTab}
+    ${buildTab}
   </nav>
 
-  <main id="panel-summary" class="tab-panel active">
-    <div class="status-banner ${bannerClass}">
-      <h1>${bannerIcon} ${bannerLabel}</h1>
-      <p>${escapeHtml(bannerDetail)} · ${formatDuration(stats.durationMs)} total</p>
-      ${rawResultsNote}
-    </div>
-
+  <main id="panel-summary" class="tab-panel active" role="tabpanel">
     <div class="stats-grid">
       <div class="stat-card"><div class="label">Total</div><div class="value">${stats.total.toLocaleString()}</div></div>
       <div class="stat-card passed"><div class="label">Passed</div><div class="value">${stats.passed.toLocaleString()}</div></div>
@@ -224,30 +383,21 @@ export function renderReportHtml(
       <div class="stat-card"><div class="label">Skipped</div><div class="value">${stats.skipped.toLocaleString()}</div></div>
       <div class="stat-card"><div class="label">Duration</div><div class="value">${formatDuration(stats.durationMs)}</div></div>
       <div class="stat-card"><div class="label">Success</div><div class="value">${stats.successRate}%</div></div>
-    </div>
-
-    ${renderCoverageSection(run)}
-
-    <div class="charts-row">
-      <div class="chart-card">
-        <h3>Outcome Distribution</h3>
-        <div class="chart-wrap"><svg id="pie-chart" width="160" height="160" viewBox="0 0 160 160"></svg></div>
-      </div>
-      <div class="chart-card">
-        <h3>Recent Runs (branch)</h3>
-        <div class="chart-wrap"><svg id="bar-chart" width="280" height="140" viewBox="0 0 280 140"></svg></div>
+      ${renderCoverageStatCards(run, coverageDelta)}
+      <div class="stat-card stat-card-chart">
+        <div class="label">Distribution</div>
+        <div class="stat-chart-wrap"><svg id="pie-chart" width="72" height="72" viewBox="0 0 72 72"></svg></div>
       </div>
     </div>
 
-    <h2 class="section-title">Failed Tests (${stats.failed.toLocaleString()})</h2>
+    ${renderSummaryCoverageSection(run)}
     ${renderFailuresSection(run)}
+    ${renderSlowTestsSection(run, slowThresholdMs)}
   </main>
 
-  <main id="panel-tests" class="tab-panel">
+  <main id="panel-tests" class="tab-panel" role="tabpanel">
     <div id="trends-notice" class="trends-notice hidden">
-      Load <code>trends.json</code> to view test history.
-      <button id="load-trends-btn" class="btn" type="button">Load trends.json</button>
-      <input id="load-trends-file" type="file" accept=".json,application/json" hidden/>
+      Test history is unavailable for this report.
     </div>
     <div class="toolbar">
       <input id="test-search" class="search-input" type="search" placeholder="Search tests..."/>
@@ -269,6 +419,9 @@ export function renderReportHtml(
     </div>
     <div id="all-tests-list"></div>
   </main>
+
+  ${coveragePanel}
+  ${buildPanel}
 
   <footer class="footer">
     <span>Actions Insights</span>

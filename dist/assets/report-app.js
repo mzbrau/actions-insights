@@ -4,12 +4,17 @@
   const THEME_KEY = 'actions-insights-theme';
   const OUTCOMES = ['passed', 'failed', 'skipped', 'inconclusive'];
   const OUTCOME_ICONS = { passed: '✅', failed: '❌', skipped: '⏭', inconclusive: '❓' };
+  const SEVERITIES = ['error', 'warning', 'note'];
 
   let runData = {};
   let trendsData = null;
 
   function $(sel) { return document.querySelector(sel); }
   function $$(sel) { return document.querySelectorAll(sel); }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   function getStoredTheme() {
     try { return localStorage.getItem(THEME_KEY); } catch { return null; }
@@ -40,7 +45,11 @@
     $$('.tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         const target = tab.getAttribute('data-tab');
-        $$('.tab').forEach((t) => t.classList.toggle('active', t === tab));
+        $$('.tab').forEach((t) => {
+          const active = t === tab;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
         $$('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === `panel-${target}`));
       });
     });
@@ -84,40 +93,20 @@
     if (embedded) {
       trendsData = embedded;
       if (notice) notice.classList.add('hidden');
-      renderTrendCharts();
       renderAllTests();
       return;
     }
+    // Sidecar fallback for unzipped local folder layouts (zipped artifact next to report.html)
     try {
       const res = await fetch('./trends.json');
       if (res.ok) {
         trendsData = await res.json();
         if (notice) notice.classList.add('hidden');
-        renderTrendCharts();
         renderAllTests();
         return;
       }
     } catch {}
     if (notice) notice.classList.remove('hidden');
-    const loadBtn = $('#load-trends-btn');
-    const fileInput = $('#load-trends-file');
-    if (loadBtn && fileInput) {
-      loadBtn.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', () => {
-        const file = fileInput.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            trendsData = JSON.parse(reader.result);
-            notice?.classList.add('hidden');
-            renderTrendCharts();
-            renderAllTests();
-          } catch {}
-        };
-        reader.readAsText(file);
-      });
-    }
     renderAllTests();
   }
 
@@ -128,57 +117,29 @@
     const total = passed + failed + skipped + (inconclusive || 0);
     if (total === 0) return;
 
-    const colors = ['#0a6e31', '#ba1a1a', '#727785', '#913900'];
-    const values = [passed, failed, skipped, inconclusive || 0].filter((v, i, arr) => arr.slice(0, 3).some(x => x > 0) || v > 0);
-    const labels = ['Passed', 'Failed', 'Skipped', 'Inconclusive'];
-    const cx = 80, cy = 80, r = 60;
-    let offset = 0;
+    const colors = [
+      'var(--chart-passed, #0a6e31)',
+      'var(--chart-failed, #ba1a1a)',
+      'var(--chart-skipped, #727785)',
+      'var(--chart-inconclusive, #913900)',
+    ];
+    const cx = 36, cy = 36, r = 28, inner = 14;
+    let offset = -Math.PI / 2;
     let paths = '';
 
     [passed, failed, skipped, inconclusive || 0].forEach((val, i) => {
       if (val === 0) return;
-      const pct = val / total;
-      const angle = pct * 2 * Math.PI;
-      const x1 = cx + r * Math.sin(offset);
-      const y1 = cy - r * Math.cos(offset);
+      const angle = (val / total) * 2 * Math.PI;
+      const x1 = cx + r * Math.cos(offset);
+      const y1 = cy + r * Math.sin(offset);
       offset += angle;
-      const x2 = cx + r * Math.sin(offset);
-      const y2 = cy - r * Math.cos(offset);
+      const x2 = cx + r * Math.cos(offset);
+      const y2 = cy + r * Math.sin(offset);
       const large = angle > Math.PI ? 1 : 0;
       paths += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="${colors[i]}"/>`;
     });
 
-    svg.innerHTML = paths + `<circle cx="${cx}" cy="${cy}" r="30" fill="var(--surface-container-lowest)"/>`;
-  }
-
-  function renderBarChart() {
-    const svg = $('#bar-chart');
-    if (!svg) return;
-    const points = trendsData?.summary?.points ?? [];
-    if (points.length === 0) {
-      svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="var(--on-surface-variant)" font-size="12">No run history yet</text>';
-      return;
-    }
-
-    const w = 280, h = 140, pad = 24;
-    const maxVal = Math.max(...points.map((p) => p.passed + p.failed), 1);
-    const barW = (w - pad * 2) / points.length - 4;
-    let bars = '';
-
-    points.forEach((p, i) => {
-      const x = pad + i * (barW + 4);
-      const passH = ((p.passed / maxVal) * (h - pad * 2));
-      const failH = ((p.failed / maxVal) * (h - pad * 2));
-      const base = h - pad;
-      bars += `<rect x="${x}" y="${base - passH - failH}" width="${barW}" height="${failH}" fill="#ba1a1a" rx="2"/>`;
-      bars += `<rect x="${x}" y="${base - passH}" width="${barW}" height="${passH}" fill="#0a6e31" rx="2"/>`;
-    });
-
-    svg.innerHTML = bars;
-  }
-
-  function renderTrendCharts() {
-    renderBarChart();
+    svg.innerHTML = paths + `<circle cx="${cx}" cy="${cy}" r="${inner}" fill="var(--surface-container-lowest)"/>`;
   }
 
   function getShortName(test) {
@@ -214,7 +175,335 @@
   function formatDuration(ms) {
     if (ms < 1000) return `${ms}ms`;
     const s = Math.floor(ms / 1000);
-    return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+  }
+
+  function spectrumColor(pct) {
+    return `hsl(${(pct / 100) * 120}, 65%, 45%)`;
+  }
+
+  function formatPct(value) {
+    if (value === undefined || value === null) return '—';
+    return `${Number(value).toFixed(1)}%`;
+  }
+
+  function fileBasename(filePath) {
+    const parts = String(filePath).split(/[/\\]/);
+    return parts[parts.length - 1] || filePath;
+  }
+
+  function collectProjectFiles(project, detail) {
+    if (project.files?.length && detail?.paths) {
+      return project.files.map((f) => ({
+        path: detail.paths[f.p] || String(f.p),
+        metrics: f.metrics || {},
+        methods: [],
+      })).filter((f) => f.path);
+    }
+    const files = [];
+    for (const pkg of project.packages || []) {
+      for (const cls of pkg.classes || []) {
+        if (!cls.file) continue;
+        let entry = files.find((f) => f.path === cls.file);
+        if (!entry) {
+          entry = { path: cls.file, metrics: cls.metrics || {}, methods: [] };
+          files.push(entry);
+        }
+        if (cls.methods?.length) {
+          for (const m of cls.methods) {
+            entry.methods.push({
+              name: m.name || m.n || 'unknown',
+              metrics: m.metrics || {},
+            });
+          }
+        }
+      }
+    }
+    return files.sort((a, b) => (a.metrics.line ?? 101) - (b.metrics.line ?? 101));
+  }
+
+  function metricRow(label, value, spectrum) {
+    const pct = value === undefined ? 0 : Math.min(100, Math.max(0, value));
+    const fill = spectrum && value !== undefined
+      ? spectrumColor(pct)
+      : 'var(--primary)';
+    return `<div class="coverage-metric-row">
+      <span class="coverage-metric-row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+      <div class="coverage-metric-row-track"><div class="coverage-metric-row-fill" style="width:${pct}%;background:${fill}"></div></div>
+      <span class="coverage-metric-row-value">${formatPct(value)}</span>
+    </div>`;
+  }
+
+  function progressBar(label, value, variant, spectrum) {
+    if (value === undefined) return '';
+    const pct = Math.min(100, Math.max(0, value));
+    const fillStyle = spectrum
+      ? `width:${pct}%;background:${spectrumColor(pct)}`
+      : `width:${pct}%`;
+    return `<div class="coverage-progress">
+      <div class="coverage-progress-header">
+        <span class="coverage-progress-label">${escapeHtml(label)}</span>
+        <span class="coverage-progress-value">${pct.toFixed(1)}%</span>
+      </div>
+      <div class="coverage-progress-track coverage-progress-${variant}">
+        <div class="coverage-progress-fill" style="${fillStyle}"></div>
+      </div>
+    </div>`;
+  }
+
+  function renderCoveragePanel() {
+    const root = $('#coverage-panel-root');
+    if (!root || !runData.coverage) return;
+
+    const summary = runData.coverage.summary || {};
+    const detail = runData.coverage.detail;
+    const projects = detail?.projects?.length
+      ? detail.projects
+      : Object.entries(summary.projects || {}).map(([name, metrics]) => ({ name, metrics }));
+
+    let html = `<section class="coverage-run-summary">
+      ${progressBar('Line coverage', summary.line, 'line', true)}
+      ${progressBar('Branch coverage', summary.branch, 'branch', true)}
+    </section>
+    <section class="section">
+      <h2 class="section-title">Projects</h2>`;
+
+    if (projects.length === 0) {
+      html += '<p class="muted">No project-level coverage breakdown available.</p></section>';
+      root.innerHTML = html;
+      return;
+    }
+
+    html += '<div class="coverage-project-list">';
+    for (const project of projects) {
+      const files = collectProjectFiles(project, detail);
+      const branchNote = project.metrics?.branch !== undefined
+        ? `<span class="coverage-project-branch">${formatPct(project.metrics.branch)} branches</span>`
+        : '';
+      let fileHtml = '';
+      if (files.length > 0) {
+        fileHtml = '<ul class="coverage-file-list">';
+        for (const file of files) {
+          const methods = file.methods || [];
+          let methodHtml = '';
+          if (methods.length > 0) {
+            methodHtml = `<div class="coverage-method-list">${methods.map((m) =>
+              `<div class="coverage-method-row">
+                <span class="coverage-method-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
+                <span>${formatPct(m.metrics?.line)}</span>
+              </div>`).join('')}</div>`;
+          }
+          fileHtml += `<li class="coverage-file-item">
+            <details>
+              <summary class="coverage-file-summary">
+                ${metricRow(fileBasename(file.path), file.metrics?.line, true)}
+                ${file.metrics?.branch !== undefined ? `<span class="muted">${formatPct(file.metrics.branch)} branches</span>` : ''}
+              </summary>
+              ${methodHtml || (methods.length === 0 ? '<p class="muted" style="font-size:12px;margin:8px 0 0">No method breakdown available.</p>' : '')}
+            </details>
+          </li>`;
+        }
+        fileHtml += '</ul>';
+      } else {
+        fileHtml = '<p class="muted" style="font-size:12px;margin:8px 0 0">Expand for file details when available.</p>';
+      }
+
+      html += `<details class="coverage-project-item">
+        <summary class="coverage-project-summary">
+          ${metricRow(project.name, project.metrics?.line, true)}
+          ${branchNote}
+        </summary>
+        ${fileHtml}
+      </details>`;
+    }
+    html += '</div></section>';
+    root.innerHTML = html;
+  }
+
+  function expandDiagnostics(record) {
+    if (!record?.items) return [];
+    return record.items.map((item) => ({
+      severity: SEVERITIES[item.s] || 'warning',
+      message: item.m,
+      file: item.p !== undefined ? record.paths?.[item.p] : undefined,
+      line: item.l,
+      column: item.c,
+      code: item.r,
+      source: item.o,
+    }));
+  }
+
+  function renderBuildPanel() {
+    const root = $('#build-panel-root');
+    if (!root) return;
+    if (!runData.diagnostics && !runData.timing) {
+      root.innerHTML = '<div class="empty-state">No build diagnostics or timing data.</div>';
+      return;
+    }
+
+    const diag = runData.diagnostics;
+    const timing = runData.timing;
+    const summary = diag?.summary;
+    const timingSummary = timing?.summary;
+    const steps = [...(timingSummary?.steps || [])].sort((a, b) => b.durationMs - a.durationMs);
+    const maxStepMs = steps[0]?.durationMs || 1;
+
+    let html = '<div class="build-summary-cards">';
+    if (summary) {
+      html += `<div class="build-summary-card build-summary-card--error">
+        <span class="build-summary-card-value">${summary.errors ?? 0}</span>
+        <span class="build-summary-card-label">Errors</span>
+      </div>
+      <div class="build-summary-card build-summary-card--warning">
+        <span class="build-summary-card-value">${summary.warnings ?? 0}</span>
+        <span class="build-summary-card-label">Warnings</span>
+      </div>`;
+    }
+    if (timingSummary?.workflowDurationMs !== undefined) {
+      html += `<div class="build-summary-card">
+        <span class="build-summary-card-value">${formatDuration(timingSummary.workflowDurationMs)}</span>
+        <span class="build-summary-card-label">Workflow run</span>
+      </div>`;
+    }
+    if (runData.stats?.durationMs > 0) {
+      html += `<div class="build-summary-card">
+        <span class="build-summary-card-value">${formatDuration(runData.stats.durationMs)}</span>
+        <span class="build-summary-card-label">Test execution</span>
+      </div>`;
+    }
+    if (timingSummary?.slowestStep) {
+      html += `<div class="build-summary-card build-summary-card--wide">
+        <span class="build-summary-card-value build-summary-card-value--small">${escapeHtml(timingSummary.slowestStep)}</span>
+        <span class="build-summary-card-label">Slowest step</span>
+      </div>`;
+    }
+    html += '</div>';
+
+    if (steps.length > 0) {
+      html += `<p class="build-timing-note">Step durations are wall-clock times per step. Parallel jobs overlap — they do not add up to workflow run time.</p>
+      <div class="chart-card">
+        <h3>Workflow steps</h3>
+        <div class="workflow-step-timeline">
+          ${steps.map((step) => `<div class="workflow-step-row">
+            <div class="workflow-step-label">
+              <span class="workflow-step-job">${escapeHtml(step.jobName)}</span>
+              <span class="workflow-step-name">${escapeHtml(step.stepName)}</span>
+            </div>
+            <div class="workflow-step-bar-track">
+              <span class="workflow-step-bar-fill" style="width:${Math.max(4, (step.durationMs / maxStepMs) * 100)}%"></span>
+            </div>
+            <span class="workflow-step-duration">${formatDuration(step.durationMs)}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+
+      if (timing?.runner || (timingSummary?.actionPhases && Object.keys(timingSummary.actionPhases).length > 0)) {
+        html += '<section class="build-run-metadata">';
+        if (timing?.runner) {
+          html += `<p class="workflow-runner-meta">Runner: ${escapeHtml(timing.runner.os || 'unknown')}${
+            timing.runner.labels?.length ? ` (${escapeHtml(timing.runner.labels.join(', '))})` : ''
+          }</p>`;
+        }
+        if (timingSummary?.actionPhases && Object.keys(timingSummary.actionPhases).length > 0) {
+          html += `<details class="action-phases-details"><summary>Actions Insights phases</summary><ul>
+            ${Object.entries(timingSummary.actionPhases).map(([name, ms]) =>
+              `<li>${escapeHtml(name)}: ${formatDuration(ms)}</li>`).join('')}
+          </ul></details>`;
+        }
+        html += '</section>';
+      }
+    }
+
+    if (summary) {
+      html += `<div class="chart-card"><h3>Diagnostics by file</h3><div id="diagnostic-browser-root"></div></div>`;
+    }
+
+    root.innerHTML = html;
+    if (summary && diag) initDiagnosticBrowser(diag);
+  }
+
+  function initDiagnosticBrowser(diag) {
+    const container = $('#diagnostic-browser-root');
+    if (!container) return;
+
+    let severityFilter = 'all';
+    let selectedFile = null;
+    const items = expandDiagnostics(diag);
+
+    function countBySeverity(list) {
+      let errors = 0, warnings = 0, notes = 0;
+      for (const item of list) {
+        if (item.severity === 'error') errors += 1;
+        else if (item.severity === 'warning') warnings += 1;
+        else notes += 1;
+      }
+      return { errors, warnings, notes };
+    }
+
+    function render() {
+      const filtered = severityFilter === 'all'
+        ? items
+        : items.filter((i) => i.severity === severityFilter);
+      const byFile = new Map();
+      for (const item of filtered) {
+        const key = item.file || '(no file)';
+        if (!byFile.has(key)) byFile.set(key, []);
+        byFile.get(key).push(item);
+      }
+      const files = [...byFile.entries()].sort((a, b) => b[1].length - a[1].length);
+      if (files.length > 0 && (selectedFile === null || !byFile.has(selectedFile))) {
+        selectedFile = files[0][0];
+      }
+      const selectedItems = selectedFile ? (byFile.get(selectedFile) || []) : [];
+
+      container.innerHTML = `
+        <div class="diagnostic-filters">
+          ${['all', 'error', 'warning', 'note'].map((f) =>
+            `<button type="button" class="filter-chip${severityFilter === f ? ' active' : ''}" data-sev="${f}">${f}</button>`).join('')}
+        </div>
+        <div class="diagnostic-browser">
+          <ul class="diagnostic-file-list">
+            ${files.map(([file, list]) => {
+              const c = countBySeverity(list);
+              return `<li><button type="button" class="diagnostic-file-btn${selectedFile === file ? ' active' : ''}" data-file="${escapeHtml(file)}">
+                ${escapeHtml(fileBasename(file))}
+                <span class="diagnostic-file-badges">
+                  ${c.errors ? `<span class="diagnostic-count-badge diagnostic-count-badge--error">${c.errors}E</span>` : ''}
+                  ${c.warnings ? `<span class="diagnostic-count-badge diagnostic-count-badge--warning">${c.warnings}W</span>` : ''}
+                  ${c.notes ? `<span class="diagnostic-count-badge">${c.notes}N</span>` : ''}
+                </span>
+              </button></li>`;
+            }).join('') || '<li class="muted">No diagnostics</li>'}
+          </ul>
+          <ul class="diagnostic-items">
+            ${selectedItems.map((item) => `<li class="diagnostic-item">
+              <span class="diagnostic-item-severity ${item.severity}">${item.severity}</span>
+              ${item.code ? `<code>${escapeHtml(item.code)}</code> ` : ''}
+              ${escapeHtml(item.message)}
+              ${item.line !== undefined ? `<div class="diagnostic-item-loc">line ${item.line}${item.column !== undefined ? `:${item.column}` : ''}</div>` : ''}
+            </li>`).join('') || '<li class="muted">Select a file</li>'}
+          </ul>
+        </div>
+        ${diag.truncated ? `<p class="muted">Showing first ${items.length} of ${items.length + diag.truncated} diagnostics.</p>` : ''}`;
+
+      container.querySelectorAll('[data-sev]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          severityFilter = btn.getAttribute('data-sev') || 'all';
+          render();
+        });
+      });
+      container.querySelectorAll('[data-file]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectedFile = btn.getAttribute('data-file');
+          render();
+        });
+      });
+    }
+
+    render();
   }
 
   function renderAllTests() {
@@ -260,7 +549,6 @@
           const rb = getPassRate(b.n)?.rate ?? -1;
           return ra - rb;
         }
-        // default + name
         return getShortName(a).localeCompare(getShortName(b));
       });
       return sorted;
@@ -283,7 +571,7 @@
       });
       sparkline += '</div>';
 
-      let rows = recent.map((p) => {
+      const rows = recent.map((p) => {
         const branchCls = p.branchKey === 'main' ? 'branch-chip main' : 'branch-chip';
         return `<tr>
           <td>${new Date(p.date).toLocaleString()}</td>
@@ -297,10 +585,6 @@
       return `${sparkline}
         <div style="margin-bottom:8px;font-weight:600">Pass rate: ${entry.passRate}% (${entry.runCount} runs)</div>
         <table class="history-table"><thead><tr><th>Date</th><th>Branch</th><th>Result</th><th>Duration</th><th>Commit</th></tr></thead><tbody>${rows}</tbody></table>`;
-    }
-
-    function escapeHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function render() {
@@ -341,20 +625,18 @@
         }
 
         container.innerHTML = html;
-        $('#visible-count').textContent = String(filtered.length);
+        const countEl = $('#visible-count');
+        if (countEl) countEl.textContent = String(filtered.length);
 
         $$('.history-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
-            const target = document.getElementById(btn.getAttribute('data-target'));
-            target?.classList.toggle('open');
+            document.getElementById(btn.getAttribute('data-target'))?.classList.toggle('open');
           });
         });
-
         return;
       }
 
       const byProject = new Map();
-
       for (const test of filtered) {
         const project = typeof test.a === 'string' ? test.a.trim() : '';
         const key = project || '—';
@@ -411,12 +693,12 @@
       }
 
       container.innerHTML = html;
-      $('#visible-count').textContent = String(filtered.length);
+      const countEl = $('#visible-count');
+      if (countEl) countEl.textContent = String(filtered.length);
 
       $$('.history-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
-          const target = document.getElementById(btn.getAttribute('data-target'));
-          target?.classList.toggle('open');
+          document.getElementById(btn.getAttribute('data-target'))?.classList.toggle('open');
         });
       });
     }
@@ -431,7 +713,7 @@
         const filter = chip.getAttribute('data-filter');
         if (activeFilters.has(filter)) {
           activeFilters.delete(filter);
-          chip.classList.remove('active');
+          chip.classList.remove('active', 'passed', 'failed');
         } else {
           activeFilters.add(filter);
           chip.classList.add('active');
@@ -468,6 +750,8 @@
     parseRunData();
     initRunTimestamp();
     renderPieChart();
+    renderCoveragePanel();
+    renderBuildPanel();
     loadTrends();
   }
 
