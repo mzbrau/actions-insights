@@ -39,6 +39,7 @@ Use this checklist to verify your Actions Insights setup before merging. AI assi
 
 - [ ] Reporting steps that must not block releases or builds use `continue-on-error: true`
 - [ ] Steps that run after test failures use `if: always()` **and** `continue-on-error: true` when in the same job as release/deploy steps
+- [ ] If reporting integrity should fail CI (including action crashes), omit `continue-on-error` — it hides step failures
 
 ## Output configuration
 
@@ -100,7 +101,7 @@ After the workflow runs:
 - **Wrong format detected** — ensure XML files use a supported schema; see [Prepare Test Output](./prepare-test-output)
 - **No PR comment** — confirm the workflow ran on a pull request and `comment-mode` is not `off`; check fork PR permissions
 - **Release step fails with 403** — job likely has `contents: read` but needs `contents: write` for `gh release create`
-- **Reporting failure blocks release** — add `continue-on-error: true` to the Actions Insights step; `if: always()` alone is not enough
+- **Reporting failure blocks release** — add `continue-on-error: true` to the Actions Insights step; `if: always()` alone is not enough. Note that this also hides total action crashes — omit it when reporting integrity should fail CI.
 - **History not updating** — verify `history-token` has write access to the history repository
 - **History fails on fork PR** — guard `history-enabled` with a same-repo check; fork PRs cannot access repository secrets
 - **No coverage in reports** — verify `coverage-enabled: true`, the test command produces a supported format, and the `coverage-files` glob matches the output path; see [Prepare Test Output — Code Coverage](./prepare-test-output#code-coverage)

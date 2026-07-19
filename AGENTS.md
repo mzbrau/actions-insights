@@ -56,7 +56,7 @@ Full details: [`docs/docs/reference/architecture.md`](docs/docs/reference/archit
 
 ## Development commands
 
-Prerequisites: Node.js 20+, npm.
+Prerequisites: Node.js 24+, npm.
 
 ```bash
 npm ci                    # install all workspaces

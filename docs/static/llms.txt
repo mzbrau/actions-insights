@@ -15,7 +15,7 @@
 
 ## Integration rules (read before editing workflows)
 - Job-level permissions must satisfy every step in the job (contents: write for release jobs)
-- Use continue-on-error: true on ancillary reporting steps (if: always() alone is not enough)
+- Use continue-on-error: true on ancillary reporting steps (if: always() alone is not enough). Omit it when reporting integrity should fail CI — it also hides total action crashes.
 - Guard history-enabled on pull_request workflows (fork PRs cannot access secrets)
 - AI Setup Guide workflow integration rules: /docs/setup/ai-setup#workflow-integration-rules
 

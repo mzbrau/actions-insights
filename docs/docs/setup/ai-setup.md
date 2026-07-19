@@ -124,6 +124,8 @@ Test reporting is ancillary — a reporting outage should not block releases or 
 
 `if: always()` only controls whether the step **runs** after a prior failure. If the step itself fails, the job still fails and subsequent steps are skipped unless `continue-on-error: true` is set.
 
+**Trade-off:** `continue-on-error: true` also hides total action failures (including load-time crashes). Omit it when reporting integrity should fail CI; keep `if: always()` so the step still runs after test failures.
+
 ### Phase 4 — Code coverage (optional, ask the user)
 
 **Stop and ask the user**: "Would you like to include code coverage in your test reports?"
@@ -431,7 +433,7 @@ Before committing, verify every item on the [Setup Checklist](./checklist). At m
 - [ ] `test-results` glob matches the actual output path
 - [ ] Actions Insights step runs **after** the test step
 - [ ] Workflow permissions match enabled outputs **and every other step in the job** (e.g. `contents: write` for release jobs)
-- [ ] `continue-on-error: true` on reporting steps that must not block releases or builds
+- [ ] `continue-on-error: true` on reporting steps that must not block releases or builds (omit when reporting integrity should fail CI)
 - [ ] If coverage enabled: test runner writes a supported format (Cobertura, OpenCover, LCOV, or JaCoCo) before the action step
 - [ ] `coverage-files` glob matches the actual coverage output path (or all coverage inputs omitted/default)
 - [ ] `coverage-enabled`, `coverage-files`, and `coverage-fail-if-missing` set together (or all omitted/default)
@@ -464,7 +466,7 @@ When adding or modifying Actions Insights across multiple workflows, apply these
 | Release / pre-release | Same job as `gh release create` | **Required** | **`write`** (release upload) |
 
 1. **Job-level permissions must satisfy every step** — `contents: read` breaks `gh release create` and release asset uploads in the same job.
-2. **`if: always()` is not non-blocking** — add `continue-on-error: true` so reporting failures do not skip release or deploy steps.
+2. **`if: always()` is not non-blocking** — add `continue-on-error: true` so reporting failures do not skip release or deploy steps. Omit `continue-on-error` when reporting integrity should fail CI (it also hides total action crashes).
 3. **History requires a token** — guard `history-enabled` on fork PRs; secrets are unavailable to workflows triggered by external forks.
 4. **Preserve non-blocking reporting** — when migrating from `dorny/test-reporter` or similar, keep reporting failures from failing CI.
 

@@ -92,6 +92,8 @@ Test reporting should not block releases, deployments, or the overall build. Add
 
 `if: always()` only ensures the step runs after a prior failure — it does **not** prevent the step's own failure from failing the job. Use both attributes when reporting shares a job with release or publish steps.
 
+**Trade-off:** `continue-on-error: true` also hides total action failures (including load-time crashes). If reporting integrity should fail CI, omit `continue-on-error` and keep `if: always()` so the step still runs after test failures.
+
 When migrating from `dorny/test-reporter` or similar tools that used `fail-on-error: false`, add `continue-on-error: true` to preserve the same behavior.
 
 See the [Setup Checklist](./checklist) for a full pre-flight review.

@@ -9,10 +9,11 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsc && node scripts/copy-assets.js && esbuild src/main.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --format=cjs --sourcemap --legal-comments=inline",
+    "build": "tsc && node scripts/copy-assets.js && node scripts/esbuild-action.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
+    "verify-bundle": "node scripts/verify-bundle-load.js",
     "generate-sample": "tsx scripts/generate-sample.ts",
     "generate-local": "tsx scripts/generate-local.ts",
     "import-history": "tsx scripts/import-history.ts",
@@ -47,6 +48,6 @@
     "vitest": "^2.1.8"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   }
 }
