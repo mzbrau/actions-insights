@@ -353,3 +353,11 @@ export {
   normalizeTimingRunRecord,
   toTimingSummaryCompact,
 } from './timing';
+
+export type {
+  AiAgentContextInput,
+  AiAgentFailureInput,
+  FormatAiAgentInstructionsOptions,
+} from './ai-agent-instructions';
+
+export { formatAiAgentInstructions } from './ai-agent-instructions';

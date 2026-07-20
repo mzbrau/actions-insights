@@ -1,5 +1,6 @@
 import type { ActionConfig } from '../config';
 import type { ReportingContext } from './context';
+import { formatAiAgentMarkdownSection } from './ai-agent-section';
 import { formatJobSummaryTestTables } from './all-tests-summary';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
@@ -10,6 +11,7 @@ import { formatCoverageCompactLine, formatCoverageStatsTable } from './coverage-
 import { toCoverageSummaryCompact } from '../model/coverage';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
+
 
 export interface RenderJobSummaryOptions {
   /** Include hierarchical all-tests tables. Defaults to true. */
@@ -98,7 +100,20 @@ export function renderJobSummary(
       lines.push(`_…and ${remaining.toLocaleString()} more failed test${remaining === 1 ? '' : 's'}. [View report](${links.artifacts})_`);
       lines.push('');
     }
+    lines.push(
+      formatAiAgentMarkdownSection(failedTests, run, {
+        maxFailures: config.maxFailedTestsInSummary,
+        maxStackTraceLines: config.maxStackTraceLines,
+        includeStdout: config.includeStdout,
+        includeStderr: config.includeStderr,
+      }, {
+        passed: ctx.extendedStats.passed,
+        failed: ctx.extendedStats.failed,
+        skipped: ctx.extendedStats.skipped,
+      }),
+    );
   }
+
 
   if (config.includeSlowestTests > 0 && slowTests.length > 0) {
     lines.push(

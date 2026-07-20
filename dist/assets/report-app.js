@@ -61,17 +61,89 @@
         header.closest('.failure-item')?.classList.toggle('open');
       });
     });
-    $$('.copy-btn').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      return Promise.resolve(document.execCommand('copy'));
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
+  const COPY_NAME_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
+  function renderCopyNameButton(fullName) {
+    return `<button type="button" class="copy-name-btn" data-copy-name="${escapeHtml(fullName)}" aria-label="Copy test name" title="Copy full test name">${COPY_NAME_ICON}</button>`;
+  }
+
+  function flashCopied(btn, restoreHtml) {
+    const previous = restoreHtml !== undefined ? restoreHtml : btn.innerHTML;
+    btn.classList.add('copied');
+    if (btn.classList.contains('copy-btn') || btn.classList.contains('ai-agent-copy-btn')) {
+      btn.textContent = 'Copied!';
+    } else {
+      btn.setAttribute('title', 'Copied!');
+    }
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      if (btn.classList.contains('copy-btn') || btn.classList.contains('ai-agent-copy-btn')) {
+        btn.textContent = 'Copy';
+      } else {
+        btn.innerHTML = previous;
+        btn.setAttribute('title', 'Copy full test name');
+      }
+    }, 1500);
+  }
+
+  function initClipboard() {
+    document.addEventListener('click', (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (!target) return;
+
+      const nameBtn = target.closest('.copy-name-btn');
+      if (nameBtn) {
         e.stopPropagation();
-        const pre = btn.closest('.code-block')?.querySelector('pre');
-        if (pre) {
-          navigator.clipboard.writeText(pre.textContent || '').then(() => {
-            btn.textContent = 'Copied!';
-            setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-          });
-        }
-      });
+        e.preventDefault();
+        const name = nameBtn.getAttribute('data-copy-name') || '';
+        if (!name) return;
+        const previous = nameBtn.innerHTML;
+        copyText(name).then((ok) => {
+          if (ok) flashCopied(nameBtn, previous);
+        });
+        return;
+      }
+
+      const aiBtn = target.closest('.ai-agent-copy-btn');
+      if (aiBtn) {
+        e.stopPropagation();
+        const pre = aiBtn.closest('.ai-agent-details')?.querySelector('.ai-agent-prompt');
+        if (!pre) return;
+        copyText(pre.textContent || '').then((ok) => {
+          if (ok) flashCopied(aiBtn);
+        });
+        return;
+      }
+
+      const copyBtn = target.closest('.copy-btn:not(.ai-agent-copy-btn)');
+      if (copyBtn) {
+        e.stopPropagation();
+        const pre = copyBtn.closest('.code-block')?.querySelector('pre');
+        if (!pre) return;
+        copyText(pre.textContent || '').then((ok) => {
+          if (ok) flashCopied(copyBtn);
+        });
+      }
     });
   }
 
@@ -607,6 +679,7 @@
           html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
             <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
             <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>
+            ${renderCopyNameButton(test.n)}
             <span class="test-meta">${escapeHtml(meta)}</span>
             <span class="test-links">
               ${wfUrl ? `<a href="${escapeHtml(wfUrl)}" target="_blank" rel="noopener">log</a>` : ''}
@@ -673,6 +746,7 @@
             html += `<div class="test-row" data-name="${escapeHtml(test.n)}">
               <span class="test-outcome">${OUTCOME_ICONS[outcome]}</span>
               <span class="test-name" title="${escapeHtml(test.n)}">${escapeHtml(getShortName(test))}</span>
+              ${renderCopyNameButton(test.n)}
               <span class="test-links">
                 ${wfUrl ? `<a href="${escapeHtml(wfUrl)}" target="_blank" rel="noopener">log</a>` : ''}
                 ${codeUrl ? `${wfUrl ? ' · ' : ''}<a href="${escapeHtml(codeUrl)}" target="_blank" rel="noopener">code</a>` : ''}
@@ -747,6 +821,7 @@
     initTheme();
     initTabs();
     initFailures();
+    initClipboard();
     parseRunData();
     initRunTimestamp();
     renderPieChart();

@@ -1,4 +1,5 @@
 import type { FailureRecord } from '@actions-insights/history-models';
+import { CopyTestNameButton } from '../ui/CopyTestNameButton';
 
 interface FailureAccordionProps {
   failures: FailureRecord[];
@@ -30,19 +31,22 @@ export function FailureAccordion({ failures, expanded, onToggle }: FailureAccord
             const isOpen = expanded.has(f.fullName);
             return (
               <article key={f.fullName} className="failure-item">
-                <button
-                  type="button"
-                  className="failure-header"
-                  aria-expanded={isOpen}
-                  onClick={() => onToggle(f.fullName)}
-                >
-                  <div>
-                    <div className="failure-name">❌ {f.fullName}</div>
-                    {f.message && !isOpen && (
-                      <div className="failure-message">{f.message.split('\n')[0]}</div>
-                    )}
-                  </div>
-                </button>
+                <div className="failure-header-row">
+                  <button
+                    type="button"
+                    className="failure-header"
+                    aria-expanded={isOpen}
+                    onClick={() => onToggle(f.fullName)}
+                  >
+                    <div>
+                      <div className="failure-name">❌ {f.fullName}</div>
+                      {f.message && !isOpen && (
+                        <div className="failure-message">{f.message.split('\n')[0]}</div>
+                      )}
+                    </div>
+                  </button>
+                  <CopyTestNameButton fullName={f.fullName} />
+                </div>
                 {isOpen && (
                   <div className="failure-body">
                     {f.message && <pre className="code-block">{f.message}</pre>}

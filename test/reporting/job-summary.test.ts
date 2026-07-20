@@ -20,6 +20,8 @@ describe('job-summary', () => {
     expect(summary).toContain('## Failed Tests');
     expect(summary).toContain('### SampleTests');
     expect(summary).toContain('[`ShouldFail`]');
+    expect(summary).toContain('<summary>Instructions for an AI agent</summary>');
+    expect(summary).toContain('Investigate and fix the following failing tests');
     expect(summary).not.toContain('| Test | Class | Duration | Details |');
     expect(summary).toContain('## All Tests');
     expect(summary).toContain('| Report | Passed | Failed | Skipped | Time |');

@@ -36,6 +36,7 @@ with:
 ## What It Includes
 
 - Failed tests table with stack traces
+- Collapsible **Instructions for an AI agent** section (when tests fail) with a copyable prompt for investigating failures
 - Slowest tests
 - Skipped tests
 - Links to the workflow run and the HTML report artifact

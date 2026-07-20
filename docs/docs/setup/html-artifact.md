@@ -71,8 +71,8 @@ To download files for offline use:
 
 | Tab | Contents |
 |-----|----------|
-| Summary | KPIs, outcome distribution, coverage bars, failed tests, slow tests |
-| All Tests | Searchable/filterable test list with per-test history from embedded trends |
+| Summary | KPIs, outcome distribution, coverage bars, failed tests (with **Instructions for an AI agent** prompt and per-test name copy), slow tests |
+| All Tests | Searchable/filterable test list with per-test history from embedded trends and copy-full-name buttons |
 | Test Coverage | Shown when coverage is present — project → file → method drill-down |
 | Build | Shown when diagnostics and/or workflow timing are present |
 

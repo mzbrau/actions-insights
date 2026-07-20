@@ -6,6 +6,7 @@ import {
   getPassRateFromTrends,
   getShortName,
 } from '../../utils/testList';
+import { CopyTestNameButton } from '../ui/CopyTestNameButton';
 import { TestHistoryPanel } from './TestHistoryPanel';
 
 const COL_SPAN = 7;
@@ -49,6 +50,7 @@ export function TestRow({
         </td>
         <td className="tests-col-name">
           <span className="test-name" title={test.n}>{getShortName(test)}</span>
+          <CopyTestNameButton fullName={test.n} />
         </td>
         <td className="tests-col-class test-class-cell">
           {!hideClass && <span className="test-class mono small" title={cls}>{cls}</span>}

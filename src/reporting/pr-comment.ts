@@ -9,6 +9,7 @@ import {
 import { computeTestDelta, formatDeltaSection, BASE_BRANCH_DELTA_CONFIG, PUSH_DELTA_CONFIG, buildBaseBranchDeltaHeading, buildPushDeltaHeading } from './delta';
 import { formatGroupedFailures } from './failures';
 import { getShortTestName, groupTestsByClass } from './grouping';
+import { formatAiAgentMarkdownSection } from './ai-agent-section';
 import { formatFooterLinks, formatHistoryDetailsLink, formatTestNameWithLinks, type ReportLinks } from './links';
 import { formatSlowTestsSection, SLOW_TOTAL } from './slow-tests';
 import { resolveCoverageComparison } from './coverage-delta';
@@ -16,6 +17,7 @@ import { formatCoverageCompactLine, formatCoverageStatsTable } from './coverage-
 import { toCoverageSummaryCompact } from '../model/coverage';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
 import { formatUtcTimestamp } from './time';
+
 
 export const COMMENT_MARKER = '<!-- actions-insights-report -->';
 
@@ -135,7 +137,20 @@ export function renderPrComment(
       lines.push(`[View complete report](${links.artifacts})`);
       lines.push('');
     }
+    lines.push(
+      formatAiAgentMarkdownSection(failedTests, run, {
+        maxFailures: config.maxFailedTestsInComment,
+        maxStackTraceLines: config.maxStackTraceLines,
+        includeStdout: config.includeStdout,
+        includeStderr: config.includeStderr,
+      }, {
+        passed: extendedStats.passed,
+        failed: extendedStats.failed,
+        skipped: extendedStats.skipped,
+      }),
+    );
   }
+
 
   if (config.includeSlowestTests > 0 && slowTests.length > 0) {
     const slowLimit = Math.min(config.includeSlowestTests, SLOW_TOTAL);

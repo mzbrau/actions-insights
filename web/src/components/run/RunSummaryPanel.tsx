@@ -1,8 +1,10 @@
 import type { NormalizedRunRecord, RunSummary } from '@actions-insights/history-models';
+import { AiAgentInstructions } from './AiAgentInstructions';
 import { FailureAccordion } from './FailureAccordion';
 import { StatCard } from '../ui/StatCard';
 import { OutcomeDonutStat } from '../ui/OutcomeDonutStat';
 import { CoverageProgressBar, computeMetricsDelta, coverageDeltaClass, formatCoverageDelta } from '../ui/CoverageProgressBar';
+import { CopyTestNameButton } from '../ui/CopyTestNameButton';
 import { formatDuration, shortTestName } from '../../utils/format';
 
 interface RunSummaryPanelProps {
@@ -91,6 +93,7 @@ export function RunSummaryPanel({
         <section className="section">
           <h2 className="section-title">Failed Tests ({failures.length})</h2>
           <FailureAccordion failures={failures} expanded={expanded} onToggle={onToggleFailure} />
+          <AiAgentInstructions run={run} />
         </section>
       )}
 
@@ -99,7 +102,11 @@ export function RunSummaryPanel({
           <h2 className="section-title">Slow tests</h2>
           <ul className="simple-list">
             {slowTests.map((t) => (
-              <li key={t.n}>⏱ {shortTestName(t.n)} — {formatDuration(t.d)}</li>
+              <li key={t.n}>
+                ⏱ {shortTestName(t.n)}
+                <CopyTestNameButton fullName={t.n} />
+                {' '}— {formatDuration(t.d)}
+              </li>
             ))}
           </ul>
         </section>

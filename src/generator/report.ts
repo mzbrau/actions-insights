@@ -19,7 +19,17 @@ import {
   formatCoveragePercent,
 } from '../reporting/coverage-stats';
 import { getCodeSearchName, getShortTestName, groupTestsByClass } from '../reporting/grouping';
+import {
+  formatAiAgentInstructions,
+} from '@actions-insights/history-models';
+import { toAiAgentContextInput, toAiAgentFailureInput } from '../reporting/ai-agent-section';
 import { escapeHtml } from './escape';
+
+const COPY_NAME_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+
+function renderCopyNameButton(fullName: string): string {
+  return `<button type="button" class="copy-name-btn" data-copy-name="${escapeHtml(fullName)}" aria-label="Copy test name" title="Copy full test name">${COPY_NAME_ICON}</button>`;
+}
 
 function resolveAssetsDir(): string {
   const candidates = [
@@ -82,13 +92,25 @@ function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
   return `<article class="failure-item${newClass}">
     <div class="failure-header">
       <div>
-        <div class="failure-name">${escapeHtml(shortName)} ${links}</div>
+        <div class="failure-name">${escapeHtml(shortName)}${renderCopyNameButton(test.fullName)} ${links}</div>
         ${test.message ? `<div class="failure-message">${escapeHtml(test.message)}</div>` : ''}
       </div>
       <span>${formatDuration(test.durationMs)}</span>
     </div>
     <div class="failure-body">${stack}${stdout ? `<p><strong>StdOut</strong></p>${stdout}` : ''}${stderr ? `<p><strong>StdErr</strong></p>${stderr}` : ''}</div>
   </article>`;
+}
+
+function renderAiAgentSection(run: TestRun, failures: TestCase[]): string {
+  const prompt = formatAiAgentInstructions(
+    failures.map(toAiAgentFailureInput),
+    toAiAgentContextInput(run),
+  );
+  return `<details class="ai-agent-details">
+    <summary>Instructions for an AI agent</summary>
+    <pre class="ai-agent-prompt">${escapeHtml(prompt.trimEnd())}</pre>
+    <button type="button" class="copy-btn ai-agent-copy-btn">Copy</button>
+  </details>`;
 }
 
 function renderFailuresSection(run: TestRun): string {
@@ -105,6 +127,7 @@ function renderFailuresSection(run: TestRun): string {
   return `<section class="section">
     <h2 class="section-title">Failed Tests (${failures.length.toLocaleString()})</h2>
     ${body}
+    ${renderAiAgentSection(run, failures)}
   </section>`;
 }
 
@@ -116,7 +139,7 @@ function renderSlowTestsSection(run: TestRun, slowThresholdMs: number): string {
   if (slow.length === 0) return '';
 
   const items = slow.map((t) =>
-    `<li>⏱ ${escapeHtml(getShortTestName(t))} — ${formatDuration(t.durationMs)}</li>`).join('');
+    `<li>⏱ ${escapeHtml(getShortTestName(t))}${renderCopyNameButton(t.fullName)} — ${formatDuration(t.durationMs)}</li>`).join('');
 
   return `<section class="section">
     <h2 class="section-title">Slow tests</h2>

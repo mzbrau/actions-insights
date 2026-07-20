@@ -145,6 +145,11 @@ describe('report generator', () => {
     expect(html).toContain('panel-summary');
     expect(html).toContain('panel-tests');
     expect(html).toContain('ShouldFail');
+    expect(html).toContain('copy-name-btn');
+    expect(html).toContain('data-copy-name="SampleTests.ShouldFail"');
+    expect(html).toContain('ai-agent-details');
+    expect(html).toContain('Instructions for an AI agent');
+    expect(html).toContain('Investigate and fix the following failing tests');
     expect(html).toContain('header-logo');
     expect(html).toContain('data-theme=');
     expect(html).toContain('.header-logo-light { background-image: url("data:image/png;base64,');

@@ -3,6 +3,7 @@ import {
   getClassNameFromFullName,
   getShortNameFromFullName,
 } from '../../utils/testList';
+import { CopyTestNameButton } from '../ui/CopyTestNameButton';
 import { TestHistoryPanel } from '../run/TestHistoryPanel';
 
 const COL_SPAN = 5;
@@ -29,6 +30,7 @@ export function ProblematicTestRow({
       <tr className="test-table-row" data-name={name}>
         <td className="tests-col-name">
           <span className="test-name" title={name}>{getShortNameFromFullName(name)}</span>
+          <CopyTestNameButton fullName={name} />
         </td>
         <td className="tests-col-class test-class-cell">
           <span className="test-class mono small" title={getClassNameFromFullName(name)}>

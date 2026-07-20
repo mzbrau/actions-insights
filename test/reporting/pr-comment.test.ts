@@ -17,6 +17,8 @@ describe('pr-comment', () => {
     expect(body).toContain('### SampleTests');
     expect(body).toContain('[`ShouldFail`]');
     expect(body).toContain('Expected true but was false');
+    expect(body).toContain('<summary>Instructions for an AI agent</summary>');
+    expect(body).toContain('Investigate and fix the following failing tests');
     expect(body).toContain('Actions Insights · [Workflow run]');
   });
 

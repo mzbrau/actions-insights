@@ -7,6 +7,8 @@ title: PR Comments
 
 When a workflow runs on a pull request, Actions Insights posts a rich comment with test results — failure counts, stack traces, and slow tests — optimised for mobile review. When [code coverage](./prepare-test-output#code-coverage) is enabled, the comment also includes a compact coverage line and per-project breakdown.
 
+When there are failing tests, the comment includes a collapsible **Instructions for an AI agent** section. Expanding it reveals a copyable prompt with run context and failure details (messages, stack traces, stdout/stderr) so you can hand the investigation off to an AI coding agent.
+
 When the [history repository](./history-repository) is enabled, the comment includes a **Details** link (at the top and in the footer) to the run in the history dashboard, and a **Test history** footer link to the repository dashboard. Each time the comment is updated, a **Previous results** section accumulates the timestamp and pass/fail/skip counts from prior runs.
 
 ![PR comment with failure details and stack trace](/img/comment.png)
