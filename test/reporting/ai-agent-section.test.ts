@@ -20,6 +20,8 @@ describe('formatAiAgentInstructions', () => {
         repository: 'acme/demo',
         branch: 'main',
         workflow: 'CI',
+        pullRequestUrl: 'https://github.com/acme/demo/pull/42',
+        workflowRunUrl: 'https://github.com/acme/demo/actions/runs/99',
         commitShortSha: 'abc1234',
         commitMessage: 'Fix tests',
         author: 'dev',
@@ -32,6 +34,8 @@ describe('formatAiAgentInstructions', () => {
     expect(text).toContain('Investigate and fix the following failing tests');
     expect(text).toContain('- Repository: acme/demo');
     expect(text).toContain('- Branch: main');
+    expect(text).toContain('- Pull request: https://github.com/acme/demo/pull/42');
+    expect(text).toContain('- Workflow run: https://github.com/acme/demo/actions/runs/99');
     expect(text).toContain('- Results: 1 passed, 1 failed, 0 skipped');
     expect(text).toContain('### SampleTests.ShouldFail');
     expect(text).toContain('- Duration: 1.50s');
@@ -41,6 +45,18 @@ describe('formatAiAgentInstructions', () => {
     expect(text).toContain('Expected true but was false');
     expect(text).toContain('Stack trace:');
     expect(text).toContain('Locate each test in the codebase');
+  });
+
+  it('omits pull request when not provided but still includes workflow run', () => {
+    const text = formatAiAgentInstructions(
+      [{ fullName: 'A.One', message: 'm1' }],
+      {
+        workflowRunUrl: 'https://github.com/acme/demo/actions/runs/99',
+      },
+    );
+
+    expect(text).toContain('- Workflow run: https://github.com/acme/demo/actions/runs/99');
+    expect(text).not.toContain('- Pull request:');
   });
 
   it('respects maxFailures and stdout/stderr flags', () => {
@@ -84,6 +100,8 @@ describe('formatAiAgentMarkdownSection', () => {
     expect(md).toContain('<summary>Instructions for an AI agent</summary>');
     expect(md).toContain('```');
     expect(md).toContain('SampleTests.ShouldFail');
+    expect(md).toContain('- Pull request: https://github.com/owner/repo/pull/42');
+    expect(md).toContain('- Workflow run: https://github.com/owner/repo/actions/runs/1');
     expect(md).toContain('</details>');
   });
 

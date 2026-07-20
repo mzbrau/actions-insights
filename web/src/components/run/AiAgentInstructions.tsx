@@ -42,6 +42,8 @@ export function AiAgentInstructions({ run }: AiAgentInstructionsProps) {
       repository: run.context.repository,
       branch: run.context.branch,
       workflow: run.context.workflow,
+      pullRequestUrl: run.context.prUrl,
+      workflowRunUrl: run.context.workflowUrl,
       commitShortSha: run.context.commitShortSha,
       commitMessage: run.context.commitMessage,
       author: run.context.author,

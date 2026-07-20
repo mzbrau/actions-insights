@@ -32,6 +32,8 @@ export function toAiAgentContextInput(
     repository: context.repository,
     branch: context.branch,
     workflow: context.workflow,
+    pullRequestUrl: context.prUrl,
+    workflowRunUrl: context.workflowUrl,
     commitShortSha: context.commitShortSha,
     commitMessage: context.commitMessage,
     author: context.author,

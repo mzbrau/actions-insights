@@ -17,6 +17,8 @@ export interface AiAgentContextInput {
   repository?: string;
   branch?: string;
   workflow?: string;
+  pullRequestUrl?: string;
+  workflowRunUrl?: string;
   commitShortSha?: string;
   commitMessage?: string;
   author?: string;
@@ -84,6 +86,8 @@ export function formatAiAgentInstructions(
   if (context.repository) lines.push(`- Repository: ${context.repository}`);
   if (context.branch) lines.push(`- Branch: ${context.branch}`);
   if (context.workflow) lines.push(`- Workflow: ${context.workflow}`);
+  if (context.pullRequestUrl) lines.push(`- Pull request: ${context.pullRequestUrl}`);
+  if (context.workflowRunUrl) lines.push(`- Workflow run: ${context.workflowRunUrl}`);
   if (context.commitShortSha || context.commitMessage) {
     const commit = [context.commitShortSha, context.commitMessage].filter(Boolean).join(' — ');
     lines.push(`- Commit: ${commit}`);
