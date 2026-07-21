@@ -361,6 +361,9 @@ export function renderReportHtml(
   </main>`
     : '';
 
+  // Blocking head script so `auto` / localStorage resolve before first paint (avoids light FOUC).
+  const themeBootstrap = `(function(){try{var k='actions-insights-theme';var s=localStorage.getItem(k);var d=document.documentElement.getAttribute('data-default-theme')||'auto';var t=s||d;if(t==='auto'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+
   return `<!DOCTYPE html>
 <html lang="en" data-theme="${initialTheme}" data-default-theme="${escapeHtml(theme)}">
 <head>
@@ -368,6 +371,7 @@ export function renderReportHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>${escapeHtml(reportTitle)} — Test Report</title>
   <style>${css}${logoCss}</style>
+  <script>${themeBootstrap}</script>
 </head>
 <body>
 <div class="app">

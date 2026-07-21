@@ -171,6 +171,18 @@ describe('report generator', () => {
     expect(html).toContain('data-theme="dark"');
   });
 
+  it('includes a head theme bootstrap that resolves prefers-color-scheme before paint', () => {
+    const html = renderReportHtml(sampleRun, 'Actions Insights', 'auto', 1000);
+    expect(html).toContain('actions-insights-theme');
+    expect(html).toContain('prefers-color-scheme: dark');
+    expect(html).toContain('data-default-theme');
+    // Bootstrap script appears in <head> before </head>, not only in the body bundle
+    const headEnd = html.indexOf('</head>');
+    const bootstrapIdx = html.indexOf('prefers-color-scheme: dark');
+    expect(bootstrapIdx).toBeGreaterThan(-1);
+    expect(bootstrapIdx).toBeLessThan(headEnd);
+  });
+
   it('embeds trends data when provided', () => {
     const html = renderReportHtml(sampleRun, 'Actions Insights', 'auto', 1000, sampleTrends);
     expect(html).toContain('id="trends-data"');
