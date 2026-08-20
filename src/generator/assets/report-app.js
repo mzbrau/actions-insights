@@ -587,6 +587,23 @@
     let activeFilters = new Set();
     let searchQuery = '';
     let sortBy = 'default';
+    let selectedSuite = 'all';
+
+    function getSuiteName(test) {
+      return typeof test.a === 'string' ? test.a.trim() : '';
+    }
+
+    function populateSuiteSelect() {
+      const select = $('#suite-select');
+      if (!select) return;
+      const summaries = runData.suites || [];
+      if (summaries.length <= 1) {
+        select.style.display = 'none';
+        return;
+      }
+      select.innerHTML = '<option value="all">All suites</option>' +
+        summaries.map((s) => `<option value="${escapeHtml(s.suite)}">${escapeHtml(s.suite)}</option>`).join('');
+    }
 
     function getPassRate(fullName) {
       const entry = trendsData?.tests?.[fullName];
@@ -602,6 +619,7 @@
         if (activeFilters.has('skipped') && outcome !== 'skipped') return false;
         if (activeFilters.has('slow') && t.d < slowThreshold) return false;
         if (activeFilters.has('new') && !t.nf) return false;
+        if (selectedSuite !== 'all' && getSuiteName(t) !== selectedSuite) return false;
         if (searchQuery) {
           const q = searchQuery.toLowerCase();
           const hay = [t.n, t.a, t.ns, t.c, getClassName(t)].join(' ').toLowerCase();
@@ -803,6 +821,12 @@
       render();
     });
 
+    $('#suite-select')?.addEventListener('change', (e) => {
+      selectedSuite = e.target.value;
+      render();
+    });
+
+    populateSuiteSelect();
     render();
   }
 

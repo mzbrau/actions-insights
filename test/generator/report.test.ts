@@ -166,6 +166,20 @@ describe('report generator', () => {
     expect(html).toContain('SampleTests');
   });
 
+  it('renders per-suite summary section and includes suite data in embedded payload', () => {
+    const html = renderReportHtml(sampleRun, 'Actions Insights', 'auto', 1000);
+    expect(html).toContain('Per Suite Summary');
+    expect(html).toContain('SampleTests.dll');
+    expect(html).toContain('"suites":');
+    expect(html).toContain('"suite":"SampleTests.dll"');
+  });
+
+  it('renders suite filter dropdown on all-tests tab', () => {
+    const html = renderReportHtml(sampleRun, 'Actions Insights', 'auto', 1000);
+    expect(html).toContain('id="suite-select"');
+    expect(html).toContain('All suites');
+  });
+
   it('sets data-theme dark when theme input is dark', () => {
     const html = renderReportHtml(sampleRun, 'Actions Insights', 'dark', 1000);
     expect(html).toContain('data-theme="dark"');

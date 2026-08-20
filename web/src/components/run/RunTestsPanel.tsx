@@ -6,6 +6,7 @@ import { TestsTable } from './TestsTable';
 import {
   filterTests,
   getSortedProjectNames,
+  getSortedSuiteNames,
   groupTestsByProjectAndClass,
   sortTests,
   type TestFilterKey,
@@ -51,6 +52,7 @@ export function RunTestsPanel({
 }: RunTestsPanelProps) {
   const [search, setSearch] = useState('');
   const [selectedProject, setSelectedProject] = useState('all');
+  const [selectedSuite, setSelectedSuite] = useState('all');
   const [filters, setFilters] = useState<Set<TestFilterKey>>(new Set());
   const [sortBy, setSortBy] = useState<TestSortBy>('default');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -58,6 +60,7 @@ export function RunTestsPanel({
   const getPassRate = (fullName: string) => trends?.[fullName]?.passRate ?? null;
 
   const projectNames = useMemo(() => getSortedProjectNames(tests), [tests]);
+  const suiteNames = useMemo(() => getSortedSuiteNames(tests), [tests]);
 
   const filtered = useMemo(
     () => filterTests(tests, {
@@ -65,8 +68,9 @@ export function RunTestsPanel({
       filters,
       slowThreshold,
       project: selectedProject === 'all' ? undefined : selectedProject,
+      suite: selectedSuite === 'all' ? undefined : selectedSuite,
     }),
-    [tests, search, filters, slowThreshold, selectedProject],
+    [tests, search, filters, slowThreshold, selectedProject, selectedSuite],
   );
 
   const sorted = useMemo(
@@ -102,8 +106,23 @@ export function RunTestsPanel({
       <h2 className="section-title">All Tests ({totalCount})</h2>
 
       <div className="tests-toolbar">
-        {projectNames.length > 1 && (
-          <div className="tests-toolbar-row">
+        <div className="tests-toolbar-row">
+          {suiteNames.length > 1 && (
+            <select
+              className="sort-select tests-suite-select"
+              value={selectedSuite}
+              onChange={(e) => setSelectedSuite(e.target.value)}
+              aria-label="Filter by suite"
+            >
+              <option value="all">All suites</option>
+              {suiteNames.map((suite) => (
+                <option key={suite} value={suite}>
+                  {suite === '—' ? 'No suite' : suite}
+                </option>
+              ))}
+            </select>
+          )}
+          {projectNames.length > 1 && (
             <select
               className="sort-select tests-project-select"
               value={selectedProject}
@@ -117,8 +136,8 @@ export function RunTestsPanel({
                 </option>
               ))}
             </select>
-          </div>
-        )}
+          )}
+        </div>
         <div className="tests-toolbar-row">
           <input
             type="search"

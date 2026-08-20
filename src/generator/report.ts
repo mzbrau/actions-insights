@@ -19,6 +19,7 @@ import {
   formatCoveragePercent,
 } from '../reporting/coverage-stats';
 import { getCodeSearchName, getShortTestName, groupTestsByClass } from '../reporting/grouping';
+import { computeSuiteSummaries } from '../reporting/suite-summary';
 import {
   formatAiAgentInstructions,
 } from '@actions-insights/history-models';
@@ -67,6 +68,28 @@ function toCompactTests(run: TestRun, _slowThresholdMs: number) {
     m: test.method ?? test.name,
     nf: test.isNewFailure,
   }));
+}
+
+function renderSuiteSummarySection(tests: TestCase[]): string {
+  const summaries = computeSuiteSummaries(tests);
+  if (summaries.length === 0) return '';
+
+  const rows = summaries.map((s) => {
+    const cls = s.failed > 0 ? 'failed' : s.passed === s.total ? 'passed' : '';
+    return `<tr class="${cls}"><td>${escapeHtml(s.suite)}</td><td>${s.total.toLocaleString()}</td><td>${s.passed.toLocaleString()}</td><td>${s.failed.toLocaleString()}</td><td>${s.skipped.toLocaleString()}</td><td>${s.inconclusive.toLocaleString()}</td><td>${formatDuration(s.durationMs)}</td></tr>`;
+  }).join('');
+
+  return `<section class="section suite-summary-section">
+    <h2 class="section-title">Per Suite Summary</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Suite</th><th>Total</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Inconclusive</th><th>Time</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </section>`;
 }
 
 function renderFailureBlock(test: TestCase, ctx: TestRun['context']): string {
@@ -294,6 +317,16 @@ export function renderReportHtml(
   const hasBuild = Boolean(run.diagnostics || run.workflowTiming);
   const coverageDelta = buildCoverageDelta(run, trends);
 
+  const suiteSummaries = computeSuiteSummaries(run.tests).map((s) => ({
+    suite: s.suite,
+    total: s.total,
+    passed: s.passed,
+    failed: s.failed,
+    skipped: s.skipped,
+    inconclusive: s.inconclusive,
+    durationMs: s.durationMs,
+  }));
+
   const runJson = JSON.stringify({
     stats,
     status,
@@ -314,6 +347,7 @@ export function renderReportHtml(
       completedAt: runTimestamp,
     },
     tests: toCompactTests(run, slowThresholdMs),
+    suites: suiteSummaries,
     slowThreshold: slowThresholdMs,
     coverage: hasCoverage && run.coverage
       ? {
@@ -425,6 +459,7 @@ export function renderReportHtml(
     </div>
 
     ${renderSummaryCoverageSection(run)}
+    ${renderSuiteSummarySection(run.tests)}
     ${renderFailuresSection(run)}
     ${renderSlowTestsSection(run, slowThresholdMs)}
   </main>
@@ -435,6 +470,9 @@ export function renderReportHtml(
     </div>
     <div class="toolbar">
       <input id="test-search" class="search-input" type="search" placeholder="Search tests..."/>
+      <select id="suite-select" class="sort-select suite-select">
+        <option value="all">All suites</option>
+      </select>
       <select id="sort-select" class="sort-select">
         <option value="default">Sort: Default (Grouped)</option>
         <option value="name">Sort: Name</option>
