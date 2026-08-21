@@ -590,7 +590,8 @@
     let selectedSuite = 'all';
 
     function getSuiteName(test) {
-      return typeof test.a === 'string' ? test.a.trim() : '';
+      const name = typeof test.a === 'string' ? test.a.trim() : '';
+      return name || 'No suite';
     }
 
     function populateSuiteSelect() {

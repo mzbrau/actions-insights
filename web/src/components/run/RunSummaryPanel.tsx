@@ -101,7 +101,7 @@ export function RunSummaryPanel({
               <tbody>
                 {suiteSummary.map((s) => (
                   <tr key={s.suite} className={s.failed > 0 ? 'failed' : s.passed === s.total ? 'passed' : ''}>
-                    <td>{s.suite}</td>
+                    <td>{s.suite === '—' ? 'No suite' : s.suite}</td>
                     <td>{s.total.toLocaleString()}</td>
                     <td>{s.passed.toLocaleString()}</td>
                     <td>{s.failed.toLocaleString()}</td>

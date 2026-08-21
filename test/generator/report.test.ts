@@ -174,6 +174,15 @@ describe('report generator', () => {
     expect(html).toContain('"suite":"SampleTests.dll"');
   });
 
+  it('omits per-suite summary section when the only bucket is No suite', () => {
+    const runWithoutAssemblies: TestRun = {
+      ...sampleRun,
+      tests: sampleRun.tests.map((t) => ({ ...t, assembly: undefined })),
+    };
+    const html = renderReportHtml(runWithoutAssemblies, 'Actions Insights', 'auto', 1000);
+    expect(html).not.toContain('Per Suite Summary');
+  });
+
   it('renders suite filter dropdown on all-tests tab', () => {
     const html = renderReportHtml(sampleRun, 'Actions Insights', 'auto', 1000);
     expect(html).toContain('id="suite-select"');

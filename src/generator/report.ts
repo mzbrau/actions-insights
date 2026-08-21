@@ -19,7 +19,7 @@ import {
   formatCoveragePercent,
 } from '../reporting/coverage-stats';
 import { getCodeSearchName, getShortTestName, groupTestsByClass } from '../reporting/grouping';
-import { computeSuiteSummaries } from '../reporting/suite-summary';
+import { computeSuiteSummaries, shouldShowSuiteSummary } from '../reporting/suite-summary';
 import {
   formatAiAgentInstructions,
 } from '@actions-insights/history-models';
@@ -72,7 +72,7 @@ function toCompactTests(run: TestRun, _slowThresholdMs: number) {
 
 function renderSuiteSummarySection(tests: TestCase[]): string {
   const summaries = computeSuiteSummaries(tests);
-  if (summaries.length === 0) return '';
+  if (!shouldShowSuiteSummary(summaries)) return '';
 
   const rows = summaries.map((s) => {
     const cls = s.failed > 0 ? 'failed' : s.passed === s.total ? 'passed' : '';

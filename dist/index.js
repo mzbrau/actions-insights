@@ -134705,6 +134705,9 @@ function computeSuiteSummaries(tests) {
   }
   return [...buckets.values()].sort((a, b) => a.suite.localeCompare(b.suite));
 }
+function shouldShowSuiteSummary(summaries) {
+  return summaries.length > 1 || summaries.length === 1 && summaries[0].suite !== "No suite";
+}
 function formatSuiteSummaryMarkdown(summaries) {
   const lines = [
     "## Per Suite Summary",
@@ -134754,7 +134757,7 @@ function renderPrComment(ctx, config, links, previousResults = []) {
   }
   lines.push("", formatCompactSummary(extendedStats), "");
   const suiteSummaries = computeSuiteSummaries(run2.tests);
-  if (suiteSummaries.length > 0) {
+  if (shouldShowSuiteSummary(suiteSummaries)) {
     lines.push(formatSuiteSummaryMarkdown(suiteSummaries));
     lines.push("");
   }
@@ -135174,7 +135177,7 @@ function toCompactTests(run2, _slowThresholdMs) {
 }
 function renderSuiteSummarySection(tests) {
   const summaries = computeSuiteSummaries(tests);
-  if (summaries.length === 0) return "";
+  if (!shouldShowSuiteSummary(summaries)) return "";
   const rows = summaries.map((s) => {
     const cls = s.failed > 0 ? "failed" : s.passed === s.total ? "passed" : "";
     return `<tr class="${cls}"><td>${escapeHtml(s.suite)}</td><td>${s.total.toLocaleString()}</td><td>${s.passed.toLocaleString()}</td><td>${s.failed.toLocaleString()}</td><td>${s.skipped.toLocaleString()}</td><td>${s.inconclusive.toLocaleString()}</td><td>${formatDuration(s.durationMs)}</td></tr>`;

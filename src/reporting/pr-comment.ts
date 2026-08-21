@@ -16,7 +16,7 @@ import { resolveCoverageComparison } from './coverage-delta';
 import { formatCoverageCompactLine, formatCoverageStatsTable } from './coverage-stats';
 import { toCoverageSummaryCompact } from '../model/coverage';
 import { formatCommentStatsTable, formatCompactSummary } from './stats';
-import { computeSuiteSummaries, formatSuiteSummaryMarkdown } from './suite-summary';
+import { computeSuiteSummaries, formatSuiteSummaryMarkdown, shouldShowSuiteSummary } from './suite-summary';
 import { formatUtcTimestamp } from './time';
 
 
@@ -63,7 +63,7 @@ export function renderPrComment(
   lines.push('', formatCompactSummary(extendedStats), '');
 
   const suiteSummaries = computeSuiteSummaries(run.tests);
-  if (suiteSummaries.length > 0) {
+  if (shouldShowSuiteSummary(suiteSummaries)) {
     lines.push(formatSuiteSummaryMarkdown(suiteSummaries));
     lines.push('');
   }

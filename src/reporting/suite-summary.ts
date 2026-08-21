@@ -56,6 +56,10 @@ export function computeSuiteSummaries(tests: TestCase[]): SuiteSummary[] {
   return [...buckets.values()].sort((a, b) => a.suite.localeCompare(b.suite));
 }
 
+export function shouldShowSuiteSummary(summaries: SuiteSummary[]): boolean {
+  return summaries.length > 1 || (summaries.length === 1 && summaries[0].suite !== 'No suite');
+}
+
 export function formatSuiteSummaryMarkdown(summaries: SuiteSummary[]): string {
   const lines: string[] = [
     '## Per Suite Summary',

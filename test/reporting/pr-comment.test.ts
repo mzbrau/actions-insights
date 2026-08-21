@@ -30,6 +30,16 @@ describe('pr-comment', () => {
     expect(body).toContain('| Total | Passed | Failed | Skipped | Inconclusive | Time |');
   });
 
+  it('omits per-suite summary when the only bucket is No suite', () => {
+    const runWithoutAssemblies = {
+      ...sampleRun,
+      tests: sampleRun.tests.map((t) => ({ ...t, assembly: undefined })),
+    };
+    const ctx = buildReportingContext(runWithoutAssemblies, sampleConfig);
+    const body = renderPrComment(ctx, sampleConfig, buildReportLinks(runWithoutAssemblies.context));
+    expect(body).not.toContain('## Per Suite Summary');
+  });
+
   it('does not include longest test in statistics', () => {
     const ctx = buildReportingContext(sampleRun, sampleConfig);
     const body = renderPrComment(ctx, sampleConfig, buildReportLinks(sampleRun.context));
