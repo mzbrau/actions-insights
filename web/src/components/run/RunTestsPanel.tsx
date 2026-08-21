@@ -102,8 +102,8 @@ export function RunTestsPanel({
       <h2 className="section-title">All Tests ({totalCount})</h2>
 
       <div className="tests-toolbar">
-        {projectNames.length > 1 && (
-          <div className="tests-toolbar-row">
+        <div className="tests-toolbar-row">
+          {projectNames.length > 1 && (
             <select
               className="sort-select tests-project-select"
               value={selectedProject}
@@ -117,8 +117,8 @@ export function RunTestsPanel({
                 </option>
               ))}
             </select>
-          </div>
-        )}
+          )}
+        </div>
         <div className="tests-toolbar-row">
           <input
             type="search"

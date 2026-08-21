@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CompactTestRecord } from '@actions-insights/history-models';
 import {
   buildCodeSearchUrl,
+  computeSuiteSummary,
   filterTests,
   getClassName,
   getClassNameFromFullName,
@@ -10,6 +11,7 @@ import {
   getShortName,
   getShortNameFromFullName,
   getSortedProjectNames,
+  getSortedSuiteNames,
   groupTestsByProjectAndClass,
   sortTests,
 } from './testList';
@@ -66,6 +68,44 @@ describe('testList', () => {
     });
     expect(alphaOnly).toHaveLength(1);
     expect(alphaOnly[0].n).toBe('A.One');
+  });
+
+  it('returns sorted unique suite names', () => {
+    const tests = [
+      makeTest({ a: 'Beta' }),
+      makeTest({ i: 1, a: 'Alpha' }),
+      makeTest({ i: 2, a: undefined }),
+    ];
+    expect(getSortedSuiteNames(tests)).toEqual(['Alpha', 'Beta', '—']);
+  });
+
+  it('filters by suite', () => {
+    const tests = [
+      makeTest({ n: 'A.One', a: 'Alpha' }),
+      makeTest({ i: 1, n: 'B.One', a: 'Beta' }),
+    ];
+    const alphaOnly = filterTests(tests, {
+      search: '',
+      filters: new Set(),
+      slowThreshold: 1000,
+      suite: 'Alpha',
+    });
+    expect(alphaOnly).toHaveLength(1);
+    expect(alphaOnly[0].n).toBe('A.One');
+  });
+
+  it('computes suite summary', () => {
+    const tests = [
+      makeTest({ n: 'A.One', a: 'Alpha', o: 0, d: 100 }),
+      makeTest({ i: 1, n: 'A.Two', a: 'Alpha', o: 1, d: 200 }),
+      makeTest({ i: 2, n: 'B.One', a: 'Beta', o: 2, d: 300 }),
+    ];
+    const summary = computeSuiteSummary(tests);
+    expect(summary).toHaveLength(2);
+    const alpha = summary.find((s) => s.suite === 'Alpha');
+    expect(alpha).toMatchObject({ total: 2, passed: 1, failed: 1, skipped: 0, inconclusive: 0, durationMs: 300 });
+    const beta = summary.find((s) => s.suite === 'Beta');
+    expect(beta).toMatchObject({ total: 1, passed: 0, failed: 0, skipped: 1, inconclusive: 0, durationMs: 300 });
   });
 
   it('filters by outcome and search', () => {

@@ -237,6 +237,10 @@ a:hover { text-decoration: underline; }
 .simple-list { margin: 0; padding-left: 20px; }
 .simple-list li { margin-bottom: 4px; color: var(--on-surface-variant); }
 
+.suite-summary-section { margin-top: 8px; }
+.suite-summary-section table { width: 100%; }
+.table-wrap { overflow-x: auto; }
+
 .failure-group { margin-bottom: 24px; }
 .failure-group-title {
   font-size: 14px; font-weight: 600; color: var(--on-surface-variant);
@@ -296,6 +300,7 @@ a:hover { text-decoration: underline; }
 .simple-list .copy-name-btn { margin: 0 4px; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; align-items: center; }
+.suite-select { min-width: 160px; }
 .search-input {
   flex: 1; min-width: 200px; padding: 8px 12px; border-radius: var(--radius);
   border: 1px solid var(--outline-variant); background: var(--surface-container-low);

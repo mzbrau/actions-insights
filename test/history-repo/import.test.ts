@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { mergeUpdateIntoExisting, writeHistoryUpdate } from '../../src/history-repo/import/apply-update';
 import { isRunImported, readBaselineImportState } from '../../src/history-repo/import/existing-state';
 import { workflowRunToContext, type GitHubWorkflowRun } from '../../src/history-repo/import/workflow-context';
@@ -79,8 +79,10 @@ describe('history import', () => {
   });
 
   it('merges sequential history updates for import', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-21T12:00:00Z'));
     const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'history-import-'));
-  try {
+    try {
       const baseline = readBaselineImportState(workDir, 'data', 'owner/repo');
       let existing = { ...baseline, repositoriesIndex: createEmptyRepositoriesIndex() };
 
@@ -90,7 +92,7 @@ describe('history import', () => {
         context: {
           ...sampleRun.context,
           runId: 10,
-          completedAt: '2026-07-01T10:00:00Z',
+          completedAt: '2026-08-19T10:00:00Z',
         },
       };
       const first = buildHistoryUpdate(firstRun, {
@@ -109,7 +111,7 @@ describe('history import', () => {
         context: {
           ...sampleRun.context,
           runId: 11,
-          completedAt: '2026-07-02T10:00:00Z',
+          completedAt: '2026-08-20T10:00:00Z',
         },
       };
       const second = buildHistoryUpdate(secondRun, {
@@ -126,6 +128,7 @@ describe('history import', () => {
       expect(historyFile.runs.map((r) => r.runId)).toEqual(['11', '10']);
     } finally {
       fs.rmSync(workDir, { recursive: true, force: true });
+      vi.useRealTimers();
     }
   });
 });

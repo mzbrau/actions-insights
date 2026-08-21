@@ -134665,6 +134665,65 @@ function formatDeltaSection(delta, previousRun, section) {
   return lines.join("\n").trimEnd();
 }
 
+// src/reporting/suite-summary.ts
+function suiteNameForTest(test) {
+  return test.assembly?.trim() || "No suite";
+}
+function computeSuiteSummaries(tests) {
+  const buckets = /* @__PURE__ */ new Map();
+  for (const test of tests) {
+    const suite = suiteNameForTest(test);
+    let entry = buckets.get(suite);
+    if (!entry) {
+      entry = {
+        suite,
+        total: 0,
+        passed: 0,
+        failed: 0,
+        skipped: 0,
+        inconclusive: 0,
+        durationMs: 0
+      };
+      buckets.set(suite, entry);
+    }
+    entry.total += 1;
+    entry.durationMs += test.durationMs;
+    switch (test.outcome) {
+      case "passed":
+        entry.passed += 1;
+        break;
+      case "failed":
+        entry.failed += 1;
+        break;
+      case "skipped":
+        entry.skipped += 1;
+        break;
+      case "inconclusive":
+        entry.inconclusive += 1;
+        break;
+    }
+  }
+  return [...buckets.values()].sort((a, b) => a.suite.localeCompare(b.suite));
+}
+function shouldShowSuiteSummary(summaries) {
+  return summaries.length > 1 || summaries.length === 1 && summaries[0].suite !== "No suite";
+}
+function formatSuiteSummaryMarkdown(summaries) {
+  const lines = [
+    "## Per Suite Summary",
+    "",
+    "| Suite | Total | Passed | Failed | Skipped | Inconclusive | Time |",
+    "| --- | --- | --- | --- | --- | --- | --- |"
+  ];
+  for (const summary3 of summaries) {
+    const statusEmoji = summary3.failed > 0 ? "\u274C" : summary3.skipped === summary3.total ? "\u23ED" : "\u2705";
+    lines.push(
+      `| ${statusEmoji} ${escapeTableCell(summary3.suite)} | ${summary3.total.toLocaleString()} | ${summary3.passed.toLocaleString()} | ${summary3.failed.toLocaleString()} | ${summary3.skipped.toLocaleString()} | ${summary3.inconclusive.toLocaleString()} | ${formatDuration(summary3.durationMs)} |`
+    );
+  }
+  return lines.join("\n");
+}
+
 // src/reporting/pr-comment.ts
 var COMMENT_MARKER = "<!-- actions-insights-report -->";
 function renderPrComment(ctx, config, links, previousResults = []) {
@@ -134697,6 +134756,11 @@ function renderPrComment(ctx, config, links, previousResults = []) {
     lines.push(formatHistoryDetailsLink(links.historyRun));
   }
   lines.push("", formatCompactSummary(extendedStats), "");
+  const suiteSummaries = computeSuiteSummaries(run2.tests);
+  if (shouldShowSuiteSummary(suiteSummaries)) {
+    lines.push(formatSuiteSummaryMarkdown(suiteSummaries));
+    lines.push("");
+  }
   if (run2.coverage) {
     const comparison = resolveCoverageComparison({
       current: run2.coverage.summary,
@@ -135111,6 +135175,25 @@ function toCompactTests(run2, _slowThresholdMs) {
     nf: test.isNewFailure
   }));
 }
+function renderSuiteSummarySection(tests) {
+  const summaries = computeSuiteSummaries(tests);
+  if (!shouldShowSuiteSummary(summaries)) return "";
+  const rows = summaries.map((s) => {
+    const cls = s.failed > 0 ? "failed" : s.passed === s.total ? "passed" : "";
+    return `<tr class="${cls}"><td>${escapeHtml(s.suite)}</td><td>${s.total.toLocaleString()}</td><td>${s.passed.toLocaleString()}</td><td>${s.failed.toLocaleString()}</td><td>${s.skipped.toLocaleString()}</td><td>${s.inconclusive.toLocaleString()}</td><td>${formatDuration(s.durationMs)}</td></tr>`;
+  }).join("");
+  return `<section class="section suite-summary-section">
+    <h2 class="section-title">Per Suite Summary</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Suite</th><th>Total</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Inconclusive</th><th>Time</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
 function renderFailureBlock(test, ctx) {
   const newClass = test.isNewFailure ? " new-failure" : "";
   const stack = test.stackTrace ? `<div class="code-block"><button class="copy-btn" type="button">Copy</button><pre>${escapeHtml(test.stackTrace)}</pre></div>` : "";
@@ -135276,6 +135359,15 @@ function renderReportHtml(run2, reportTitle, theme, slowThresholdMs, trends, inc
   const hasCoverage = run2.coverage?.summary.line !== void 0;
   const hasBuild = Boolean(run2.diagnostics || run2.workflowTiming);
   const coverageDelta = buildCoverageDelta(run2, trends);
+  const suiteSummaries = computeSuiteSummaries(run2.tests).map((s) => ({
+    suite: s.suite,
+    total: s.total,
+    passed: s.passed,
+    failed: s.failed,
+    skipped: s.skipped,
+    inconclusive: s.inconclusive,
+    durationMs: s.durationMs
+  }));
   const runJson = JSON.stringify({
     stats,
     status,
@@ -135296,6 +135388,7 @@ function renderReportHtml(run2, reportTitle, theme, slowThresholdMs, trends, inc
       completedAt: runTimestamp
     },
     tests: toCompactTests(run2, slowThresholdMs),
+    suites: suiteSummaries,
     slowThreshold: slowThresholdMs,
     coverage: hasCoverage && run2.coverage ? {
       summary: toCoverageSummaryCompact(run2.coverage),
@@ -135379,6 +135472,7 @@ function renderReportHtml(run2, reportTitle, theme, slowThresholdMs, trends, inc
     </div>
 
     ${renderSummaryCoverageSection(run2)}
+    ${renderSuiteSummarySection(run2.tests)}
     ${renderFailuresSection(run2)}
     ${renderSlowTestsSection(run2, slowThresholdMs)}
   </main>
@@ -135389,6 +135483,9 @@ function renderReportHtml(run2, reportTitle, theme, slowThresholdMs, trends, inc
     </div>
     <div class="toolbar">
       <input id="test-search" class="search-input" type="search" placeholder="Search tests..."/>
+      <select id="suite-select" class="sort-select suite-select">
+        <option value="all">All suites</option>
+      </select>
       <select id="sort-select" class="sort-select">
         <option value="default">Sort: Default (Grouped)</option>
         <option value="name">Sort: Name</option>

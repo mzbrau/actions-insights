@@ -1402,6 +1402,12 @@ code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
   min-width: 0;
 }
 
+.tests-suite-select,
+.tests-project-select {
+  min-width: 160px;
+  max-width: 260px;
+}
+
 .tests-filter-chips {
   flex-wrap: wrap;
 }

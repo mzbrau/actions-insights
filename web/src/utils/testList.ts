@@ -37,6 +37,11 @@ export interface TestFilterOptions {
   filters: Set<TestFilterKey>;
   slowThreshold: number;
   project?: string;
+  suite?: string;
+}
+
+export function getSuiteName(test: CompactTestRecord): string {
+  return typeof test.a === 'string' ? test.a.trim() : '';
 }
 
 export function getSortedProjectNames(tests: CompactTestRecord[]): string[] {
@@ -51,12 +56,25 @@ export function getSortedProjectNames(tests: CompactTestRecord[]): string[] {
   });
 }
 
+export function getSortedSuiteNames(tests: CompactTestRecord[]): string[] {
+  const names = new Set<string>();
+  for (const test of tests) {
+    names.add(getSuiteName(test) || '—');
+  }
+  return [...names].sort((a, b) => {
+    if (a === '—' && b !== '—') return 1;
+    if (a !== '—' && b === '—') return -1;
+    return a.localeCompare(b);
+  });
+}
+
 export function filterTests(tests: CompactTestRecord[], options: TestFilterOptions): CompactTestRecord[] {
-  const { search, filters, slowThreshold, project } = options;
+  const { search, filters, slowThreshold, project, suite } = options;
   const q = search.toLowerCase();
 
   return tests.filter((t) => {
     if (project && (getProjectName(t) || '—') !== project) return false;
+    if (suite && (getSuiteName(t) || '—') !== suite) return false;
     const outcome = CODE_TO_OUTCOME[t.o] ?? 'inconclusive';
     if (filters.has('failed') && outcome !== 'failed') return false;
     if (filters.has('passed') && outcome !== 'passed') return false;
@@ -89,6 +107,54 @@ export function sortTests(
     return getShortName(a).localeCompare(getShortName(b));
   });
   return sorted;
+}
+
+export function computeSuiteSummary(tests: CompactTestRecord[]): Array<{
+  suite: string;
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  inconclusive: number;
+  durationMs: number;
+}> {
+  const buckets = new Map<string, {
+    suite: string;
+    total: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    inconclusive: number;
+    durationMs: number;
+  }>();
+
+  for (const test of tests) {
+    const suite = getSuiteName(test) || '—';
+    let entry = buckets.get(suite);
+    if (!entry) {
+      entry = { suite, total: 0, passed: 0, failed: 0, skipped: 0, inconclusive: 0, durationMs: 0 };
+      buckets.set(suite, entry);
+    }
+
+    entry.total += 1;
+    entry.durationMs += test.d;
+    switch (CODE_TO_OUTCOME[test.o] ?? 'inconclusive') {
+      case 'passed':
+        entry.passed += 1;
+        break;
+      case 'failed':
+        entry.failed += 1;
+        break;
+      case 'skipped':
+        entry.skipped += 1;
+        break;
+      case 'inconclusive':
+        entry.inconclusive += 1;
+        break;
+    }
+  }
+
+  return [...buckets.values()].sort((a, b) => a.suite.localeCompare(b.suite));
 }
 
 export type GroupedTests = Map<string, Map<string, CompactTestRecord[]>>;
