@@ -83,6 +83,9 @@ describe('history import', () => {
   try {
       const baseline = readBaselineImportState(workDir, 'data', 'owner/repo');
       let existing = { ...baseline, repositoriesIndex: createEmptyRepositoriesIndex() };
+      const now = Date.now();
+      const firstCompletedAt = new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString();
+      const secondCompletedAt = new Date(now - 1 * 24 * 60 * 60 * 1000).toISOString();
 
       const firstRun = {
         ...sampleRun,
@@ -90,7 +93,7 @@ describe('history import', () => {
         context: {
           ...sampleRun.context,
           runId: 10,
-          completedAt: '2026-07-01T10:00:00Z',
+          completedAt: firstCompletedAt,
         },
       };
       const first = buildHistoryUpdate(firstRun, {
@@ -109,7 +112,7 @@ describe('history import', () => {
         context: {
           ...sampleRun.context,
           runId: 11,
-          completedAt: '2026-07-02T10:00:00Z',
+          completedAt: secondCompletedAt,
         },
       };
       const second = buildHistoryUpdate(secondRun, {
