@@ -90,6 +90,9 @@ export const sampleRun: TestRun = {
 
 export const sampleConfig: ActionConfig = {
   testResults: '**/*.trx',
+  testResultsFailIfMissing: false,
+  inferFailureFromJobSteps: true,
+  diagnosticsFailOnErrors: true,
   reportsSubdirectory: 'test-reports',
   commentMode: 'update',
   historyLimit: 20,
@@ -126,4 +129,10 @@ export const sampleConfig: ActionConfig = {
     files: '**/coverage.cobertura.xml',
     failIfMissing: false,
   },
+  diagnostics: {
+    enabled: false,
+    files: '**/*.{sarif,log}',
+    failIfMissing: false,
+  },
+  workflowTimingEnabled: true,
 };

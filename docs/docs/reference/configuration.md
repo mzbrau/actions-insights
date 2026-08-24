@@ -25,6 +25,16 @@ Glob pattern for test result files.
 
 - **Default:** `**/*.{trx,xml}`
 
+#### `test-results-fail-if-missing`
+Fail the step when no test result files match the glob or all matched files fail to parse.
+
+- **Default:** `false`
+
+#### `infer-failure-from-job-steps`
+When no tests are parsed, fail if an earlier step in the **current job** failed (for example, a build step that exits before tests run). Requires `actions: read` on `GITHUB_TOKEN` when this check runs.
+
+- **Default:** `true`
+
 ### Code coverage
 
 Conceptually grouped as:
@@ -72,6 +82,11 @@ Glob pattern(s) for build diagnostic files (SARIF, MSBuild logs, gcc/clang logs)
 Fail the step when diagnostics are enabled but no files match or all parses fail.
 
 - **Default:** `false`
+
+#### `diagnostics-fail-on-errors`
+When diagnostics are enabled and no tests are parsed, fail if parsed diagnostics contain one or more errors.
+
+- **Default:** `true`
 
 See [Build diagnostics](build-diagnostics.md) for workflow examples.
 

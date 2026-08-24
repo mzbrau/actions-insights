@@ -10,45 +10,68 @@ import {
 } from '@actions-insights/history-models';
 import type { RunContext } from '../model/test-run';
 
-export async function resolveCurrentJobUrl(
-  token: string,
-  context: RunContext,
-): Promise<string | undefined> {
-  const { owner, repo } = github.context.repo;
-  const octokit = github.getOctokit(token);
-  const desired = (process.env.GITHUB_JOB ?? '').trim();
+type WorkflowJob = {
+  id?: number;
+  name?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  runner_os?: string | null;
+  labels?: string[] | null;
+  steps?: Array<{
+    name?: string | null;
+    number?: number;
+    started_at?: string | null;
+    completed_at?: string | null;
+    status?: string | null;
+    conclusion?: string | null;
+  }> | null;
+};
 
-  try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: context.runId,
-      per_page: 100,
-    });
-
-    const jobs = data.jobs ?? [];
-    if (jobs.length === 0) return undefined;
-
-    const match = desired
-      ? jobs.find((j) => j.name === desired)
-      : undefined;
-    const selected = match ?? jobs[0];
-    if (!selected?.id) return undefined;
-
-    return `${context.repositoryUrl}/actions/runs/${context.runId}/job/${selected.id}`;
-  } catch (error) {
-    core.debug(`Failed to resolve job URL: ${error instanceof Error ? error.message : String(error)}`);
-    return undefined;
-  }
+export interface FailedPriorStep {
+  stepName: string;
 }
 
-export async function fetchWorkflowTiming(
+export interface WorkflowRunJobs {
+  jobs: WorkflowJob[];
+  workflowRun?: {
+    status?: string | null;
+    created_at?: string | null;
+    run_started_at?: string | null;
+    updated_at?: string | null;
+  };
+}
+
+function selectCurrentJob(jobs: WorkflowJob[]): WorkflowJob | undefined {
+  const desired = (process.env.GITHUB_JOB ?? '').trim();
+  if (desired) {
+    const match = jobs.find((job) => job.name === desired);
+    if (match) return match;
+  }
+  return jobs[0];
+}
+
+export function extractFailedPriorSteps(job: WorkflowJob | undefined): FailedPriorStep[] {
+  const steps = job?.steps ?? [];
+  const failed: FailedPriorStep[] = [];
+
+  for (const step of steps) {
+    if (step.conclusion !== 'failure') continue;
+    if (step.status === 'in_progress' || step.status === 'pending') continue;
+    failed.push({
+      stepName: step.name ?? `Step ${step.number ?? '?'}`,
+    });
+  }
+
+  return failed;
+}
+
+export async function fetchWorkflowRunJobs(
   token: string,
   context: RunContext,
-): Promise<WorkflowTimingReport | undefined> {
+  options: { includeWorkflowRun?: boolean } = {},
+): Promise<WorkflowRunJobs | undefined> {
   const { owner, repo } = github.context.repo;
   const octokit = github.getOctokit(token);
-  const desiredJob = (process.env.GITHUB_JOB ?? '').trim();
 
   try {
     const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
@@ -58,8 +81,12 @@ export async function fetchWorkflowTiming(
       per_page: 100,
     });
 
-    const jobs = data.jobs ?? [];
+    const jobs = (data.jobs ?? []) as WorkflowJob[];
     if (jobs.length === 0) return undefined;
+
+    if (!options.includeWorkflowRun) {
+      return { jobs };
+    }
 
     const { data: workflowRun } = await octokit.rest.actions.getWorkflowRun({
       owner,
@@ -67,64 +94,115 @@ export async function fetchWorkflowTiming(
       run_id: context.runId,
     });
 
-    const jobTimings: WorkflowJobTiming[] = [];
-    const steps: WorkflowStepTiming[] = [];
-    let runner: WorkflowRunnerInfo | undefined;
+    return { jobs, workflowRun };
+  } catch (error) {
+    core.debug(`Failed to fetch workflow jobs: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
+}
 
-    for (const job of jobs) {
-      const jobDuration = durationBetweenMs(job.started_at, job.completed_at);
-      jobTimings.push({
-        name: job.name ?? 'Job',
-        durationMs: jobDuration,
-        startedAt: job.started_at ?? undefined,
-        completedAt: job.completed_at ?? undefined,
-      });
+export function resolveCurrentJobUrlFromJobs(
+  context: RunContext,
+  jobs: WorkflowJob[] | undefined,
+): string | undefined {
+  if (!jobs || jobs.length === 0) return undefined;
+  const selected = selectCurrentJob(jobs);
+  if (!selected?.id) return undefined;
+  return `${context.repositoryUrl}/actions/runs/${context.runId}/job/${selected.id}`;
+}
 
-      if (desiredJob && job.name === desiredJob) {
-        const jobMeta = job as { runner_os?: string | null; labels?: string[] | null };
-        runner = {
-          os: jobMeta.runner_os ?? undefined,
-          labels: jobMeta.labels ?? undefined,
-        };
-      }
+export async function resolveCurrentJobUrl(
+  token: string,
+  context: RunContext,
+  prefetched?: WorkflowRunJobs,
+): Promise<string | undefined> {
+  const jobs = prefetched?.jobs ?? (await fetchWorkflowRunJobs(token, context))?.jobs;
+  return resolveCurrentJobUrlFromJobs(context, jobs);
+}
 
-      for (const step of job.steps ?? []) {
-        steps.push({
-          jobName: job.name ?? 'Job',
-          stepName: step.name ?? `Step ${step.number}`,
-          stepNumber: step.number ?? 0,
-          status: step.conclusion ?? step.status ?? 'unknown',
-          durationMs: durationBetweenMs(step.started_at, step.completed_at),
-          startedAt: step.started_at ?? undefined,
-          completedAt: step.completed_at ?? undefined,
-        });
-      }
-    }
+export function fetchFailedPriorStepsFromJobs(
+  prefetched: WorkflowRunJobs | undefined,
+): FailedPriorStep[] {
+  if (!prefetched) return [];
+  return extractFailedPriorSteps(selectCurrentJob(prefetched.jobs));
+}
 
-    if (!runner && jobs.length > 0) {
-      const first = jobs[0];
-      const jobMeta = first as { runner_os?: string | null; labels?: string[] | null };
+export function buildWorkflowTimingFromJobs(
+  prefetched: WorkflowRunJobs,
+): WorkflowTimingReport | undefined {
+  const { jobs, workflowRun } = prefetched;
+  if (jobs.length === 0) return undefined;
+
+  const desiredJob = (process.env.GITHUB_JOB ?? '').trim();
+  const jobTimings: WorkflowJobTiming[] = [];
+  const steps: WorkflowStepTiming[] = [];
+  let runner: WorkflowRunnerInfo | undefined;
+
+  for (const job of jobs) {
+    const jobDuration = durationBetweenMs(job.started_at, job.completed_at);
+    jobTimings.push({
+      name: job.name ?? 'Job',
+      durationMs: jobDuration,
+      startedAt: job.started_at ?? undefined,
+      completedAt: job.completed_at ?? undefined,
+    });
+
+    if (desiredJob && job.name === desiredJob) {
       runner = {
-        os: jobMeta.runner_os ?? undefined,
-        labels: jobMeta.labels ?? undefined,
+        os: job.runner_os ?? undefined,
+        labels: job.labels ?? undefined,
       };
     }
 
-    const runStartedAt = workflowRun.run_started_at ?? workflowRun.created_at;
-    const runCompletedAt = workflowRun.status === 'completed' ? workflowRun.updated_at : undefined;
-    const workflowDurationMs = durationBetweenMs(runStartedAt, runCompletedAt) || undefined;
+    for (const step of job.steps ?? []) {
+      steps.push({
+        jobName: job.name ?? 'Job',
+        stepName: step.name ?? `Step ${step.number}`,
+        stepNumber: step.number ?? 0,
+        status: step.conclusion ?? step.status ?? 'unknown',
+        durationMs: durationBetweenMs(step.started_at, step.completed_at),
+        startedAt: step.started_at ?? undefined,
+        completedAt: step.completed_at ?? undefined,
+      });
+    }
+  }
 
-    const slowestStep = findSlowestStep(steps);
-
-    return {
-      summary: {
-        workflowDurationMs,
-        jobs: jobTimings,
-        steps,
-        slowestStep,
-      },
-      runner,
+  if (!runner && jobs.length > 0) {
+    const first = jobs[0];
+    runner = {
+      os: first.runner_os ?? undefined,
+      labels: first.labels ?? undefined,
     };
+  }
+
+  const runStartedAt = workflowRun?.run_started_at ?? workflowRun?.created_at;
+  const runCompletedAt = workflowRun?.status === 'completed' ? workflowRun.updated_at : undefined;
+  const workflowDurationMs = durationBetweenMs(runStartedAt, runCompletedAt) || undefined;
+  const slowestStep = findSlowestStep(steps);
+
+  return {
+    summary: {
+      workflowDurationMs,
+      jobs: jobTimings,
+      steps,
+      slowestStep,
+    },
+    runner,
+  };
+}
+
+export async function fetchWorkflowTiming(
+  token: string,
+  context: RunContext,
+  prefetched?: WorkflowRunJobs,
+): Promise<WorkflowTimingReport | undefined> {
+  try {
+    let data = prefetched;
+    if (!data?.workflowRun) {
+      data = await fetchWorkflowRunJobs(token, context, { includeWorkflowRun: true });
+    }
+    if (!data) return undefined;
+    return buildWorkflowTimingFromJobs(data);
   } catch (error) {
     core.debug(`Failed to fetch workflow timing: ${error instanceof Error ? error.message : String(error)}`);
     return undefined;

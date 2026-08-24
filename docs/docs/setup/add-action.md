@@ -92,6 +92,8 @@ Test reporting should not block releases, deployments, or the overall build. Add
 
 `if: always()` only ensures the step runs after a prior failure — it does **not** prevent the step's own failure from failing the job. Use both attributes when reporting shares a job with release or publish steps.
 
+By default, when no test result files are found, Actions Insights checks whether an earlier step in the same job failed and marks the report as failed instead of showing a green check. Add `actions: read` to job permissions if you use restricted `GITHUB_TOKEN` scopes. To disable this behavior, set `infer-failure-from-job-steps: false`.
+
 **Trade-off:** `continue-on-error: true` also hides total action failures (including load-time crashes). If reporting integrity should fail CI, omit `continue-on-error` and keep `if: always()` so the step still runs after test failures.
 
 When migrating from `dorny/test-reporter` or similar tools that used `fail-on-error: false`, add `continue-on-error: true` to preserve the same behavior.

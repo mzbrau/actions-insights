@@ -18,7 +18,11 @@ vi.mock('@actions/github', () => ({
   }),
 }));
 
-import { fetchWorkflowTiming } from '../../src/github/jobs';
+import {
+  extractFailedPriorSteps,
+  fetchFailedPriorStepsFromJobs,
+  fetchWorkflowTiming,
+} from '../../src/github/jobs';
 
 const context: RunContext = {
   repository: 'mzbrau/fig',
@@ -128,5 +132,40 @@ describe('fetchWorkflowTiming', () => {
     expect(result?.summary.workflowDurationMs).toBe(attemptDurationMs);
     expect(result?.summary.workflowDurationMs).toBeLessThan(minMaxAcrossJobsMs);
     expect(result?.summary.workflowDurationMs).toBe(1_402_000);
+  });
+});
+
+describe('extractFailedPriorSteps', () => {
+  it('returns completed steps with failure conclusion', () => {
+    const failed = extractFailedPriorSteps({
+      steps: [
+        { name: 'Build', number: 1, status: 'completed', conclusion: 'failure' },
+        { name: 'Test', number: 2, status: 'completed', conclusion: 'skipped' },
+        { name: 'Publish test report', number: 3, status: 'in_progress', conclusion: undefined },
+      ],
+    });
+    expect(failed).toEqual([{ stepName: 'Build' }]);
+  });
+});
+
+describe('fetchFailedPriorStepsFromJobs', () => {
+  beforeEach(() => {
+    process.env.GITHUB_JOB = 'build-and-test-windows-latest';
+  });
+
+  it('selects the current job by GITHUB_JOB', () => {
+    const failed = fetchFailedPriorStepsFromJobs({
+      jobs: [
+        {
+          name: 'other-job',
+          steps: [{ name: 'Build', number: 1, status: 'completed', conclusion: 'failure' }],
+        },
+        {
+          name: 'build-and-test-windows-latest',
+          steps: [{ name: 'Build', number: 1, status: 'completed', conclusion: 'failure' }],
+        },
+      ],
+    });
+    expect(failed).toEqual([{ stepName: 'Build' }]);
   });
 });

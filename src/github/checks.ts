@@ -6,6 +6,7 @@ import { buildCheckAnnotations } from '../reporting/checks';
 import { buildReportingContext } from '../reporting/context';
 import { renderJobSummary } from '../reporting/job-summary';
 import { buildReportLinks } from '../reporting/links';
+import { buildCheckTitle } from '../reporting/status-reason';
 import { GITHUB_CHECK_OUTPUT_MAX_CHARS } from './limits';
 
 const MAX_ANNOTATIONS = 50;
@@ -50,7 +51,7 @@ export async function publishCheckRun(
       conclusion: run.status === 'passed' ? 'success' : 'failure',
       details_url: links.workflowRun,
       output: {
-        title: `${run.stats.passed.toLocaleString()} passed, ${run.stats.failed.toLocaleString()} failed`,
+        title: buildCheckTitle(run),
         summary,
         annotations,
       },

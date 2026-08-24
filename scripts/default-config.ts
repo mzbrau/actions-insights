@@ -3,6 +3,9 @@ import type { ActionConfig } from '../src/config';
 export function defaultLocalConfig(overrides: Partial<ActionConfig> = {}): ActionConfig {
   return {
     testResults: '**/*.{trx,xml}',
+    testResultsFailIfMissing: false,
+    inferFailureFromJobSteps: true,
+    diagnosticsFailOnErrors: true,
     reportsSubdirectory: 'test-reports',
     commentMode: 'off',
     historyLimit: 20,
@@ -34,6 +37,17 @@ export function defaultLocalConfig(overrides: Partial<ActionConfig> = {}): Actio
       repositoryName: 'owner/repo',
       mode: 'multi',
     },
+    coverage: {
+      enabled: false,
+      files: '**/coverage.cobertura.xml',
+      failIfMissing: false,
+    },
+    diagnostics: {
+      enabled: false,
+      files: '**/*.{sarif,log}',
+      failIfMissing: false,
+    },
+    workflowTimingEnabled: true,
     ...overrides,
   };
 }

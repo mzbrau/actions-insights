@@ -44,6 +44,7 @@ export interface TestRun {
   id: string;
   title: string;
   status: RunStatus;
+  statusReason?: string;
   stats: RunStats;
   tests: TestCase[];
   context: RunContext;
@@ -69,6 +70,67 @@ export function computeStats(tests: TestCase[]): RunStats {
 
 export function deriveStatus(tests: TestCase[]): RunStatus {
   return tests.some((t) => t.outcome === 'failed') ? 'failed' : 'passed';
+}
+
+export interface StatusInput {
+  tests: TestCase[];
+  testResultsFailIfMissing: boolean;
+  inferFailureFromJobSteps: boolean;
+  failedPriorSteps: { stepName: string }[];
+  diagnostics?: DiagnosticReport;
+  diagnosticsEnabled: boolean;
+  diagnosticsFailOnErrors: boolean;
+}
+
+export interface StatusResult {
+  status: RunStatus;
+  reason?: string;
+}
+
+export function deriveRunStatus(input: StatusInput): StatusResult {
+  const failedTestCount = input.tests.filter((t) => t.outcome === 'failed').length;
+  if (failedTestCount > 0) {
+    return {
+      status: 'failed',
+      reason: `${failedTestCount} test(s) failed`,
+    };
+  }
+
+  if (input.tests.length > 0) {
+    return { status: 'passed' };
+  }
+
+  if (input.testResultsFailIfMissing) {
+    return {
+      status: 'failed',
+      reason: 'No test results found or parsed. Ensure test-results glob matches your output files.',
+    };
+  }
+
+  if (input.inferFailureFromJobSteps && input.failedPriorSteps.length > 0) {
+    const names = input.failedPriorSteps.map((step) => step.stepName).join(', ');
+    const label = input.failedPriorSteps.length === 1 ? 'step' : 'steps';
+    return {
+      status: 'failed',
+      reason: `Prior job ${label} failed (${names}); no test results found`,
+    };
+  }
+
+  if (
+    input.diagnosticsEnabled
+    && input.diagnosticsFailOnErrors
+    && input.diagnostics
+    && input.diagnostics.summary.errors > 0
+  ) {
+    const errorCount = input.diagnostics.summary.errors;
+    const label = errorCount === 1 ? 'error' : 'errors';
+    return {
+      status: 'failed',
+      reason: `${errorCount} build ${label} found in diagnostics; no test results found`,
+    };
+  }
+
+  return { status: 'passed' };
 }
 
 export function formatDuration(ms: number): string {

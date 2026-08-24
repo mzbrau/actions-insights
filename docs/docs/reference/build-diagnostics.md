@@ -70,3 +70,7 @@ Ensure the job has `permissions: actions: read` if you use restricted `GITHUB_TO
 - **Run → Build**: step timeline, diagnostic list grouped by file (lazy-loaded detail)
 
 Diagnostics are capped at 500 items per run in storage; additional items are summarized in the `truncated` field.
+
+## Status when build fails before tests
+
+When `diagnostics-enabled` is true and no test result files are parsed, Actions Insights fails the report if diagnostics contain errors (`diagnostics-fail-on-errors`, default `true`). This complements [infer-failure-from-job-steps](../reference/configuration#infer-failure-from-job-steps), which detects failed earlier job steps via the GitHub Actions API even when no diagnostic files were captured.
