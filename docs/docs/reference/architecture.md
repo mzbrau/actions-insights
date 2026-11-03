@@ -45,7 +45,7 @@ src/
 
 ### Primary: PR Comment
 
-A single upserted comment per pull request. Optimized for GitHub Mobile — status and failure counts appear above the fold, with expandable stack traces and links to artifacts.
+One upserted comment per `check-name` on the pull request (so multiple publishers can coexist). Optimized for GitHub Mobile — status and failure counts appear above the fold, with expandable stack traces and links to artifacts.
 
 ### Secondary: Job Summary
 

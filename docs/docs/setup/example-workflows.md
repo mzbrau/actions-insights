@@ -43,6 +43,28 @@ jobs:
           publish-checks: true
 ```
 
+## Multiple Publishers on One PR
+
+When several jobs (or steps) publish reports to the same pull request, set a distinct `check-name`, `report-title`, and `reports-subdirectory` on each so PR comments, check runs, and site history stay separate:
+
+```yaml
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: '**/TestResults/*.trx'
+    check-name: Backend
+    report-title: Backend
+    reports-subdirectory: test-reports/backend
+
+- uses: mzbrau/actions-insights@v1
+  with:
+    test-results: 'test-reports/*junit.xml'
+    check-name: CI — unit & e2e
+    report-title: CI — unit & e2e
+    reports-subdirectory: test-reports/ci-unit
+```
+
+See [PR Comments — Multiple publishers](./pr-comments#multiple-publishers-on-one-pr).
+
 ## Main Branch — No PR Comments
 
 ```yaml

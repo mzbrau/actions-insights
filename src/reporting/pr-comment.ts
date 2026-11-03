@@ -21,7 +21,28 @@ import { computeSuiteSummaries, formatSuiteSummaryMarkdown, shouldShowSuiteSumma
 import { formatUtcTimestamp } from './time';
 
 
+/** Legacy unscoped marker used before per-check-name upserts. */
 export const COMMENT_MARKER = '<!-- actions-insights-report -->';
+
+/** Default `check-name` / marker key (matches action.yml). */
+export const DEFAULT_CHECK_NAME = 'Actions Insights';
+
+/**
+ * Encode a check-name into an HTML-comment-safe key that preserves identity.
+ * Hex avoids `--` / `>` and never collapses distinct names (e.g. `CI -- unit` vs `CI - unit`).
+ */
+export function encodeCommentMarkerKey(checkName: string): string {
+  return Buffer.from(checkName, 'utf8').toString('hex');
+}
+
+/** Scoped marker so multiple publishers on one PR upsert distinct comments. */
+export function buildCommentMarker(checkName: string): string {
+  return `<!-- actions-insights-report:${encodeCommentMarkerKey(checkName)} -->`;
+}
+
+export function isDefaultCheckName(checkName: string): boolean {
+  return checkName === DEFAULT_CHECK_NAME;
+}
 
 export function renderPrComment(
   ctx: ReportingContext,
@@ -49,7 +70,7 @@ export function renderPrComment(
   };
 
   const lines: string[] = [
-    COMMENT_MARKER,
+    buildCommentMarker(config.checkName),
     ...buildCommentHistoryMarkers(currentState, previousResults),
     `# ${emoji} ${statusLabel} — ${config.reportTitle}`,
     '',

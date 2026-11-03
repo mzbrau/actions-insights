@@ -1,15 +1,51 @@
 import { describe, expect, it } from 'vitest';
 import { buildReportingContext } from '../../src/reporting/context';
 import { buildReportLinks } from '../../src/reporting/links';
-import { COMMENT_MARKER, renderPrComment } from '../../src/reporting/pr-comment';
+import {
+  buildCommentMarker,
+  COMMENT_MARKER,
+  DEFAULT_CHECK_NAME,
+  encodeCommentMarkerKey,
+  isDefaultCheckName,
+  renderPrComment,
+} from '../../src/reporting/pr-comment';
 import { sampleConfig, sampleRun } from './fixtures';
 import type { PreviousRun } from '../../src/history/previous-run';
+
+describe('comment marker', () => {
+  it('builds a hex-encoded scoped marker from check-name', () => {
+    expect(buildCommentMarker('Backend')).toBe(
+      `<!-- actions-insights-report:${encodeCommentMarkerKey('Backend')} -->`,
+    );
+    expect(buildCommentMarker(DEFAULT_CHECK_NAME)).toBe(
+      `<!-- actions-insights-report:${encodeCommentMarkerKey(DEFAULT_CHECK_NAME)} -->`,
+    );
+  });
+
+  it('keeps distinct check-names collision-free', () => {
+    expect(buildCommentMarker('CI -- unit')).not.toBe(buildCommentMarker('CI - unit'));
+    expect(encodeCommentMarkerKey('CI -- unit')).not.toContain('--');
+    expect(encodeCommentMarkerKey('A>B')).not.toContain('>');
+  });
+
+  it('detects the default check-name with exact equality', () => {
+    expect(isDefaultCheckName(DEFAULT_CHECK_NAME)).toBe(true);
+    expect(isDefaultCheckName('Backend')).toBe(false);
+    expect(isDefaultCheckName('Actions> Insights')).toBe(false);
+  });
+
+  it('legacy unscoped marker is distinct from scoped markers', () => {
+    expect(buildCommentMarker('Backend')).not.toContain(COMMENT_MARKER);
+    expect(COMMENT_MARKER).toBe('<!-- actions-insights-report -->');
+  });
+});
 
 describe('pr-comment', () => {
   it('renders status and counts above the fold', () => {
     const ctx = buildReportingContext(sampleRun, sampleConfig);
     const body = renderPrComment(ctx, sampleConfig, buildReportLinks(sampleRun.context));
-    expect(body).toContain(COMMENT_MARKER);
+    expect(body).toContain(buildCommentMarker(sampleConfig.checkName));
+    expect(body).not.toContain(COMMENT_MARKER);
     expect(body).toContain('❌ Failed');
     expect(body).toContain('✅ 1 passed');
     expect(body).toContain('❌ 1 failed');
@@ -175,6 +211,17 @@ describe('pr-comment', () => {
     expect(body).toContain('…and 6 additional failed tests');
     expect(body).toContain('View complete report');
     expect(body).not.toContain('View complete report in workflow artifacts');
+  });
+
+  it('emits a scoped marker for a custom check-name', () => {
+    const config = { ...sampleConfig, checkName: 'Backend', reportTitle: 'Backend' };
+    const body = renderPrComment(
+      buildReportingContext(sampleRun, config),
+      config,
+      buildReportLinks(sampleRun.context),
+    );
+    expect(body).toContain(buildCommentMarker('Backend'));
+    expect(body).toContain('# ❌ Failed — Backend');
   });
 
   it('collapses slow tests beyond top 3', () => {

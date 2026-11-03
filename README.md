@@ -57,7 +57,7 @@ jobs:
 |-------|---------|-------------|
 | `test-results` | `**/*.{trx,xml}` | Glob for test result files |
 | `reports-subdirectory` | `test-reports` | Subdirectory in the site artifact |
-| `comment-mode` | `update` | `update` (upsert PR comment) or `off` |
+| `comment-mode` | `update` | `update` (upsert one PR comment per `check-name`) or `off` |
 | `max-failed-tests-in-comment` | `10` | Cap failures shown in PR comment |
 | `max-stack-trace-lines` | `25` | Stack trace truncation |
 | `include-slowest-tests` | `18` | Slow test count (0 to disable) |

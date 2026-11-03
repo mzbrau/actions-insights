@@ -89,7 +89,7 @@ inputs:
 
   # PR comment
   comment-mode:
-    description: 'PR comment mode: update (upsert single comment) or off. Only applies in pull-request workflow runs.'
+    description: 'PR comment mode: update (upsert one comment per check-name on the PR) or off. Only applies in pull-request workflow runs.'
     required: false
     default: update
   max-failed-tests-in-comment:
@@ -129,7 +129,7 @@ inputs:
     required: false
     default: 'true'
   check-name:
-    description: Name of the published check run
+    description: Name of the published check run; also keys the PR comment upsert when comment-mode is update
     required: false
     default: Actions Insights
 

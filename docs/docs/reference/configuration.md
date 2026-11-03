@@ -123,10 +123,10 @@ Local directory for the merged site with history.
 ### PR Comment
 
 #### `comment-mode`
-PR comment behavior.
+PR comment behavior. When `update`, upserts **one comment per [`check-name`](#check-name)** on the pull request (not a single global comment for the whole PR). Publishers that share a `check-name` still overwrite each other.
 
 - **Default:** `update`
-- **Values:** `update` (upsert single comment), `off`
+- **Values:** `update` (upsert one comment per `check-name`), `off`
 
 #### `max-failed-tests-in-comment`
 Maximum failed tests shown in the PR comment.
@@ -163,7 +163,7 @@ Publish a GitHub check run.
 - **Default:** `true`
 
 #### `check-name`
-Name of the check run.
+Name of the check run. Also keys the PR comment upsert when [`comment-mode`](#comment-mode) is `update` — use a distinct value for each Actions Insights step on the same pull request.
 
 - **Default:** `Actions Insights`
 

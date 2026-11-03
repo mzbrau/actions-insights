@@ -7,7 +7,42 @@ import type { TestRun } from '../model/test-run';
 import { buildReportingContext } from '../reporting/context';
 import { buildReportLinks } from '../reporting/links';
 import { archiveCommentResults } from '../reporting/comment-history';
-import { COMMENT_MARKER, renderPrComment } from '../reporting/pr-comment';
+import {
+  buildCommentMarker,
+  COMMENT_MARKER,
+  isDefaultCheckName,
+  renderPrComment,
+} from '../reporting/pr-comment';
+
+export interface CommentCandidate {
+  id: number;
+  body?: string | null;
+}
+
+/** First line of a comment body (marker identity); ignores embedded report text. */
+export function commentIdentityLine(body?: string | null): string | undefined {
+  if (!body) return undefined;
+  const nl = body.indexOf('\n');
+  return (nl === -1 ? body : body.slice(0, nl)).trimEnd();
+}
+
+/**
+ * Find the PR comment owned by this check-name.
+ * Prefers a scoped marker on the first line; falls back to the legacy unscoped
+ * marker only for the default check-name.
+ */
+export function findExistingComment(
+  comments: CommentCandidate[],
+  checkName: string,
+): CommentCandidate | undefined {
+  const scoped = buildCommentMarker(checkName);
+  const scopedMatch = comments.find((c) => commentIdentityLine(c.body) === scoped);
+  if (scopedMatch) return scopedMatch;
+
+  if (!isDefaultCheckName(checkName)) return undefined;
+
+  return comments.find((c) => commentIdentityLine(c.body) === COMMENT_MARKER);
+}
 
 export async function upsertPrComment(
   token: string,
@@ -34,14 +69,14 @@ export async function upsertPrComment(
   };
 
   try {
-    const { data: comments } = await octokit.rest.issues.listComments({
+    const comments = await octokit.paginate(octokit.rest.issues.listComments, {
       owner,
       repo,
       issue_number: prNumber,
       per_page: 100,
     });
 
-    const existing = comments.find((c) => c.body?.includes(COMMENT_MARKER));
+    const existing = findExistingComment(comments, config.checkName);
     const previousResults = existing?.body ? archiveCommentResults(existing.body) : [];
     const body = renderPrComment(ctx, config, links, previousResults);
 
@@ -52,7 +87,7 @@ export async function upsertPrComment(
         comment_id: existing.id,
         body,
       });
-      core.info('Updated PR comment');
+      core.info(`Updated PR comment (${config.checkName})`);
     } else {
       await octokit.rest.issues.createComment({
         owner,
@@ -60,7 +95,7 @@ export async function upsertPrComment(
         issue_number: prNumber,
         body,
       });
-      core.info('Created PR comment');
+      core.info(`Created PR comment (${config.checkName})`);
     }
   } catch (error) {
     core.warning(`Failed to update PR comment: ${error instanceof Error ? error.message : String(error)}`);

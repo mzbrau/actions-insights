@@ -134790,6 +134790,16 @@ function formatSuiteSummaryMarkdown(summaries) {
 
 // src/reporting/pr-comment.ts
 var COMMENT_MARKER = "<!-- actions-insights-report -->";
+var DEFAULT_CHECK_NAME = "Actions Insights";
+function encodeCommentMarkerKey(checkName) {
+  return Buffer.from(checkName, "utf8").toString("hex");
+}
+function buildCommentMarker(checkName) {
+  return `<!-- actions-insights-report:${encodeCommentMarkerKey(checkName)} -->`;
+}
+function isDefaultCheckName(checkName) {
+  return checkName === DEFAULT_CHECK_NAME;
+}
 function renderPrComment(ctx, config, links, previousResults = []) {
   const { run: run2, failedTests, failedCount, slowTests, extendedStats, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun } = ctx;
   const { context: context11, status } = run2;
@@ -134809,7 +134819,7 @@ function renderPrComment(ctx, config, links, previousResults = []) {
     compact: true
   };
   const lines = [
-    COMMENT_MARKER,
+    buildCommentMarker(config.checkName),
     ...buildCommentHistoryMarkers(currentState, previousResults),
     `# ${emoji} ${statusLabel} \u2014 ${config.reportTitle}`,
     "",
@@ -134946,6 +134956,18 @@ function renderPrComment(ctx, config, links, previousResults = []) {
 }
 
 // src/github/comment.ts
+function commentIdentityLine(body2) {
+  if (!body2) return void 0;
+  const nl = body2.indexOf("\n");
+  return (nl === -1 ? body2 : body2.slice(0, nl)).trimEnd();
+}
+function findExistingComment(comments, checkName) {
+  const scoped = buildCommentMarker(checkName);
+  const scopedMatch = comments.find((c) => commentIdentityLine(c.body) === scoped);
+  if (scopedMatch) return scopedMatch;
+  if (!isDefaultCheckName(checkName)) return void 0;
+  return comments.find((c) => commentIdentityLine(c.body) === COMMENT_MARKER);
+}
 async function upsertPrComment(token, run2, config, previousRun, baseBranchRun, historyRepositoryUrl, historyRunUrl, previousCoverageRun, baseBranchCoverageRun, artifactUrl) {
   const prNumber = run2.context.prNumber;
   if (!prNumber || config.commentMode === "off") return;
@@ -134958,13 +134980,13 @@ async function upsertPrComment(token, run2, config, previousRun, baseBranchRun, 
     historyRun: historyRunUrl
   };
   try {
-    const { data: comments } = await octokit.rest.issues.listComments({
+    const comments = await octokit.paginate(octokit.rest.issues.listComments, {
       owner,
       repo,
       issue_number: prNumber,
       per_page: 100
     });
-    const existing = comments.find((c) => c.body?.includes(COMMENT_MARKER));
+    const existing = findExistingComment(comments, config.checkName);
     const previousResults = existing?.body ? archiveCommentResults(existing.body) : [];
     const body2 = renderPrComment(ctx, config, links, previousResults);
     if (existing) {
@@ -134974,7 +134996,7 @@ async function upsertPrComment(token, run2, config, previousRun, baseBranchRun, 
         comment_id: existing.id,
         body: body2
       });
-      core4.info("Updated PR comment");
+      core4.info(`Updated PR comment (${config.checkName})`);
     } else {
       await octokit.rest.issues.createComment({
         owner,
@@ -134982,7 +135004,7 @@ async function upsertPrComment(token, run2, config, previousRun, baseBranchRun, 
         issue_number: prNumber,
         body: body2
       });
-      core4.info("Created PR comment");
+      core4.info(`Created PR comment (${config.checkName})`);
     }
   } catch (error2) {
     core4.warning(`Failed to update PR comment: ${error2 instanceof Error ? error2.message : String(error2)}`);
