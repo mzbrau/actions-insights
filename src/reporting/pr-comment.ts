@@ -28,25 +28,20 @@ export const COMMENT_MARKER = '<!-- actions-insights-report -->';
 export const DEFAULT_CHECK_NAME = 'Actions Insights';
 
 /**
- * Sanitize a check-name for use inside an HTML comment marker.
- * Strips control chars, collapses `--` (illegal in HTML comments), and removes `>`.
+ * Encode a check-name into an HTML-comment-safe key that preserves identity.
+ * Hex avoids `--` / `>` and never collapses distinct names (e.g. `CI -- unit` vs `CI - unit`).
  */
-export function sanitizeCommentMarkerKey(checkName: string): string {
-  const sanitized = checkName
-    .replace(/[\u0000-\u001f\u007f]/g, '')
-    .replace(/--+/g, '-')
-    .replace(/>/g, '')
-    .trim();
-  return sanitized || DEFAULT_CHECK_NAME;
+export function encodeCommentMarkerKey(checkName: string): string {
+  return Buffer.from(checkName, 'utf8').toString('hex');
 }
 
 /** Scoped marker so multiple publishers on one PR upsert distinct comments. */
 export function buildCommentMarker(checkName: string): string {
-  return `<!-- actions-insights-report:${sanitizeCommentMarkerKey(checkName)} -->`;
+  return `<!-- actions-insights-report:${encodeCommentMarkerKey(checkName)} -->`;
 }
 
 export function isDefaultCheckName(checkName: string): boolean {
-  return sanitizeCommentMarkerKey(checkName) === sanitizeCommentMarkerKey(DEFAULT_CHECK_NAME);
+  return checkName === DEFAULT_CHECK_NAME;
 }
 
 export function renderPrComment(

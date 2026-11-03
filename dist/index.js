@@ -134791,15 +134791,14 @@ function formatSuiteSummaryMarkdown(summaries) {
 // src/reporting/pr-comment.ts
 var COMMENT_MARKER = "<!-- actions-insights-report -->";
 var DEFAULT_CHECK_NAME = "Actions Insights";
-function sanitizeCommentMarkerKey(checkName) {
-  const sanitized = checkName.replace(/[\u0000-\u001f\u007f]/g, "").replace(/--+/g, "-").replace(/>/g, "").trim();
-  return sanitized || DEFAULT_CHECK_NAME;
+function encodeCommentMarkerKey(checkName) {
+  return Buffer.from(checkName, "utf8").toString("hex");
 }
 function buildCommentMarker(checkName) {
-  return `<!-- actions-insights-report:${sanitizeCommentMarkerKey(checkName)} -->`;
+  return `<!-- actions-insights-report:${encodeCommentMarkerKey(checkName)} -->`;
 }
 function isDefaultCheckName(checkName) {
-  return sanitizeCommentMarkerKey(checkName) === sanitizeCommentMarkerKey(DEFAULT_CHECK_NAME);
+  return checkName === DEFAULT_CHECK_NAME;
 }
 function renderPrComment(ctx, config, links, previousResults = []) {
   const { run: run2, failedTests, failedCount, slowTests, extendedStats, previousRun, baseBranchRun, previousCoverageRun, baseBranchCoverageRun } = ctx;
@@ -134957,12 +134956,17 @@ function renderPrComment(ctx, config, links, previousResults = []) {
 }
 
 // src/github/comment.ts
+function commentIdentityLine(body2) {
+  if (!body2) return void 0;
+  const nl = body2.indexOf("\n");
+  return (nl === -1 ? body2 : body2.slice(0, nl)).trimEnd();
+}
 function findExistingComment(comments, checkName) {
   const scoped = buildCommentMarker(checkName);
-  const scopedMatch = comments.find((c) => c.body?.includes(scoped));
+  const scopedMatch = comments.find((c) => commentIdentityLine(c.body) === scoped);
   if (scopedMatch) return scopedMatch;
   if (!isDefaultCheckName(checkName)) return void 0;
-  return comments.find((c) => c.body?.includes(COMMENT_MARKER));
+  return comments.find((c) => commentIdentityLine(c.body) === COMMENT_MARKER);
 }
 async function upsertPrComment(token, run2, config, previousRun, baseBranchRun, historyRepositoryUrl, historyRunUrl, previousCoverageRun, baseBranchCoverageRun, artifactUrl) {
   const prNumber = run2.context.prNumber;
@@ -134976,7 +134980,7 @@ async function upsertPrComment(token, run2, config, previousRun, baseBranchRun, 
     historyRun: historyRunUrl
   };
   try {
-    const { data: comments } = await octokit.rest.issues.listComments({
+    const comments = await octokit.paginate(octokit.rest.issues.listComments, {
       owner,
       repo,
       issue_number: prNumber,

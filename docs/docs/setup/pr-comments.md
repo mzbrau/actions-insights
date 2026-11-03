@@ -42,7 +42,7 @@ with:
 
 ## Multiple publishers on one PR
 
-`comment-mode: update` upserts **one comment per [`check-name`](../reference/configuration#check-name)** on the pull request (the same key used for check runs). Give each Actions Insights step a distinct `check-name` (and usually a matching `report-title`) so reports do not overwrite each other:
+`comment-mode: update` upserts **one comment per [`check-name`](../reference/configuration#check-name)** on the pull request (the same key used for check runs). Give each Actions Insights step a distinct `check-name`, matching `report-title`, and [`reports-subdirectory`](../reference/configuration#reports-subdirectory) so comments, checks, HTML history, and previous-run comparisons stay isolated. Sharing a subdirectory merges test results on purpose (for example sharded suites); separate publishers need separate subdirectories:
 
 ```yaml
 - uses: mzbrau/actions-insights@v1
@@ -50,12 +50,14 @@ with:
     test-results: '**/TestResults/*.trx'
     check-name: Backend
     report-title: Backend
+    reports-subdirectory: test-reports/backend
 
 - uses: mzbrau/actions-insights@v1
   with:
     test-results: 'test-reports/*junit.xml'
     check-name: CI — unit & e2e
     report-title: CI — unit & e2e
+    reports-subdirectory: test-reports/ci-unit
 ```
 
 Publishers that share the same `check-name` (including the default `Actions Insights`) still upsert the same comment — last writer wins for that key.

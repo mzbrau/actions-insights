@@ -22,10 +22,24 @@ describe('findExistingComment', () => {
     expect(findExistingComment(comments, 'CI unit')).toBeUndefined();
   });
 
+  it('does not match a marker embedded in report text', () => {
+    const spoofed = [
+      buildCommentMarker('Backend'),
+      '# Failed — Backend',
+      `Failure output contains ${buildCommentMarker('CI unit')} in stdout`,
+    ].join('\n');
+    const comments = [
+      { id: 1, body: spoofed },
+      { id: 2, body: `${buildCommentMarker('CI unit')}\n# CI unit` },
+    ];
+    expect(findExistingComment(comments, 'CI unit')?.id).toBe(2);
+  });
+
   it('matches legacy unscoped marker only for the default check-name', () => {
     const comments = [{ id: 10, body: `${COMMENT_MARKER}\n# Legacy` }];
     expect(findExistingComment(comments, DEFAULT_CHECK_NAME)?.id).toBe(10);
     expect(findExistingComment(comments, 'Backend')).toBeUndefined();
+    expect(findExistingComment(comments, 'Actions> Insights')).toBeUndefined();
   });
 
   it('prefers scoped default marker over legacy', () => {
@@ -34,6 +48,15 @@ describe('findExistingComment', () => {
       { id: 2, body: `${buildCommentMarker(DEFAULT_CHECK_NAME)}\n# Scoped` },
     ];
     expect(findExistingComment(comments, DEFAULT_CHECK_NAME)?.id).toBe(2);
+  });
+
+  it('keeps collision-prone names on separate comments', () => {
+    const comments = [
+      { id: 1, body: `${buildCommentMarker('CI -- unit')}\n# dashdash` },
+      { id: 2, body: `${buildCommentMarker('CI - unit')}\n# dash` },
+    ];
+    expect(findExistingComment(comments, 'CI -- unit')?.id).toBe(1);
+    expect(findExistingComment(comments, 'CI - unit')?.id).toBe(2);
   });
 
   it('creates isolation so previous-results archive only the matched body', () => {

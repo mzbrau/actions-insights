@@ -5,30 +5,33 @@ import {
   buildCommentMarker,
   COMMENT_MARKER,
   DEFAULT_CHECK_NAME,
+  encodeCommentMarkerKey,
   isDefaultCheckName,
   renderPrComment,
-  sanitizeCommentMarkerKey,
 } from '../../src/reporting/pr-comment';
 import { sampleConfig, sampleRun } from './fixtures';
 import type { PreviousRun } from '../../src/history/previous-run';
 
 describe('comment marker', () => {
-  it('builds a scoped marker from check-name', () => {
-    expect(buildCommentMarker('Backend')).toBe('<!-- actions-insights-report:Backend -->');
+  it('builds a hex-encoded scoped marker from check-name', () => {
+    expect(buildCommentMarker('Backend')).toBe(
+      `<!-- actions-insights-report:${encodeCommentMarkerKey('Backend')} -->`,
+    );
     expect(buildCommentMarker(DEFAULT_CHECK_NAME)).toBe(
-      '<!-- actions-insights-report:Actions Insights -->',
+      `<!-- actions-insights-report:${encodeCommentMarkerKey(DEFAULT_CHECK_NAME)} -->`,
     );
   });
 
-  it('sanitizes unsafe characters for HTML comments', () => {
-    expect(sanitizeCommentMarkerKey('CI -- unit')).toBe('CI - unit');
-    expect(sanitizeCommentMarkerKey('A>B')).toBe('AB');
-    expect(sanitizeCommentMarkerKey('   ')).toBe(DEFAULT_CHECK_NAME);
+  it('keeps distinct check-names collision-free', () => {
+    expect(buildCommentMarker('CI -- unit')).not.toBe(buildCommentMarker('CI - unit'));
+    expect(encodeCommentMarkerKey('CI -- unit')).not.toContain('--');
+    expect(encodeCommentMarkerKey('A>B')).not.toContain('>');
   });
 
-  it('detects the default check-name', () => {
+  it('detects the default check-name with exact equality', () => {
     expect(isDefaultCheckName(DEFAULT_CHECK_NAME)).toBe(true);
     expect(isDefaultCheckName('Backend')).toBe(false);
+    expect(isDefaultCheckName('Actions> Insights')).toBe(false);
   });
 
   it('legacy unscoped marker is distinct from scoped markers', () => {
