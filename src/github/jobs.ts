@@ -41,13 +41,21 @@ export interface WorkflowRunJobs {
   };
 }
 
-function selectCurrentJob(jobs: WorkflowJob[]): WorkflowJob | undefined {
+/** Best-effort match for the current job; no fallback when unmatched. */
+function findMatchingJob(jobs: WorkflowJob[]): WorkflowJob | undefined {
   const desired = (process.env.GITHUB_JOB ?? '').trim();
-  if (desired) {
-    const match = jobs.find((job) => job.name === desired);
-    if (match) return match;
-  }
-  return jobs[0];
+  if (!desired) return undefined;
+
+  const exact = jobs.find((job) => job.name === desired);
+  if (exact) return exact;
+
+  // Matrix jobs are often named "job-id (matrix-value)" while GITHUB_JOB is just the job id.
+  const matrixPrefix = `${desired} (`;
+  return jobs.find((job) => typeof job.name === 'string' && job.name.startsWith(matrixPrefix));
+}
+
+function selectCurrentJob(jobs: WorkflowJob[]): WorkflowJob | undefined {
+  return findMatchingJob(jobs) ?? jobs[0];
 }
 
 export function extractFailedPriorSteps(job: WorkflowJob | undefined): FailedPriorStep[] {
@@ -124,7 +132,9 @@ export function fetchFailedPriorStepsFromJobs(
   prefetched: WorkflowRunJobs | undefined,
 ): FailedPriorStep[] {
   if (!prefetched) return [];
-  return extractFailedPriorSteps(selectCurrentJob(prefetched.jobs));
+  const job = findMatchingJob(prefetched.jobs);
+  if (!job) return [];
+  return extractFailedPriorSteps(job);
 }
 
 export function buildWorkflowTimingFromJobs(
@@ -133,10 +143,15 @@ export function buildWorkflowTimingFromJobs(
   const { jobs, workflowRun } = prefetched;
   if (jobs.length === 0) return undefined;
 
-  const desiredJob = (process.env.GITHUB_JOB ?? '').trim();
   const jobTimings: WorkflowJobTiming[] = [];
   const steps: WorkflowStepTiming[] = [];
-  let runner: WorkflowRunnerInfo | undefined;
+  const matchedJob = selectCurrentJob(jobs);
+  const runner: WorkflowRunnerInfo | undefined = matchedJob
+    ? {
+        os: matchedJob.runner_os ?? undefined,
+        labels: matchedJob.labels ?? undefined,
+      }
+    : undefined;
 
   for (const job of jobs) {
     const jobDuration = durationBetweenMs(job.started_at, job.completed_at);
@@ -146,13 +161,6 @@ export function buildWorkflowTimingFromJobs(
       startedAt: job.started_at ?? undefined,
       completedAt: job.completed_at ?? undefined,
     });
-
-    if (desiredJob && job.name === desiredJob) {
-      runner = {
-        os: job.runner_os ?? undefined,
-        labels: job.labels ?? undefined,
-      };
-    }
 
     for (const step of job.steps ?? []) {
       steps.push({
@@ -165,14 +173,6 @@ export function buildWorkflowTimingFromJobs(
         completedAt: step.completed_at ?? undefined,
       });
     }
-  }
-
-  if (!runner && jobs.length > 0) {
-    const first = jobs[0];
-    runner = {
-      os: first.runner_os ?? undefined,
-      labels: first.labels ?? undefined,
-    };
   }
 
   const runStartedAt = workflowRun?.run_started_at ?? workflowRun?.created_at;

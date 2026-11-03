@@ -168,4 +168,34 @@ describe('fetchFailedPriorStepsFromJobs', () => {
     });
     expect(failed).toEqual([{ stepName: 'Build' }]);
   });
+
+  it('matches matrix job names by GITHUB_JOB prefix', () => {
+    process.env.GITHUB_JOB = 'build';
+    const failed = fetchFailedPriorStepsFromJobs({
+      jobs: [
+        {
+          name: 'other-job',
+          steps: [{ name: 'Lint', number: 1, status: 'completed', conclusion: 'failure' }],
+        },
+        {
+          name: 'build (ubuntu-latest)',
+          steps: [{ name: 'Compile', number: 1, status: 'completed', conclusion: 'failure' }],
+        },
+      ],
+    });
+    expect(failed).toEqual([{ stepName: 'Compile' }]);
+  });
+
+  it('returns empty when current job cannot be matched', () => {
+    process.env.GITHUB_JOB = 'missing-job';
+    const failed = fetchFailedPriorStepsFromJobs({
+      jobs: [
+        {
+          name: 'other-job',
+          steps: [{ name: 'Build', number: 1, status: 'completed', conclusion: 'failure' }],
+        },
+      ],
+    });
+    expect(failed).toEqual([]);
+  });
 });

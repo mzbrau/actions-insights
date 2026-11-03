@@ -35,4 +35,18 @@ describe('buildCheckTitle', () => {
   it('uses pass/fail counts when tests failed', () => {
     expect(buildCheckTitle(sampleRun)).toBe('1 passed, 1 failed');
   });
+
+  it('truncates long status reasons to the Checks title limit', () => {
+    const longReason = `Prior job steps failed (${'x'.repeat(2000)}); no test results found`;
+    const run: TestRun = {
+      ...sampleRun,
+      status: 'failed',
+      statusReason: longReason,
+      stats: { ...sampleRun.stats, total: 0, passed: 0, failed: 0 },
+      tests: [],
+    };
+    const title = buildCheckTitle(run);
+    expect(title.length).toBeLessThanOrEqual(1024);
+    expect(title.endsWith('…')).toBe(true);
+  });
 });

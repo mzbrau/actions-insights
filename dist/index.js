@@ -133532,6 +133532,7 @@ var github = __toESM(require_github());
 
 // src/github/limits.ts
 var GITHUB_CHECK_OUTPUT_MAX_CHARS = 65535;
+var GITHUB_CHECK_TITLE_MAX_CHARS = 1024;
 
 // src/reporting/truncate.ts
 function truncateLines2(text, maxLines) {
@@ -134283,11 +134284,18 @@ function formatStatusReasonLine(run2) {
   }
   return run2.statusReason;
 }
+function normalizeCheckTitle(title) {
+  const normalized = title.replace(/\s+/g, " ").trim();
+  if (normalized.length <= GITHUB_CHECK_TITLE_MAX_CHARS) return normalized;
+  return `${normalized.slice(0, GITHUB_CHECK_TITLE_MAX_CHARS - 1)}\u2026`;
+}
 function buildCheckTitle(run2) {
   if (run2.status === "failed" && run2.stats.failed === 0 && run2.statusReason) {
-    return run2.statusReason;
+    return normalizeCheckTitle(run2.statusReason);
   }
-  return `${run2.stats.passed.toLocaleString()} passed, ${run2.stats.failed.toLocaleString()} failed`;
+  return normalizeCheckTitle(
+    `${run2.stats.passed.toLocaleString()} passed, ${run2.stats.failed.toLocaleString()} failed`
+  );
 }
 
 // src/reporting/time.ts
@@ -135064,13 +135072,16 @@ function tryReadEventHeadCommit() {
 // src/github/jobs.ts
 var core5 = __toESM(require_core());
 var github4 = __toESM(require_github());
-function selectCurrentJob(jobs) {
+function findMatchingJob(jobs) {
   const desired = (process.env.GITHUB_JOB ?? "").trim();
-  if (desired) {
-    const match = jobs.find((job) => job.name === desired);
-    if (match) return match;
-  }
-  return jobs[0];
+  if (!desired) return void 0;
+  const exact = jobs.find((job) => job.name === desired);
+  if (exact) return exact;
+  const matrixPrefix = `${desired} (`;
+  return jobs.find((job) => typeof job.name === "string" && job.name.startsWith(matrixPrefix));
+}
+function selectCurrentJob(jobs) {
+  return findMatchingJob(jobs) ?? jobs[0];
 }
 function extractFailedPriorSteps(job) {
   const steps = job?.steps ?? [];
@@ -135122,15 +135133,20 @@ async function resolveCurrentJobUrl(token, context11, prefetched) {
 }
 function fetchFailedPriorStepsFromJobs(prefetched) {
   if (!prefetched) return [];
-  return extractFailedPriorSteps(selectCurrentJob(prefetched.jobs));
+  const job = findMatchingJob(prefetched.jobs);
+  if (!job) return [];
+  return extractFailedPriorSteps(job);
 }
 function buildWorkflowTimingFromJobs(prefetched) {
   const { jobs, workflowRun } = prefetched;
   if (jobs.length === 0) return void 0;
-  const desiredJob = (process.env.GITHUB_JOB ?? "").trim();
   const jobTimings = [];
   const steps = [];
-  let runner;
+  const matchedJob = selectCurrentJob(jobs);
+  const runner = matchedJob ? {
+    os: matchedJob.runner_os ?? void 0,
+    labels: matchedJob.labels ?? void 0
+  } : void 0;
   for (const job of jobs) {
     const jobDuration = durationBetweenMs(job.started_at, job.completed_at);
     jobTimings.push({
@@ -135139,12 +135155,6 @@ function buildWorkflowTimingFromJobs(prefetched) {
       startedAt: job.started_at ?? void 0,
       completedAt: job.completed_at ?? void 0
     });
-    if (desiredJob && job.name === desiredJob) {
-      runner = {
-        os: job.runner_os ?? void 0,
-        labels: job.labels ?? void 0
-      };
-    }
     for (const step of job.steps ?? []) {
       steps.push({
         jobName: job.name ?? "Job",
@@ -135156,13 +135166,6 @@ function buildWorkflowTimingFromJobs(prefetched) {
         completedAt: step.completed_at ?? void 0
       });
     }
-  }
-  if (!runner && jobs.length > 0) {
-    const first = jobs[0];
-    runner = {
-      os: first.runner_os ?? void 0,
-      labels: first.labels ?? void 0
-    };
   }
   const runStartedAt = workflowRun?.run_started_at ?? workflowRun?.created_at;
   const runCompletedAt = workflowRun?.status === "completed" ? workflowRun.updated_at : void 0;
