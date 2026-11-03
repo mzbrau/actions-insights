@@ -10,6 +10,14 @@ inputs:
     description: Glob pattern for test result files (TRX, JUnit, NUnit, xUnit)
     required: false
     default: '**/*.{trx,xml}'
+  test-results-fail-if-missing:
+    description: Fail the step when no test result files are found or parsed
+    required: false
+    default: 'false'
+  infer-failure-from-job-steps:
+    description: When no tests are parsed, fail if an earlier step in the current job failed
+    required: false
+    default: 'true'
 
   # Code coverage
   coverage-enabled:
@@ -38,6 +46,10 @@ inputs:
     description: Fail the step when diagnostics are enabled but no diagnostic files are found or parsed
     required: false
     default: 'false'
+  diagnostics-fail-on-errors:
+    description: When diagnostics are enabled and no tests are parsed, fail if diagnostics contain errors
+    required: false
+    default: 'true'
 
   # Workflow timing
   workflow-timing-enabled:

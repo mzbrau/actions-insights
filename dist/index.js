@@ -132753,6 +132753,9 @@ function loadConfig() {
   const commentMode = core.getInput("comment-mode") || "update";
   return {
     testResults: core.getInput("test-results") || "**/*.{trx,xml}",
+    testResultsFailIfMissing: getBooleanOr("test-results-fail-if-missing", false),
+    inferFailureFromJobSteps: getBooleanOr("infer-failure-from-job-steps", true),
+    diagnosticsFailOnErrors: getBooleanOr("diagnostics-fail-on-errors", true),
     reportsSubdirectory,
     commentMode,
     historyLimit: parsePositiveInt(core.getInput("history"), 20),
@@ -133529,6 +133532,7 @@ var github = __toESM(require_github());
 
 // src/github/limits.ts
 var GITHUB_CHECK_OUTPUT_MAX_CHARS = 65535;
+var GITHUB_CHECK_TITLE_MAX_CHARS = 1024;
 
 // src/reporting/truncate.ts
 function truncateLines2(text, maxLines) {
@@ -133627,6 +133631,41 @@ function computeStats(tests) {
 }
 function deriveStatus(tests) {
   return tests.some((t) => t.outcome === "failed") ? "failed" : "passed";
+}
+function deriveRunStatus(input) {
+  const failedTestCount = input.tests.filter((t) => t.outcome === "failed").length;
+  if (failedTestCount > 0) {
+    return {
+      status: "failed",
+      reason: `${failedTestCount} test(s) failed`
+    };
+  }
+  if (input.tests.length > 0) {
+    return { status: "passed" };
+  }
+  if (input.testResultsFailIfMissing) {
+    return {
+      status: "failed",
+      reason: "No test results found or parsed. Ensure test-results glob matches your output files."
+    };
+  }
+  if (input.inferFailureFromJobSteps && input.failedPriorSteps.length > 0) {
+    const names = input.failedPriorSteps.map((step) => step.stepName).join(", ");
+    const label = input.failedPriorSteps.length === 1 ? "step" : "steps";
+    return {
+      status: "failed",
+      reason: `Prior job ${label} failed (${names}); no test results found`
+    };
+  }
+  if (input.diagnosticsEnabled && input.diagnosticsFailOnErrors && input.diagnostics && input.diagnostics.summary.errors > 0) {
+    const errorCount = input.diagnostics.summary.errors;
+    const label = errorCount === 1 ? "error" : "errors";
+    return {
+      status: "failed",
+      reason: `${errorCount} build ${label} found in diagnostics; no test results found`
+    };
+  }
+  return { status: "passed" };
 }
 function formatDuration(ms) {
   if (ms < 1e3) return `${ms}ms`;
@@ -134238,6 +134277,27 @@ function resolveCoverageComparison(ctx) {
   return void 0;
 }
 
+// src/reporting/status-reason.ts
+function formatStatusReasonLine(run2) {
+  if (run2.status !== "failed" || run2.stats.total > 0 || !run2.statusReason) {
+    return void 0;
+  }
+  return run2.statusReason;
+}
+function normalizeCheckTitle(title) {
+  const normalized = title.replace(/\s+/g, " ").trim();
+  if (normalized.length <= GITHUB_CHECK_TITLE_MAX_CHARS) return normalized;
+  return `${normalized.slice(0, GITHUB_CHECK_TITLE_MAX_CHARS - 1)}\u2026`;
+}
+function buildCheckTitle(run2) {
+  if (run2.status === "failed" && run2.stats.failed === 0 && run2.statusReason) {
+    return normalizeCheckTitle(run2.statusReason);
+  }
+  return normalizeCheckTitle(
+    `${run2.stats.passed.toLocaleString()} passed, ${run2.stats.failed.toLocaleString()} failed`
+  );
+}
+
 // src/reporting/time.ts
 var fs2 = __toESM(require("fs"));
 function formatUtcTimestamp(iso) {
@@ -134284,6 +134344,10 @@ function renderJobSummary(ctx, config, links, options = {}) {
     formatCompactSummary(ctx.extendedStats),
     ""
   ];
+  const statusReasonLine = formatStatusReasonLine(run2);
+  if (statusReasonLine) {
+    lines.push(`> ${statusReasonLine}`, "");
+  }
   if (run2.coverage) {
     const comparison = resolveCoverageComparison({
       current: run2.coverage.summary,
@@ -134426,7 +134490,7 @@ async function publishCheckRun(token, run2, config, artifactUrl) {
       conclusion: run2.status === "passed" ? "success" : "failure",
       details_url: links.workflowRun,
       output: {
-        title: `${run2.stats.passed.toLocaleString()} passed, ${run2.stats.failed.toLocaleString()} failed`,
+        title: buildCheckTitle(run2),
         summary: summary3,
         annotations
       }
@@ -134756,6 +134820,10 @@ function renderPrComment(ctx, config, links, previousResults = []) {
     lines.push(formatHistoryDetailsLink(links.historyRun));
   }
   lines.push("", formatCompactSummary(extendedStats), "");
+  const statusReasonLine = formatStatusReasonLine(run2);
+  if (statusReasonLine) {
+    lines.push(`> ${statusReasonLine}`, "");
+  }
   const suiteSummaries = computeSuiteSummaries(run2.tests);
   if (shouldShowSuiteSummary(suiteSummaries)) {
     lines.push(formatSuiteSummaryMarkdown(suiteSummaries));
@@ -135004,32 +135072,32 @@ function tryReadEventHeadCommit() {
 // src/github/jobs.ts
 var core5 = __toESM(require_core());
 var github4 = __toESM(require_github());
-async function resolveCurrentJobUrl(token, context11) {
-  const { owner, repo } = github4.context.repo;
-  const octokit = github4.getOctokit(token);
+function findMatchingJob(jobs) {
   const desired = (process.env.GITHUB_JOB ?? "").trim();
-  try {
-    const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner,
-      repo,
-      run_id: context11.runId,
-      per_page: 100
-    });
-    const jobs = data.jobs ?? [];
-    if (jobs.length === 0) return void 0;
-    const match = desired ? jobs.find((j) => j.name === desired) : void 0;
-    const selected = match ?? jobs[0];
-    if (!selected?.id) return void 0;
-    return `${context11.repositoryUrl}/actions/runs/${context11.runId}/job/${selected.id}`;
-  } catch (error2) {
-    core5.debug(`Failed to resolve job URL: ${error2 instanceof Error ? error2.message : String(error2)}`);
-    return void 0;
-  }
+  if (!desired) return void 0;
+  const exact = jobs.find((job) => job.name === desired);
+  if (exact) return exact;
+  const matrixPrefix = `${desired} (`;
+  return jobs.find((job) => typeof job.name === "string" && job.name.startsWith(matrixPrefix));
 }
-async function fetchWorkflowTiming(token, context11) {
+function selectCurrentJob(jobs) {
+  return findMatchingJob(jobs) ?? jobs[0];
+}
+function extractFailedPriorSteps(job) {
+  const steps = job?.steps ?? [];
+  const failed = [];
+  for (const step of steps) {
+    if (step.conclusion !== "failure") continue;
+    if (step.status === "in_progress" || step.status === "pending") continue;
+    failed.push({
+      stepName: step.name ?? `Step ${step.number ?? "?"}`
+    });
+  }
+  return failed;
+}
+async function fetchWorkflowRunJobs(token, context11, options = {}) {
   const { owner, repo } = github4.context.repo;
   const octokit = github4.getOctokit(token);
-  const desiredJob = (process.env.GITHUB_JOB ?? "").trim();
   try {
     const { data } = await octokit.rest.actions.listJobsForWorkflowRun({
       owner,
@@ -135039,62 +135107,88 @@ async function fetchWorkflowTiming(token, context11) {
     });
     const jobs = data.jobs ?? [];
     if (jobs.length === 0) return void 0;
+    if (!options.includeWorkflowRun) {
+      return { jobs };
+    }
     const { data: workflowRun } = await octokit.rest.actions.getWorkflowRun({
       owner,
       repo,
       run_id: context11.runId
     });
-    const jobTimings = [];
-    const steps = [];
-    let runner;
-    for (const job of jobs) {
-      const jobDuration = durationBetweenMs(job.started_at, job.completed_at);
-      jobTimings.push({
-        name: job.name ?? "Job",
-        durationMs: jobDuration,
-        startedAt: job.started_at ?? void 0,
-        completedAt: job.completed_at ?? void 0
+    return { jobs, workflowRun };
+  } catch (error2) {
+    core5.debug(`Failed to fetch workflow jobs: ${error2 instanceof Error ? error2.message : String(error2)}`);
+    return void 0;
+  }
+}
+function resolveCurrentJobUrlFromJobs(context11, jobs) {
+  if (!jobs || jobs.length === 0) return void 0;
+  const selected = selectCurrentJob(jobs);
+  if (!selected?.id) return void 0;
+  return `${context11.repositoryUrl}/actions/runs/${context11.runId}/job/${selected.id}`;
+}
+async function resolveCurrentJobUrl(token, context11, prefetched) {
+  const jobs = prefetched?.jobs ?? (await fetchWorkflowRunJobs(token, context11))?.jobs;
+  return resolveCurrentJobUrlFromJobs(context11, jobs);
+}
+function fetchFailedPriorStepsFromJobs(prefetched) {
+  if (!prefetched) return [];
+  const job = findMatchingJob(prefetched.jobs);
+  if (!job) return [];
+  return extractFailedPriorSteps(job);
+}
+function buildWorkflowTimingFromJobs(prefetched) {
+  const { jobs, workflowRun } = prefetched;
+  if (jobs.length === 0) return void 0;
+  const jobTimings = [];
+  const steps = [];
+  const matchedJob = selectCurrentJob(jobs);
+  const runner = matchedJob ? {
+    os: matchedJob.runner_os ?? void 0,
+    labels: matchedJob.labels ?? void 0
+  } : void 0;
+  for (const job of jobs) {
+    const jobDuration = durationBetweenMs(job.started_at, job.completed_at);
+    jobTimings.push({
+      name: job.name ?? "Job",
+      durationMs: jobDuration,
+      startedAt: job.started_at ?? void 0,
+      completedAt: job.completed_at ?? void 0
+    });
+    for (const step of job.steps ?? []) {
+      steps.push({
+        jobName: job.name ?? "Job",
+        stepName: step.name ?? `Step ${step.number}`,
+        stepNumber: step.number ?? 0,
+        status: step.conclusion ?? step.status ?? "unknown",
+        durationMs: durationBetweenMs(step.started_at, step.completed_at),
+        startedAt: step.started_at ?? void 0,
+        completedAt: step.completed_at ?? void 0
       });
-      if (desiredJob && job.name === desiredJob) {
-        const jobMeta = job;
-        runner = {
-          os: jobMeta.runner_os ?? void 0,
-          labels: jobMeta.labels ?? void 0
-        };
-      }
-      for (const step of job.steps ?? []) {
-        steps.push({
-          jobName: job.name ?? "Job",
-          stepName: step.name ?? `Step ${step.number}`,
-          stepNumber: step.number ?? 0,
-          status: step.conclusion ?? step.status ?? "unknown",
-          durationMs: durationBetweenMs(step.started_at, step.completed_at),
-          startedAt: step.started_at ?? void 0,
-          completedAt: step.completed_at ?? void 0
-        });
-      }
     }
-    if (!runner && jobs.length > 0) {
-      const first = jobs[0];
-      const jobMeta = first;
-      runner = {
-        os: jobMeta.runner_os ?? void 0,
-        labels: jobMeta.labels ?? void 0
-      };
+  }
+  const runStartedAt = workflowRun?.run_started_at ?? workflowRun?.created_at;
+  const runCompletedAt = workflowRun?.status === "completed" ? workflowRun.updated_at : void 0;
+  const workflowDurationMs = durationBetweenMs(runStartedAt, runCompletedAt) || void 0;
+  const slowestStep = findSlowestStep(steps);
+  return {
+    summary: {
+      workflowDurationMs,
+      jobs: jobTimings,
+      steps,
+      slowestStep
+    },
+    runner
+  };
+}
+async function fetchWorkflowTiming(token, context11, prefetched) {
+  try {
+    let data = prefetched;
+    if (!data?.workflowRun) {
+      data = await fetchWorkflowRunJobs(token, context11, { includeWorkflowRun: true });
     }
-    const runStartedAt = workflowRun.run_started_at ?? workflowRun.created_at;
-    const runCompletedAt = workflowRun.status === "completed" ? workflowRun.updated_at : void 0;
-    const workflowDurationMs = durationBetweenMs(runStartedAt, runCompletedAt) || void 0;
-    const slowestStep = findSlowestStep(steps);
-    return {
-      summary: {
-        workflowDurationMs,
-        jobs: jobTimings,
-        steps,
-        slowestStep
-      },
-      runner
-    };
+    if (!data) return void 0;
+    return buildWorkflowTimingFromJobs(data);
   } catch (error2) {
     core5.debug(`Failed to fetch workflow timing: ${error2 instanceof Error ? error2.message : String(error2)}`);
     return void 0;
@@ -183768,7 +183862,6 @@ async function run() {
   const phaseStart = performance.now();
   const config = loadConfig();
   const context11 = detectContext();
-  context11.jobUrl = await resolveCurrentJobUrl(config.githubToken, context11);
   let htmlArtifactUrl;
   core12.info(`Parsing test results: ${config.testResults}`);
   const { tests, sourceFiles, matchedFiles } = await parseTestFiles(config.testResults);
@@ -183813,9 +183906,23 @@ async function run() {
     }
   }
   let workflowTiming = void 0;
-  if (config.history.enabled && config.workflowTimingEnabled) {
+  const needsJobSteps = tests.length === 0 && config.inferFailureFromJobSteps;
+  const needsWorkflowTiming = config.history.enabled && config.workflowTimingEnabled;
+  const needsWorkflowJobs = needsJobSteps || needsWorkflowTiming;
+  let workflowRunJobs = void 0;
+  if (needsWorkflowJobs) {
+    const jobsStart = performance.now();
+    workflowRunJobs = await fetchWorkflowRunJobs(
+      config.githubToken,
+      context11,
+      { includeWorkflowRun: needsWorkflowTiming }
+    );
+    actionPhases.fetchWorkflowJobs = Math.round(performance.now() - jobsStart);
+  }
+  context11.jobUrl = workflowRunJobs ? resolveCurrentJobUrlFromJobs(context11, workflowRunJobs.jobs) : await resolveCurrentJobUrl(config.githubToken, context11);
+  if (needsWorkflowTiming) {
     const timingStart = performance.now();
-    workflowTiming = await fetchWorkflowTiming(config.githubToken, context11);
+    workflowTiming = await fetchWorkflowTiming(config.githubToken, context11, workflowRunJobs);
     actionPhases.fetchWorkflowTiming = Math.round(performance.now() - timingStart);
     if (workflowTiming?.summary.workflowDurationMs !== void 0) {
       core12.info(`Workflow duration: ${workflowTiming.summary.workflowDurationMs}ms`);
@@ -183823,11 +183930,21 @@ async function run() {
   }
   context11.completedAt = resolveRunCompletedAt(sourceFiles, (/* @__PURE__ */ new Date()).toISOString());
   const stats = computeStats(tests);
-  const status = deriveStatus(tests);
+  const failedPriorSteps = needsJobSteps ? fetchFailedPriorStepsFromJobs(workflowRunJobs) : [];
+  const { status, reason: statusReason } = deriveRunStatus({
+    tests,
+    testResultsFailIfMissing: config.testResultsFailIfMissing,
+    inferFailureFromJobSteps: config.inferFailureFromJobSteps,
+    failedPriorSteps,
+    diagnostics,
+    diagnosticsEnabled: config.diagnostics.enabled,
+    diagnosticsFailOnErrors: config.diagnosticsFailOnErrors
+  });
   const testRun = {
     id: String(context11.runId),
     title: config.reportTitle,
     status,
+    statusReason,
     stats,
     tests,
     context: context11,
@@ -183935,7 +184052,7 @@ async function run() {
   core12.setOutput("coverage-branch", mergedRun.coverage?.summary.branch !== void 0 ? String(mergedRun.coverage.summary.branch) : "");
   core12.setOutput("coverage-status", mergedRun.coverage?.sourceFiles.length ? "present" : "missing");
   if (status === "failed") {
-    core12.setFailed(`${stats.failed} test(s) failed`);
+    core12.setFailed(statusReason ?? `${stats.failed} test(s) failed`);
   }
 }
 run().catch((error2) => {

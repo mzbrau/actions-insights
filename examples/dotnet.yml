@@ -26,10 +26,19 @@ jobs:
       - name: Test
         run: dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage --logger "trx;LogFileName=results.trx"
 
+      # Optional: capture build output when build and test share a job (see build-diagnostics.md)
+      # - name: Build
+      #   run: dotnet build 2>&1 | tee build.log
+      # - name: Test
+      #   run: dotnet test --no-build --logger "trx;LogFileName=results.trx"
+
       - name: Actions Insights
         uses: ./
+        if: always()
         with:
           test-results: '**/*.trx'
           coverage-enabled: true
           coverage-files: '**/coverage.cobertura.xml'
+          # diagnostics-enabled: true
+          # diagnostics-files: 'build.log'
           reports-subdirectory: test-reports

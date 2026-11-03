@@ -30,6 +30,9 @@ export interface DiagnosticsConfig {
 
 export interface ActionConfig {
   testResults: string;
+  testResultsFailIfMissing: boolean;
+  inferFailureFromJobSteps: boolean;
+  diagnosticsFailOnErrors: boolean;
   reportsSubdirectory: string;
   commentMode: CommentMode;
   historyLimit: number;
@@ -67,6 +70,9 @@ export function loadConfig(): ActionConfig {
 
   return {
     testResults: core.getInput('test-results') || '**/*.{trx,xml}',
+    testResultsFailIfMissing: getBooleanOr('test-results-fail-if-missing', false),
+    inferFailureFromJobSteps: getBooleanOr('infer-failure-from-job-steps', true),
+    diagnosticsFailOnErrors: getBooleanOr('diagnostics-fail-on-errors', true),
     reportsSubdirectory,
     commentMode,
     historyLimit: parsePositiveInt(core.getInput('history'), 20),

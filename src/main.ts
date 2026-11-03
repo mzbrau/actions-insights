@@ -5,7 +5,13 @@ import { parseDiagnosticFiles } from './diagnostic-parsers/registry';
 import { publishCheckRun } from './github/checks';
 import { upsertPrComment } from './github/comment';
 import { detectContext } from './github/context';
-import { fetchWorkflowTiming, resolveCurrentJobUrl } from './github/jobs';
+import {
+  fetchFailedPriorStepsFromJobs,
+  fetchWorkflowRunJobs,
+  fetchWorkflowTiming,
+  resolveCurrentJobUrl,
+  resolveCurrentJobUrlFromJobs,
+} from './github/jobs';
 import { writeJobSummary } from './github/job-summary';
 import { integrateReportIntoSite } from './history/integrate';
 import { publishToHistoryRepository } from './history-repo/publish';
@@ -14,7 +20,7 @@ import {
   buildHistoryRunUrl,
   resolveHistoryPagesBaseUrl,
 } from './history-repo/dashboard-url';
-import { computeStats, deriveStatus } from './model/test-run';
+import { computeStats, deriveRunStatus } from './model/test-run';
 import type { TestRun } from './model/test-run';
 import { parseCoverageFiles } from './coverage-parsers/registry';
 import { parseTestFiles } from './parsers/registry';
@@ -30,7 +36,6 @@ async function run(): Promise<void> {
 
   const config = loadConfig();
   const context = detectContext();
-  context.jobUrl = await resolveCurrentJobUrl(config.githubToken, context);
   let htmlArtifactUrl: string | undefined;
 
   core.info(`Parsing test results: ${config.testResults}`);
@@ -80,9 +85,28 @@ async function run(): Promise<void> {
   }
 
   let workflowTiming = undefined;
-  if (config.history.enabled && config.workflowTimingEnabled) {
+  const needsJobSteps = tests.length === 0 && config.inferFailureFromJobSteps;
+  const needsWorkflowTiming = config.history.enabled && config.workflowTimingEnabled;
+  const needsWorkflowJobs = needsJobSteps || needsWorkflowTiming;
+
+  let workflowRunJobs = undefined;
+  if (needsWorkflowJobs) {
+    const jobsStart = performance.now();
+    workflowRunJobs = await fetchWorkflowRunJobs(
+      config.githubToken,
+      context,
+      { includeWorkflowRun: needsWorkflowTiming },
+    );
+    actionPhases.fetchWorkflowJobs = Math.round(performance.now() - jobsStart);
+  }
+
+  context.jobUrl = workflowRunJobs
+    ? resolveCurrentJobUrlFromJobs(context, workflowRunJobs.jobs)
+    : await resolveCurrentJobUrl(config.githubToken, context);
+
+  if (needsWorkflowTiming) {
     const timingStart = performance.now();
-    workflowTiming = await fetchWorkflowTiming(config.githubToken, context);
+    workflowTiming = await fetchWorkflowTiming(config.githubToken, context, workflowRunJobs);
     actionPhases.fetchWorkflowTiming = Math.round(performance.now() - timingStart);
     if (workflowTiming?.summary.workflowDurationMs !== undefined) {
       core.info(`Workflow duration: ${workflowTiming.summary.workflowDurationMs}ms`);
@@ -92,11 +116,23 @@ async function run(): Promise<void> {
   context.completedAt = resolveRunCompletedAt(sourceFiles, new Date().toISOString());
 
   const stats = computeStats(tests);
-  const status = deriveStatus(tests);
+  const failedPriorSteps = needsJobSteps
+    ? fetchFailedPriorStepsFromJobs(workflowRunJobs)
+    : [];
+  const { status, reason: statusReason } = deriveRunStatus({
+    tests,
+    testResultsFailIfMissing: config.testResultsFailIfMissing,
+    inferFailureFromJobSteps: config.inferFailureFromJobSteps,
+    failedPriorSteps,
+    diagnostics,
+    diagnosticsEnabled: config.diagnostics.enabled,
+    diagnosticsFailOnErrors: config.diagnosticsFailOnErrors,
+  });
   const testRun: TestRun = {
     id: String(context.runId),
     title: config.reportTitle,
     status,
+    statusReason,
     stats,
     tests,
     context,
@@ -218,7 +254,7 @@ async function run(): Promise<void> {
   core.setOutput('coverage-status', mergedRun.coverage?.sourceFiles.length ? 'present' : 'missing');
 
   if (status === 'failed') {
-    core.setFailed(`${stats.failed} test(s) failed`);
+    core.setFailed(statusReason ?? `${stats.failed} test(s) failed`);
   }
 }
 
