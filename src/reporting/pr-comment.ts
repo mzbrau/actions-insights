@@ -21,7 +21,33 @@ import { computeSuiteSummaries, formatSuiteSummaryMarkdown, shouldShowSuiteSumma
 import { formatUtcTimestamp } from './time';
 
 
+/** Legacy unscoped marker used before per-check-name upserts. */
 export const COMMENT_MARKER = '<!-- actions-insights-report -->';
+
+/** Default `check-name` / marker key (matches action.yml). */
+export const DEFAULT_CHECK_NAME = 'Actions Insights';
+
+/**
+ * Sanitize a check-name for use inside an HTML comment marker.
+ * Strips control chars, collapses `--` (illegal in HTML comments), and removes `>`.
+ */
+export function sanitizeCommentMarkerKey(checkName: string): string {
+  const sanitized = checkName
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/--+/g, '-')
+    .replace(/>/g, '')
+    .trim();
+  return sanitized || DEFAULT_CHECK_NAME;
+}
+
+/** Scoped marker so multiple publishers on one PR upsert distinct comments. */
+export function buildCommentMarker(checkName: string): string {
+  return `<!-- actions-insights-report:${sanitizeCommentMarkerKey(checkName)} -->`;
+}
+
+export function isDefaultCheckName(checkName: string): boolean {
+  return sanitizeCommentMarkerKey(checkName) === sanitizeCommentMarkerKey(DEFAULT_CHECK_NAME);
+}
 
 export function renderPrComment(
   ctx: ReportingContext,
@@ -49,7 +75,7 @@ export function renderPrComment(
   };
 
   const lines: string[] = [
-    COMMENT_MARKER,
+    buildCommentMarker(config.checkName),
     ...buildCommentHistoryMarkers(currentState, previousResults),
     `# ${emoji} ${statusLabel} — ${config.reportTitle}`,
     '',
